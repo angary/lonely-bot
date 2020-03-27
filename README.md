@@ -1,5 +1,8 @@
 # Discord Lonely Bot
-Currently deployed on 'Backstreet Banana Boys' and 'rock expert society'
+Currently deployed on 'Backstreet Banana Boys' and 'rock expert society'.
+
+Link to add to your server: <br>
+https://discordapp.com/api/oauth2/authorize?client_id=647044127313362980&permissions=8&scope=bot
 
 # Table Of Contents
 1. [To do list](#To-Do-List)
@@ -16,13 +19,13 @@ Currently deployed on 'Backstreet Banana Boys' and 'rock expert society'
 
 # Languages <a name="Languages"></a>
 ## Javscript
-Currently I'm using Javascript because discord itself is also written in JS, and the JS library 'discord.js' has much greater capabilities (I think) and looks much more epic (I know) than the python one.
+~~Currently I'm using Javascript because discord itself is also written in JS, and the JS library 'discord.js' has much greater capabilities (I think) and looks much more epic (I know) than the python one.~~
 
-It can be found here: <br>
-https://discord.js.org/#/
+~~It can be found here: <br>
+https://discord.js.org/#/~~
 
-Further documentation and information on how to use the library can be used here: <br>
-https://discord.js.org/#/docs/main/master/general/welcome
+~~Further documentation and information on how to use the library can be used here: <br>
+https://discord.js.org/#/docs/main/master/general/welcome~~
 
 
 ## Python
