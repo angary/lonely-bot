@@ -26,7 +26,7 @@ https://discord.js.org/#/docs/main/master/general/welcome
 
 
 ## Python
-Maybe later
+Currently using python because it WORKS
 
 
 # Extra Information <a name="Extra-Information"></a>

@@ -1,5 +1,5 @@
 {
-  "name": "discord-aluminium-bot",
+  "name": "lnly_bot_beta",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "",
+  "author": "Gary Sun",
   "license": "ISC",
   "dependencies": {
     "discord.js": "^11.5.1"
