@@ -9,6 +9,7 @@ client = discord.Client()
 async def on_ready():
     print("Red panda active.")
 
+
 @client.event
 async def on_message(message):
     if message.author == client.user:
