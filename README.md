@@ -1,6 +1,4 @@
 # Discord Lonely Bot
-Currently deployed on 'Backstreet Banana Boys' and 'rock expert society'.
-
 Link to add to your server: <br>
 https://discordapp.com/api/oauth2/authorize?client_id=647044127313362980&permissions=8&scope=bot
 
@@ -33,7 +31,4 @@ Currently using python because it WORKS
 
 
 # Extra Information <a name="Extra-Information"></a>
-- Lonely bot is named after Lone Druid
-- Red panda is reference to one of the skins for his bear
-- The 'beta' is a reference to Dota, where it's still called dota2beta in the game files
 - Don't actually have a server, so unless someone is running it, the bot's actually offline; either that or I keep my PC on 24/7
