@@ -1,0 +1,19 @@
+{
+  "name": "lonely-bot",
+  "version": "1.0.0",
+  "description": "Link to add to your server: <br>\r https://discordapp.com/api/oauth2/authorize?client_id=647044127313362980&permissions=8&scope=bot",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Gy74S/Lonely-Bot.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Gy74S/Lonely-Bot/issues"
+  },
+  "homepage": "https://github.com/Gy74S/Lonely-Bot#readme"
+}

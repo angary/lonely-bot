@@ -17,17 +17,13 @@ https://discordapp.com/api/oauth2/authorize?client_id=647044127313362980&permiss
 
 # Languages <a name="Languages"></a>
 ## Javscript
-~~Currently I'm using Javascript because discord itself is also written in JS, and the JS library 'discord.js' has much greater capabilities (I think) and looks much more epic (I know) than the python one.~~
+Currently I'm using Javascript because discord itself is also written in JS, and the JS library 'discord.js' has much greater capabilities (I think) and looks much more epic (I know) than the python one.
 
-~~It can be found here: <br>
-https://discord.js.org/#/~~
+It can be found here: <br>
+https://discord.js.org/#/
 
-~~Further documentation and information on how to use the library can be used here: <br>
-https://discord.js.org/#/docs/main/master/general/welcome~~
-
-
-## Python
-Currently using python because it WORKS
+Further documentation and information on how to use the library can be used here: <br>
+https://discord.js.org/#/docs/main/master/general/welcome
 
 
 # Extra Information <a name="Extra-Information"></a>
