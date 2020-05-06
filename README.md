@@ -3,13 +3,15 @@ Link to add to your server: <br>
 https://discordapp.com/api/oauth2/authorize?client_id=647044127313362980&permissions=8&scope=bot
 
 # Table Of Contents
-1. [Capbilities](#To-Do-List)
+1. [To do](#To-Do-List)
 2. [Languages](#Languages)
 3. [Extra Information](#Extra-Information)
 
-## Capabilities: <a name="To-Do-List"></a>
-1. Current goal is to allow it to webscrape data from opendota or dotabuff
-
+## To do: <a name="To-Do-List"></a>
+1. Find a method to analyse two-word hero names
+2. Find a method to search up two-word hero names
+3. Find a method to webscrape using javascript
+4. Find a method to implement this all into the discord bot
 # Languages <a name="Languages"></a>
 ## Javscript
 Currently using Javscript because the discord.js library has good documentation and capabilties.<br>

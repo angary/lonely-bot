@@ -17,13 +17,25 @@ const cooldowns = new Discord.Collection();
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 //                                                                                        //
-//                               Responses to messages                                    //
+//                               Stuff to do once it's run                                //
 //                                                                                        //
 ////////////////////////////////////////////////////////////////////////////////////////////
 
 client.once('ready', () => {
-	console.log('Ready!');
+
+    // Prints out ready in the console 
+    console.log('Ready!');
+
+    // Sets it's activity (what discord says it's doing)
+    client.user.setActivity('asdfidkman');
 });
+
+
+////////////////////////////////////////////////////////////////////////////////////////////
+//                                                                                        //
+//                               Responses to messages                                    //
+//                                                                                        //
+////////////////////////////////////////////////////////////////////////////////////////////
 
 client.on('message', message => {
 
