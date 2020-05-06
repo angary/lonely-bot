@@ -27,7 +27,7 @@ client.once('ready', () => {
     console.log('Ready!');
 
     // Sets it's activity (what discord says it's doing)
-    client.user.setActivity('asdfidkman');
+    client.user.setActivity('>jebeta');
 });
 
 
