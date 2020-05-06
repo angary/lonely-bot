@@ -1,5 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////
+//                                                                                        //
 //                               Adds all the files                                       //
+//                                                                                        //
 ////////////////////////////////////////////////////////////////////////////////////////////
 const fs = require('fs');
 const Discord = require('discord.js');
@@ -13,6 +15,11 @@ for (const file of commandFiles) {
 }
 const cooldowns = new Discord.Collection();
 
+////////////////////////////////////////////////////////////////////////////////////////////
+//                                                                                        //
+//                               Responses to messages                                    //
+//                                                                                        //
+////////////////////////////////////////////////////////////////////////////////////////////
 
 client.once('ready', () => {
 	console.log('Ready!');
@@ -32,9 +39,9 @@ client.on('message', message => {
         || client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
     if (!command) return;
 
-////////////////////////////////////////////////////////////////////////////////////////////
-//                               Errors with command                                      //
-////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////
+    //                               Errors with command                                      //
+    ////////////////////////////////////////////////////////////////////////////////////////////
 
     // DMs
     if (command.guildOnly && message.channel.type != 'text') {
@@ -70,16 +77,15 @@ client.on('message', message => {
     // James 
     if (message.author.id === '124769715456442368') {
         return message.channel.send(`user: ${message.author.username} is a disapointment`);
-    }
-////////////////////////////////////////////////////////////////////////////////////////////
-//                                Else executes the command                               //
-////////////////////////////////////////////////////////////////////////////////////////////
+    }  
+    ////////////////////////////////////////////////////////////////////////////////////////////
+    //                                Else executes the command                               //
+    ////////////////////////////////////////////////////////////////////////////////////////////
     try {
         command.execute(message, args);
     } catch (error) {
         message.reply('there was an error trying to execute that command');
     }
-
 });
 
 client.login(token);

@@ -1,6 +1,6 @@
 module.exports = {
 	name: 'kick',
-    description: 'prints that it\'s going to kick someone',
+    description: 'prints that it\'s going to kick someone but it actually doesn\'t',
     guildOnly: true,
 	execute(message, args) {
         const taggedUser = message.mentions.users.first();
