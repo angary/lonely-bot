@@ -100,4 +100,5 @@ client.on('message', message => {
     }
 });
 
+// Logins with the bot token
 client.login(token);
