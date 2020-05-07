@@ -1,4 +1,5 @@
 const Discord = require(`discord.js`);
+const request = require('request');
 
 module.exports = {
 	name: 'dotabuff',
@@ -22,7 +23,16 @@ module.exports = {
         // Sends them the link that they were going to webscrape
         message.channel.send(`Going to check url at: https://www.dotabuff.com/heroes/${totalHeroName}`);
 
-
+        // The website that i am requesting, first argment is the URL, and the second argument is 
+        request(`https://www.dotabuff.com/heroes/${totalHeroName}`, (error, response, html) => {
+            // If there are no errors and statusCode is 200 (successful http response), then print out te html in the console.
+            if (!error && response.statusCode == 200) {
+                message.channel.send(`Was able to get site information`);
+            }
+            else if (response.statusCode != 200) {
+                message.channel.send(`reponse.statusCode: ${response.statusCode}`)
+            }
+        });
 
         // Sends them a embed with the information about the hero
         const embed = new Discord.MessageEmbed()

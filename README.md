@@ -8,7 +8,7 @@ https://discordapp.com/api/oauth2/authorize?client_id=647044127313362980&permiss
 3. [Setup](#Setup)
 4. [Extra Information](#Extra-Information)
 
-## Current Capabilities: <a name="To-Do-List"></a>
+# Current Capabilities: <a name="To-Do-List"></a>
 1. Can analyse multiple word hero names, and 
 2. Find a method to search up two-word hero names
 3. Find a method to webscrape using javascript
