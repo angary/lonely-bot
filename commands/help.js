@@ -4,6 +4,7 @@ module.exports = {
 	name: 'help',
 	description: 'List all of my commands or info about a specific command.',
 	aliases: ['commands'],
+	args: false,
 	usage: '[command name]',
 	cooldown: 5,
 	execute(message, args) {

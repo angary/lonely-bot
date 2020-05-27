@@ -53,39 +53,11 @@ client.login('token');
 ```
 
 
-## request
-This will allow you to make http calls (used for webscraping)<br>
-`npm install request`<br>
-*Example usage:*<br>
-```js
-const request = require('request');
-
-request('http://www.google.com', function (error, response, body) {
-  console.error('error:', error); // Print the error if one occurred
-  console.log('statusCode:', response && response.statusCode); // Print the response status code if a response was received
-  console.log('body:', body); // Print the HTML for the Google homepage.
-});
-```
-
-
-## cheerio
-Maybe it will be used (not sure yet). It's just something that'll be used for manipulating webdata.<br>
-`npm install cheerio`<br>
-*Example usage:*<br>
-```js
-const cheerio = require('cheerio')
-const $ = cheerio.load('<h2 class="title">Hello world</h2>')
-
-$('h2.title').text('Hello there!')
-$('h2').addClass('welcome')
-
-$.html()
-//=> <html><head></head><body><h2 class="title welcome">Hello there!</h2></body></html>
-```
-
+## node-fetch
+This will allow you to make fetch the opendota API<br>
+`npm install node-fetch`<br>
 
 
 # Extra Information <a name="Extra-Information"></a>
-- Don't actually have a server, so unless someone is running it, the bot's actually offline; either that or I keep my PC on 24/7
-
-[comment]: <> (HeHeXD)
+- Don't actually have a server, so unless someone is running it, the bot's actually offline; either that or I keep my PC on 24/7<br>
+- Ignore that it's hosted on heroku now<br>

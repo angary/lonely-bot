@@ -42,7 +42,10 @@ client.on('message', message => {
     // Does nothing if it doesn't being with the proper prefix
     if (!message.content.startsWith(prefix) || message.author.bot) return;
 
+    // Stores the arguments in a new array without the prefix and splits array into strings
     const args = message.content.slice(prefix.length).split(/ +/);
+
+    // Removes the first argument as the command name, and converts to lower case
     const commandName = args.shift().toLowerCase();
 
     
@@ -103,4 +106,5 @@ client.on('message', message => {
 });
 
 // Logins with the bot token
-client.login(process.env.BOT_TOKEN);
+// client.login(process.env.BOT_TOKEN);
+client.login("NjQ3MDQ0MTI3MzEzMzYyOTgw.Xs4EMA.8L0JDX8XueFLfFfmVXIYiyt08Lw")
