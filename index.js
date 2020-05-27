@@ -103,5 +103,4 @@ client.on('message', message => {
 });
 
 // Logins with the bot token
-client.login(token);
-console.log("asdf pushed to heroku")
+client.login(process.env.BOT_TOKEN);
