@@ -33,7 +33,7 @@ Ignore any warnings about unmet peer dependencies, as they're all optional.
 Without voice support: `npm install discord.js`  
 With voice support ([@discordjs/opus](https://www.npmjs.com/package/@discordjs/opus)): `npm install discord.js @discordjs/opus`  
 With voice support ([opusscript](https://www.npmjs.com/package/opusscript)): `npm install discord.js opusscript`<br>
-Example usage:<br>
+*Example usage:*<br>
 
 ```js
 const Discord = require('discord.js');
@@ -56,7 +56,7 @@ client.login('token');
 ## request
 This will allow you to make http calls (used for webscraping)<br>
 `npm install request`<br>
-Example usage:<br>
+*Example usage:*<br>
 ```js
 const request = require('request');
 
@@ -71,7 +71,7 @@ request('http://www.google.com', function (error, response, body) {
 ## cheerio
 Maybe it will be used (not sure yet). It's just something that'll be used for manipulating webdata.<br>
 `npm install cheerio`<br>
-Example usage:<br>
+*Example usage:*<br>
 ```js
 const cheerio = require('cheerio')
 const $ = cheerio.load('<h2 class="title">Hello world</h2>')

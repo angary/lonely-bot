@@ -86,10 +86,12 @@ client.on('message', message => {
     timestamps.set(message.author.id, now);
     setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
 
+    /*
     // James 
     if (message.author.id === '124769715456442368') {
         return message.channel.send(`user: ${message.author.username} is a disapointment`);
     }  
+    */
     ////////////////////////////////////////////////////////////////////////////////////////////
     //                                Else executes the command                               //
     ////////////////////////////////////////////////////////////////////////////////////////////

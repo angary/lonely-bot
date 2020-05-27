@@ -1,4 +1,6 @@
 const request = require('request');
+const cheerio = require('cheerio');
+
 
 module.exports = {
 	name: 'dankmemes',
@@ -6,16 +8,30 @@ module.exports = {
     cooldown: 5,
 	execute(message, args) {
         
+        
+        // Dld code which couldn't scrape website
         message.channel.send(`asdf`);
 
-        request(`https://www.reddit.com/r/dankmemes/`, (error, response, html) => {
+        request(`http://www.reddit.com/r/dankmemes/`, (error, response, html) => {
+
             if (!error && response.statusCode == 200) {
-                message.channel.send(`Success`);
-                console.log(response);
+                
+                
+                // Assigns '$' to the html of the page
+                const $ = cheerio.load(html);
+
+                // Finds the h3 test and prints it in the console
+                const posts = $('.rpBJOHq2PR60pnwJlUyP0');
+                const titles = posts.find('h3').text();
+                const pictures = posts.find('src');
+                message.channel.send(pictures);
+                message.channel.send(titles);
+                
+                message.channel.send('Function development was discontinued');
             }
             else {
-                message.channel.send(`Error: reponse.statusCode: ${response.statusCode}`);
+                message.channel.send(`Error:\nreponse.statusCode was: ${response.statusCode}`);
             }
-        })
+        })        
 	},
 };
