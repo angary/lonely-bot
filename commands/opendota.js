@@ -1,4 +1,3 @@
-const Discord = require(`discord.js`);
 const fetch = require('node-fetch');
 
 module.exports = {
@@ -11,8 +10,6 @@ module.exports = {
 	execute(message, args) {
 
         let url = `https://api.opendota.com/api/players/${args[0]}`
-
-
         fetch(`${url}`)
             .then(
                 function (response) {
