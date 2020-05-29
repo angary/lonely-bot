@@ -17,13 +17,14 @@ const cooldowns = new Discord.Collection();
 //                               Stuff to do once it's run                                //
 ////////////////////////////////////////////////////////////////////////////////////////////
 
+
 client.once('ready', () => {
 
     // Prints out ready in the console 
     console.log('Ready!');
 
     // Sets it's activity (what discord says it's doing)
-    client.user.setActivity('>jebeta');
+    client.user.setActivity(`${prefix}jebeta`);
 });
 
 
@@ -48,9 +49,9 @@ client.on('message', message => {
         || client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
     if (!command) return;
 
-    ////////////////////////////////////////////////////////////////////////////////////////////
+    //----------------------------------------------------------------------------------------//
     //                               Errors with command                                      //
-    ////////////////////////////////////////////////////////////////////////////////////////////
+    //----------------------------------------------------------------------------------------//
 
     // DMs
     if (command.guildOnly && message.channel.type != 'text') {
@@ -83,15 +84,9 @@ client.on('message', message => {
     timestamps.set(message.author.id, now);
     setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
 
-    /*
-    // James 
-    if (message.author.id === '124769715456442368') {
-        return message.channel.send(`user: ${message.author.username} is a disapointment`);
-    }  
-    */
-    ////////////////////////////////////////////////////////////////////////////////////////////
+    //----------------------------------------------------------------------------------------//
     //                                Else executes the command                               //
-    ////////////////////////////////////////////////////////////////////////////////////////////
+    //----------------------------------------------------------------------------------------//
     try {
         command.execute(message, args);
     } catch (error) {
@@ -100,4 +95,9 @@ client.on('message', message => {
 });
 
 // Logins with the bot token
-client.login(process.env.BOT_TOKEN);
+if (token === "") {
+    client.login(process.env.BOT_TOKEN)
+}
+else {
+    client.login(token);
+}
