@@ -12,50 +12,16 @@ https://discordapp.com/api/oauth2/authorize?client_id=647044127313362980&permiss
 
 
 # Current Capabilities: <a name="To-Do-List"></a>
-1. Can analyse multiple word hero names, and 
-2. Find a method to search up two-word hero names
-3. Find a method to webscrape using javascript
-4. Find a method to implement this all into the discord bot
+1. Can find the area of that stat pentagon in dota
+2. Can use opendota API to give general information about the player profile
 
 
 
 # Setup <a name="Setup"></a>
-## Node.js
-You'll need node.js to run the javascript code<br>
-Download [here](https://nodejs.org/en/download/)
-
-
-## Discord.js
-This will provide the libraries for interacting with the Discord api<br>
-**Node.js 12.0.0 or newer is required.**  
-Ignore any warnings about unmet peer dependencies, as they're all optional.
-
-Without voice support: `npm install discord.js`  
-With voice support ([@discordjs/opus](https://www.npmjs.com/package/@discordjs/opus)): `npm install discord.js @discordjs/opus`  
-With voice support ([opusscript](https://www.npmjs.com/package/opusscript)): `npm install discord.js opusscript`<br>
-*Example usage:*<br>
-
-```js
-const Discord = require('discord.js');
-const client = new Discord.Client();
-
-client.on('ready', () => {
-  console.log(`Logged in as ${client.user.tag}!`);
-});
-
-client.on('message', msg => {
-  if (msg.content === 'ping') {
-    msg.reply('pong');
-  }
-});
-
-client.login('token');
+Ensure that you have node installed, and run:
 ```
-
-
-## node-fetch
-This will allow you to make fetch the opendota API<br>
-`npm install node-fetch`<br>
+npm install
+```
 
 
 # Extra Information <a name="Extra-Information"></a>
