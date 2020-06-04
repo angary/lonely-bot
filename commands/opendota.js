@@ -2,7 +2,7 @@
 const fetch = require('node-fetch');
 
 module.exports = {
-	name: 'opendota',
+	name: '>opendota',
     description: 'Uses opendota API to collect information on player',
     aliases: ['od'],
     args: true,
@@ -11,15 +11,16 @@ module.exports = {
     async execute(message, args) {
 
         // Declared variables
-        let name = "don't";
-        let picture = "string";
-        let country = "know";
-        let rank_tier = "how to use";
-        let mmr_estimate = "callbacks";
-        let won = "0";
-        let lost = "0";
-
-        // URL for fetching API
+        let p = {
+            name: "don't",
+            picture: "asdf",
+            country: "know",
+            rank_tier: "how to use",
+            mmr_estimate: "callbacks",
+            won: "0",
+            lost: "0",
+            hero: ['one', 'two', 'three']
+        }
 
         // TODO: Implement method for immortal
         function medal(rank) {
@@ -42,36 +43,63 @@ module.exports = {
         let base_url = `https://api.opendota.com/api/players/${args[0]}`
         let profile = fetch (base_url);
         let win_lose = fetch (`${base_url}/wl`);
+        let player_heroes = fetch(`${base_url}/heroes`);
+        let heroes = fetch(`https://api.opendota.com/api/heroes`);
 
-        Promise.all([profile, win_lose])
-        .then ( stats => {
+        Promise.all([profile, win_lose, player_heroes, heroes])
+            .then(response => Promise.all(response.map(response => response.json())))
+            .then(data => {
 
-            // Error Checking
-            for (let i = 0; i < stats.length; i++) {
-                if (stats[i].status !== 200) {
-                    message.channel.send(`Looks like there was a problem. Status Code: ${stats[i].status}`);
-                    return;
-                };
-            }
-            stats[0].json().then(function (data) {
-                console.log(data);
-                name = data.profile.personaname;
-                picture = data.profile.avatar;
-                country = data.profile.loccountrycode;
-                rank_tier = data.rank_tier;
-                mmr_estimate = data.mmr_estimate.estimate;
-                message.channel.send(`Steam name: **${name}** \nCountry: **${country}** \nMedal: **${medal(rank_tier)}** \nEstimated MMR: **${mmr_estimate}**`);
+                // Profile details
+                p.name = data[0].profile.personaname;
+                p.picture = data[0].profile.avatar;
+                p.country = data[0].profile.loccountrycode;
+                p.rank_tier = data[0].rank_tier;
+                p.mmr_estimate = data[0].mmr_estimate.estimate;
+                message.channel.send(`Steam name: **${p.name}** \nCountry: **${p.country}** \nMedal: **${medal(p.rank_tier)}** \nEstimated MMR: **${p.mmr_estimate}**`);
+
+                // Won and lost games
+                p.won = data[1].win;
+                p.lost = data[1].lose;
+                message.channel.send(`Won games: **${p.won}** \nLost games: **${p.lost}** \nWinrate: **${(100 * p.won/(p.won + p.lost)).toFixed(2)}%**`);
+
+                // Heroes
+                for (let i = 0; i < 3; i++) {
+                    for (let j = 0; i < data[3].length - 1; j++) {
+                        if (data[3][j].id == data[2][i].hero_id) {
+                            p.hero[i] = data[3][j].localized_name;
+                            break;
+                        } 
+                    }
+                } 
+                message.channel.send(`Best heroes: **${p.hero[0]}**,  **${p.hero[1]}**,  **${p.hero[2]}**`);
             })
-            stats[1].json().then(function (data) {
-                console.log(data);
-                won = data.win;
-                lost = data.lose;
-                message.channel.send(`Won games: **${won}** \nLost games: **${lost}** \nWinrate: **${(100 * won/(won + lost)).toFixed(2)}%**`);
+            .then(() => {
+                console.log(p);
             })
-        })
-        .catch(function (err) {
-            message.channel.send(`Fetch error ${err}`);
-        });
+            .catch(function(error) {
+                console.log(error);
+            })
+            // responses[0].then(async function profile (data) {
+            //     console.log(data);
+            //     p.name = await data.profile.personaname;
+            //     p.picture = await data.profile.avatar;
+            //     p.country = await data.profile.loccountrycode;
+            //     p.rank_tier = await data.rank_tier;
+            //     p.mmr_estimate = await data.mmr_estimate.estimate;
+            //     // message.channel.send(`Steam name: **${p.name}** \nCountry: **${p.country}** \nMedal: **${medal(p.rank_tier)}** \nEstimated MMR: **${p.mmr_estimate}**`);
+            // })
+            // responses[1].then(async function win_lose (data) {
+            //     console.log(data);
+            //     p.won = await data.win;
+            //     p.lost = await data.lose;
+            //     // message.channel.send(`Won games: **${p.won}** \nLost games: **${p.lost}** \nWinrate: **${(100 * p.won/(p.won + p.lost)).toFixed(2)}%**`);
+            // })
+            // .then (() => {
+            // })
+            // .catch(function (err) {
+            //     message.channel.send(`Fetch error ${err}`);
+            // })
 	},
 };
 
@@ -103,3 +131,15 @@ module.exports = {
 //         "is_contributor": false
 //     }
 // }
+// [
+//     {
+//       "hero_id": "string",
+//       "last_played": 0,
+//       "games": 0,
+//       "win": 0,
+//       "with_games": 0,
+//       "with_win": 0,
+//       "against_games": 0,
+//       "against_win": 0
+//     }
+//   ]
