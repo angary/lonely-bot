@@ -1,5 +1,5 @@
-// My code's a bit scuffed in this file. Still figuring things out
 const fetch = require('node-fetch');
+const Discord = require('discord.js');
 
 module.exports = {
 	name: 'opendota',
@@ -13,13 +13,17 @@ module.exports = {
         // Declared variables
         let p = {
             name: "don't",
-            picture: "asdf",
+            pic: "asdf",
             country: "know",
             rank_tier: "how to use",
             mmr_estimate: "callbacks",
             won: "0",
             lost: "0",
-            hero: ['one', 'two', 'three']
+            hero: [
+                {"hero_id":"0","last_played":0,"games":0,"win":0,"with_games":0,"with_win":0,"against_games":0,"against_win":0},
+                {"hero_id":"0","last_played":0,"games":0,"win":0,"with_games":0,"with_win":0,"against_games":0,"against_win":0},
+                {"hero_id":"0","last_played":0,"games":0,"win":0,"with_games":0,"with_win":0,"against_games":0,"against_win":0}
+            ]
         }
 
         // TODO: Implement method for immortal
@@ -52,30 +56,72 @@ module.exports = {
 
                 // Profile details
                 p.name = data[0].profile.personaname;
-                p.picture = data[0].profile.avatar;
+                p.pic = data[0].profile.avatarfull;
                 p.country = data[0].profile.loccountrycode;
                 p.rank_tier = data[0].rank_tier;
                 p.mmr_estimate = data[0].mmr_estimate.estimate;
-                message.channel.send(`Steam name: **${p.name}** \nCountry: **${p.country}** \nMedal: **${medal(p.rank_tier)}** \nEstimated MMR: **${p.mmr_estimate}**`);
+                // message.channel.send(`Steam name: **${p.name}** \nCountry: **${p.country}** \nMedal: **${medal(p.rank_tier)}** \nEstimated MMR: **${p.mmr_estimate}**`);
 
                 // Won and lost games
                 p.won = data[1].win;
                 p.lost = data[1].lose;
-                message.channel.send(`Won games: **${p.won}** \nLost games: **${p.lost}** \nWinrate: **${(100 * p.won/(p.won + p.lost)).toFixed(2)}%**`);
+                // message.channel.send(`Won games: **${p.won}** \nLost games: **${p.lost}** \nWinrate: **${(100 * p.won/(p.won + p.lost)).toPrecision(2)}%**`);
 
                 // Heroes
                 for (let i = 0; i < 3; i++) {
+                    p.hero[i] = data[2][i];
                     for (let j = 0; i < data[3].length - 1; j++) {
                         if (data[3][j].id == data[2][i].hero_id) {
-                            p.hero[i] = data[3][j].localized_name;
+                            p.hero[i].id = data[3][j].localized_name;
                             break;
                         } 
                     }
                 } 
-                message.channel.send(`Best heroes: **${p.hero[0]}**,  **${p.hero[1]}**,  **${p.hero[2]}**`);
+                // message.channel.send(`Best heroes: **${p.hero[0].id}**,  **${p.hero[1].id}**,  **${p.hero[2].id}**`);
             })
             .then(() => {
-                console.log(p);
+                const profileEmbed = new Discord.MessageEmbed()
+                    .setColor('#0099ff')
+                    .setTitle(`${p.name}`)
+                    .setURL(`https://www.opendota.com/players/${args[0]}`)
+                    .setAuthor(`Lonely Bot`, 'https://i.imgur.com/wSTFkRM.png', 'https://github.com/Gy74S/Lonely-Bot')
+                    .setDescription(`Medal: **${medal(p.rank_tier)}**\nMMR Estimate: **${p.mmr_estimate}**\nCountry: **${p.country}**`)
+                    .setThumbnail(p.pic)
+                    .addFields(
+                        {
+                            name: '**Match data**', 
+                            value: `Total: **${p.won + p.lost}** | Won: **${p.won}** | Lost: **${p.lost}** | Winrate: **${(100 * p.won/(p.won + p.lost)).toPrecision(2)}%**`
+                        },
+                        { 
+                            name: `**${p.hero[0].id}**`, 
+                            value: `Games: **${p.hero[0].games}**
+                                Win as: **${(100*p.hero[0].win/p.hero[0].games).toPrecision(2)}%**
+                                Win with: **${(100*p.hero[0].with_win/p.hero[0].with_games).toPrecision(2)}%**
+                                Win against: **${(100*p.hero[0].against_win/p.hero[0].against_games).toPrecision(2)}%**`, 
+                            inline: true 
+                        },
+                        { 
+                            name: `**${p.hero[1].id}**`, 
+                            value: `Games: **${p.hero[1].games}**
+                                Win as: **${(100*p.hero[1].win/p.hero[1].games).toPrecision(2)}%**
+                                Win with: **${(100*p.hero[1].with_win/p.hero[1].with_games).toPrecision(2)}%**
+                                Win against: **${(100*p.hero[1].against_win/p.hero[1].against_games).toPrecision(2)}%**`,
+                            inline: true 
+                        },
+                        { 
+                            name: `**${p.hero[2].id}**`, 
+                            value: `Games: **${p.hero[2].games}**
+                                Win as: **${(100*p.hero[2].win/p.hero[2].games).toPrecision(2)}%**
+                                Win with: **${(100*p.hero[2].with_win/p.hero[2].with_games).toPrecision(2)}%**
+                                Win against: **${(100*p.hero[2].against_win/p.hero[2].against_games).toPrecision(2)}%**`,
+                            inline: true 
+                        }
+                    )
+                    // .setImage(p.pic)
+                    .setTimestamp()
+                    .setFooter(`I'll implement hero rating later, trust | Time taken: ${Date.now() - message.createdTimestamp}ms`); // Can take additional argument of a small picture
+
+                message.channel.send(profileEmbed);
             })
             .catch(function(error) {
                 console.log(error);
@@ -93,7 +139,7 @@ module.exports = {
             //     console.log(data);
             //     p.won = await data.win;
             //     p.lost = await data.lose;
-            //     // message.channel.send(`Won games: **${p.won}** \nLost games: **${p.lost}** \nWinrate: **${(100 * p.won/(p.won + p.lost)).toFixed(2)}%**`);
+            //     // message.channel.send(`Won games: **${p.won}** \nLost games: **${p.lost}** \nWinrate: **${(100 * p.won/(p.won + p.lost)).toPrecision(2)}%**`);
             // })
             // .then (() => {
             // })
