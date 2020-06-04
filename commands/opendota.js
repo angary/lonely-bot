@@ -2,7 +2,7 @@
 const fetch = require('node-fetch');
 
 module.exports = {
-	name: '>opendota',
+	name: 'opendota',
     description: 'Uses opendota API to collect information on player',
     aliases: ['od'],
     args: true,
