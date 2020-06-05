@@ -23,7 +23,6 @@ function medal(player) {
     if (player.rank_tier === null) {
         return "unranked";
     }
-    console.log(player);
     if (player.leader_board) return `Immortal ** | rank **${player.rank}`;
     if (player.rank_tier[0] === 8) return `Immortal`
 
@@ -145,7 +144,6 @@ module.exports = {
                 message.channel.send(profileEmbed);
             })
             .catch(function(error) {
-                console.log(error);
                 message.channel.send(`There was an error: ${error}`);
             })
 	},

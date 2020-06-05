@@ -3,7 +3,7 @@ module.exports = {
     aliases: [`areapentagon`, `dotapentagon`, `p`],
     description: `Given 5 values of the player's pentagon, it gives the area of the pentagon with those values, the maximum possible area by swapping positions of those values, and the ratio of area of the given area to the maximum area`,
     args: true,
-    usage: [`[Fighting] [Farming] [Supporting] [Pushing] [Versatility]`],
+    usage: `[Fighting] [Farming] [Supporting] [Pushing] [Versatility]`,
     cooldown: 0,
 	execute(message, args) {
 

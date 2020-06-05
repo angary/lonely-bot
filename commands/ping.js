@@ -1,6 +1,6 @@
 module.exports = {
 	name: 'ping',
-	description: 'Ping!',
+	description: 'Sends back "Pong!" and the latency of user from bot server',
 	aliases: false,
 	args: false,
 	usage: "",
