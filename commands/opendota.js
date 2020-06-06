@@ -1,53 +1,42 @@
 const fetch = require('node-fetch');
 const Discord = require('discord.js');
-
-// Embed information
-let p = {
-    name: "don't",
-    pic: "asdf",
-    country: "know",
-    rank_tier: 0,
-    rank: 0,
-    mmr_estimate: "callbacks",
-    won: "0",
-    lost: "0",
-    heroes: [
-        { "hero_id": "0", "last_played": 0, "games": 0, "win": 0, "with_games": 0, "with_win": 0, "against_games": 0, "against_win": 0, "percentile": 0 },
-        { "hero_id": "0", "last_played": 0, "games": 0, "win": 0, "with_games": 0, "with_win": 0, "against_games": 0, "against_win": 0, "percentile": 0 },
-        { "hero_id": "0", "last_played": 0, "games": 0, "win": 0, "with_games": 0, "with_win": 0, "against_games": 0, "against_win": 0, "percentile": 0 }
-    ]
-}
+const raw_data = require(`../assets/id.json`);
 
 // Convert rank_tier to medal and leaderboard rank
 function medal(player) {
-    if (player.rank_tier === null) {
-        return "unranked";
-    }
+    if (player.rank_tier === null) return "unranked";
     if (player.leader_board) return `Immortal ** | rank **${player.rank}`;
-    if (player.rank_tier[0] === 8) return `Immortal`
-
+    if (player.rank_tier[0] === 8) return `Immortal`;
     let medal_tier = player.rank_tier.toString();
-    let medals = {
-        "1": "Herald",
-        "2": "Guardian",
-        "3": "Crusader",
-        "4": "Archon",
-        "5": "Legend",
-        "6": "Ancient",
-        "7": "Divine"
-    }
+    let medals = ["Lower than Herald?", "Herald", "Guardian", "Crusader", "Archon", "Legend", "Ancient", "Divine"];
     return `${medals[medal_tier[0]]} ${medal_tier[1]}`;
 }
 
 module.exports = {
-	name: 'opendota',
-    description: 'Uses opendota API to collect information on player',
+	name: '>opendota',
+    description: 'Uses opendota API to collect general information on player, and their three most played heroes',
     aliases: ['od'],
     args: true,
     usage: `<steamID>`,
     cooldown: 1,
     execute(message, args) {
-
+        // Checks for id
+        if (args[0] === "me") {
+            args[0] = raw_data[`${message.author.id}`];
+        }
+        // Embed information
+        let p = {
+            name: "don't",
+            pic: "asdf",
+            country: "know",
+            rank_tier: 0,
+            rank: 0,
+            mmr_estimate: "callbacks",
+            won: "0",
+            lost: "0",
+            heroes: []
+        }
+        // Can conver this into an array to reduce lines of code 
         let time_recieved = Date.now();
         let base_url = `https://api.opendota.com/api/players/${args[0]}`;
         let profile = fetch (base_url);
@@ -56,6 +45,7 @@ module.exports = {
         let heroes = fetch(`https://api.opendota.com/api/heroes`);
         let player_rankings = fetch(`${base_url}/rankings`);
 
+        // Could make promise them one by one and extract data to reduce overall time?
         Promise.all([profile, win_lose, player_heroes, heroes, player_rankings])
 
             // Convert data to .json
@@ -63,7 +53,7 @@ module.exports = {
 
             // Extract data
             .then(data => {
-
+                console.log(Date.now() - time_recieved);
                 // Profile details
                 p.name = data[0].profile.personaname;
                 p.pic = data[0].profile.avatarfull;
@@ -78,7 +68,7 @@ module.exports = {
 
                 // Heroes
                 for (let i = 0; i < 3; i++) {
-                    p.heroes[i] = data[2][i];
+                    p.heroes.push(data[2][i]);
                     for (let j = 0; j < data[4].length - 1; j++) {
                             if (data[4][j].hero_id == data[2][i].hero_id) {
                             p.heroes[i].percentile = +(100 * data[4][j].percent_rank).toFixed(2);
@@ -103,44 +93,27 @@ module.exports = {
                     .setAuthor(`Lonely Bot`, 'https://cdn.discordapp.com/avatars/647044127313362980/9ca1222828d05412825fce12222ea48e.png?size=256', 'https://github.com/Gy74S/Lonely-Bot')
                     .setDescription(`Medal: **${medal(p)}**\nMMR Estimate: **${p.mmr_estimate}**\nCountry: **${p.country}**`)
                     .setThumbnail(p.pic)
+                    .setTimestamp()
+                    .setFooter(`Total Processing Time: ${Date.now() - message.createdTimestamp} ms | Generating Time: ${Date.now() - time_recieved} ms`) // Can take additional argument of a small picture
                     .addFields(
                         {
                             name: '**Match data**', 
                             value: `Total: **${p.won + p.lost}** | Won: **${p.won}** | Lost: **${p.lost}** | Winrate: **${(100 * p.won/(p.won + p.lost)).toPrecision(4)}%**\n`
                         }
                     )
-                    .addFields(
-                        { 
-                            name: `**${p.heroes[0].name}**`, 
-                            value: `Games: **${p.heroes[0].games}**
-                                Win as: **${(100*p.heroes[0].win/p.heroes[0].games).toPrecision(2)}%**
-                                Win with: **${(100*p.heroes[0].with_win/p.heroes[0].with_games).toPrecision(2)}%**
-                                Win against: **${(100*p.heroes[0].against_win/p.heroes[0].against_games).toPrecision(2)}%**
-                                Percentile: **${p.heroes[0].percentile}%**`, 
-                            inline: true 
-                        },
-                        { 
-                            name: `**${p.heroes[1].name}**`, 
-                            value: `Games: **${p.heroes[1].games}**
-                                Win as: **${(100*p.heroes[1].win/p.heroes[1].games).toPrecision(2)}%**
-                                Win with: **${(100*p.heroes[1].with_win/p.heroes[1].with_games).toPrecision(2)}%**
-                                Win against: **${(100*p.heroes[1].against_win/p.heroes[1].against_games).toPrecision(2)}%**
-                                Percentile: **${p.heroes[1].percentile}%**`,
-                            inline: true 
-                        },
-                        { 
-                            name: `**${p.heroes[2].name}**`, 
-                            value: `Games: **${p.heroes[2].games}**
-                                Win as: **${(100*p.heroes[2].win/p.heroes[2].games).toPrecision(2)}%**
-                                Win with: **${(100*p.heroes[2].with_win/p.heroes[2].with_games).toPrecision(2)}%**
-                                Win against: **${(100*p.heroes[2].against_win/p.heroes[2].against_games).toPrecision(2)}%**
-                                Percentile: **${p.heroes[2].percentile}%**`,
-                            inline: true 
-                        }
-                    )
-                    .setTimestamp()
-                    .setFooter(`Total Processing Time: ${Date.now() - message.createdTimestamp} ms | Generating Time: ${Date.now() - time_recieved} ms`); // Can take additional argument of a small picture
-
+                    for (let i = 0; i < p.heroes.length; i++) {
+                        profileEmbed.addFields(
+                            { 
+                                name: `**${p.heroes[i].name}**`, 
+                                value: `Games: **${p.heroes[i].games}**
+                                    Win as: **${(100*p.heroes[i].win/p.heroes[i].games).toPrecision(2)}%**
+                                    Win with: **${(100*p.heroes[i].with_win/p.heroes[i].with_games).toPrecision(2)}%**
+                                    Win against: **${(100*p.heroes[i].against_win/p.heroes[i].against_games).toPrecision(2)}%**
+                                    Percentile: **${p.heroes[i].percentile}%**`, 
+                                inline: true 
+                            },  
+                        )
+                    }
                 message.channel.send(profileEmbed);
             })
             .catch(function(error) {
