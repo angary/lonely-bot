@@ -1,29 +1,29 @@
 # Discord Lonely Bot
-Link to add to your server: <br>
-https://discordapp.com/api/oauth2/authorize?client_id=647044127313362980&permissions=8&scope=bot
 
-
-
-# Table Of Contents
+## Table Of Contents
 1. [Current Capabilities](#To-Do-List)
 2. [Setup](#Setup)
 3. [Extra Information](#Extra-Information)
 
 
+## Current Capabilities: <a name="To-Do-List"></a>
+- [x] Can calculate the area of the stat pentagon
+- [x] Can fetch data from Opendota API using promises
+- [ ] Generate algorithim to give user a 'hero' rating
+- [ ] Use database to hold Discord ID and steam32 ID
+- [ ] Generate sentences based on words said in game chat/ something similar
 
-# Current Capabilities: <a name="To-Do-List"></a>
-1. Can find the area of that stat pentagon in dota
-2. Can use opendota API to give general information about the player profile
 
-
-
-# Setup <a name="Setup"></a>
+## Setup <a name="Setup"></a>
 Ensure that you have node installed, and run:
 ```
 npm install
 ```
+To run the bot, insert your token into 'config.json' and run:
+```
+node index.js
+```
 
-
-# Extra Information <a name="Extra-Information"></a>
-- Don't actually have a server, so unless someone is running it, the bot's actually offline; either that or I keep my PC on 24/7<br>
-- Ignore that it's hosted on heroku now<br>
+## Extra Information <a name="Extra-Information"></a>
+- The bot is hosted on Heroku's servers.
+- The lack of commands is a feature and not because I'm too lazy. 
