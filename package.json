@@ -23,6 +23,7 @@
   "homepage": "https://github.com/Gy74S/Lonely-Bot#readme",
   "dependencies": {
     "discord.js": "^12.2.0",
+    "mongoose": "^5.10.6",
     "node-fetch": "^2.6.1"
   }
 }

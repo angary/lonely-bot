@@ -7,7 +7,7 @@ const raw_data = require(`../assets/id.json`);
 module.exports = {
 	name: 'opendota',
     description: 'Uses opendota API to collect general information on player, and their three most played heroes',
-    aliases: ['>od'],
+    aliases: ['od'],
     args: true,
     usage: `[Steam32 ID]`,
     cooldown: 1,
