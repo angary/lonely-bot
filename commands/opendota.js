@@ -2,25 +2,27 @@ const fetch = require('node-fetch');
 const Discord = require('discord.js');
 const raw_data = require(`../assets/id.json`);
 
-// Convert rank_tier to medal and leaderboard rank
-function medal(player) {
-    if (player.rank_tier === null) return "unranked";
-    if (player.leader_board) return `Immortal ** | rank **${player.rank}`;
-    if (player.rank_tier[0] === 8) return `Immortal`;
-    let medal_tier = player.rank_tier.toString();
-    let medals = ["Lower than Herald?", "Herald", "Guardian", "Crusader", "Archon", "Legend", "Ancient", "Divine"];
-    return `${medals[medal_tier[0]]} ${medal_tier[1]}`;
-}
+
 
 module.exports = {
 	name: 'opendota',
     description: 'Uses opendota API to collect general information on player, and their three most played heroes',
-    aliases: ['od'],
+    aliases: ['>od'],
     args: true,
     usage: `[Steam32 ID]`,
     cooldown: 1,
     execute(message, args) {
 
+        // Convert rank_tier to medal and leaderboard rank
+        function medal(player) {
+            if (player.rank_tier === null) return "unranked";
+            if (player.leader_board) return `Immortal ** | rank **${player.rank}`;
+            if (player.rank_tier[0] === 8) return `Immortal`;
+            let medal_tier = player.rank_tier.toString();
+            let medals = ["Lower than Herald?", "Herald", "Guardian", "Crusader", "Archon", "Legend", "Ancient", "Divine"];
+            return `${medals[medal_tier[0]]} ${medal_tier[1]}`;
+        }
+        
         // Checks for id
         if (args[0] === "me") {
             args[0] = raw_data[`${message.author.id}`];
@@ -80,19 +82,26 @@ module.exports = {
 
                 // Most recent match
                 p.recent = {};
-                p.recent.outcome = ((data[5][0].player_slot < 6 && data[5][0].radiant_win == true) || (data[5][0].player_slot > 5 && data[5][0].radiant_win == false)) ? 'Won' : 'Lost';
+                p.recent.outcome = 'Lost';
+                if ((data[5][0].player_slot < 6 && data[5][0].radiant_win == true) 
+                    || (data[5][0].player_slot > 5 && data[5][0].radiant_win == false)) {
+                    p.recent.outcome = 'Won';
+                }
                 for (let i = 0; i < data[3].length - 1; i++) {
                     if (data[3][i].id == data[5][0].hero_id) {
                         p.recent.hero = data[3][i].localized_name;
                         break;
                     }
                 }
+                p.recent.time = Date(data[5][0].start_time).substr(0, 24);
                 p.recent.k = data[5][0].kills;
                 p.recent.d = data[5][0].deaths;
                 p.recent.a = data[5][0].assists;
                 p.recent.lane = data[5][0].lane;
                 let skill = ['Error', 'Normal', 'High', 'Very High'];
                 p.recent.skill = skill[data[5][0].skill];
+                p.recent.gpm = data[5][0].gold_per_min;
+                p.recent.xpm = data[5][0].xp_per_min;
             })
 
             // Format data onto embed
@@ -101,7 +110,11 @@ module.exports = {
                     .setColor('#0099ff')
                     .setTitle(`${p.name}`)
                     .setURL(`https://www.opendota.com/players/${args[0]}`)
-                    .setAuthor(`Lonely Bot`, 'https://cdn.discordapp.com/avatars/647044127313362980/9ca1222828d05412825fce12222ea48e.png?size=256', 'https://github.com/Gy74S/Lonely-Bot')
+                    .setAuthor(
+                        'Lonely Bot', 
+                        'https://cdn.discordapp.com/avatars/647044127313362980/9ca1222828d05412825fce12222ea48e.png?size=256', 
+                        'https://github.com/Gy74S/Lonely-Bot'
+                    )
                     .setDescription(`Medal: **${medal(p)}**\nMMR Estimate: **${p.mmr_estimate}**\nCountry: **${p.country}**`)
                     .setThumbnail(p.pic)
                     .setTimestamp()
@@ -128,7 +141,9 @@ module.exports = {
                     profileEmbed.addFields(
                         {
                             name: `**Most Recent Match Data**`,
-                            value: `Status: **${p.recent.outcome}** | Hero: **${p.recent.hero}** | KDA: **${p.recent.k}/${p.recent.d}/${p.recent.a}** | Skill: **${p.recent.skill}**`
+                            value: `*${p.recent.time}*
+                                Status: **${p.recent.outcome}**\t\t| Hero: **${p.recent.hero}** | KDA: **${p.recent.k}/${p.recent.d}/${p.recent.a}**
+                                GPM: **${p.recent.gpm}** | XPM: **${p.recent.xpm}** | Skill: **${p.recent.skill}**`
                         }
                     )
                 message.channel.send(profileEmbed);
