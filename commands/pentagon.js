@@ -5,7 +5,7 @@ module.exports = {
     args: true,
     usage: `[Fighting] [Farming] [Supporting] [Pushing] [Versatility]`,
     cooldown: 0,
-	execute(message, args) {
+    execute(message, args) {
 
         if (args.length != 5) {
             return message.channel.send(`You didn't give 5 values`);
@@ -34,5 +34,5 @@ module.exports = {
 
         message.channel.send(`The area of your pentagon is **${area(unsortedArgs).toFixed(2)}**, rating: **${unsortedPercentage.toFixed(2)}%**`);
         message.channel.send(`Max area of your pentagon is **${area(sortedArgs).toFixed(2)}**, rating: **${sortedPercentage.toFixed(2)}%**`);
-	}
+    }
 };

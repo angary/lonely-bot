@@ -14,12 +14,17 @@
 - [ ] Generate sentences based on words said in game chat/ something similar
 
 
+## Example usages
+Using the opendota command
+![open dota command example](https://i.imgur.com/5fmql4z.png)
+
+
 ## Setup <a name="Setup"></a>
 Ensure that you have node installed, and run:
 ```
 npm install
 ```
-To run the bot, insert your token into 'config.json' and run:
+To run the bot, set environment variable ```BOT_TOKEN``` to your bot token and run:
 ```
 node index.js
 ```

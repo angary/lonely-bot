@@ -188,5 +188,5 @@ module.exports = {
         .catch(function(error) {
             message.channel.send(`There was an error: ${error}`);
         })
-	},
+    },
 };
