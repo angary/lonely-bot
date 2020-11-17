@@ -1,9 +1,6 @@
-////////////////////////////////////////////////////////////////////////////////////////////
-//                               Adds all the files                                       //
-////////////////////////////////////////////////////////////////////////////////////////////
 const fs = require('fs');
 const Discord = require('discord.js');
-const { prefix, token } = require('./config.json');
+const { prefix } = require('./config.json');
 const client = new Discord.Client();
 client.commands = new Discord.Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
@@ -12,10 +9,6 @@ for (const file of commandFiles) {
 	client.commands.set(command.name, command);
 }
 const cooldowns = new Discord.Collection();
-
-////////////////////////////////////////////////////////////////////////////////////////////
-//                               Stuff to do once it's run                                //
-////////////////////////////////////////////////////////////////////////////////////////////
 
 
 client.once('ready', () => {
@@ -28,9 +21,8 @@ client.once('ready', () => {
 });
 
 
-////////////////////////////////////////////////////////////////////////////////////////////
-//                               Responses to messages                                    //
-////////////////////////////////////////////////////////////////////////////////////////////
+// Responses to messages
+////////////////////////////////////////////////////////////////////////////////
 
 client.on('message', message => {
 
@@ -49,9 +41,8 @@ client.on('message', message => {
         || client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
     if (!command) return;
 
-    //----------------------------------------------------------------------------------------//
-    //                               Errors with command                                      //
-    //----------------------------------------------------------------------------------------//
+    // Errors with command
+    //--------------------------------------------------------------------------
 
     // DMs
     if (command.guildOnly && message.channel.type != 'text') {
@@ -84,9 +75,8 @@ client.on('message', message => {
     timestamps.set(message.author.id, now);
     setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
 
-    //----------------------------------------------------------------------------------------//
-    //                                Else executes the command                               //
-    //----------------------------------------------------------------------------------------//
+    // Else executes the command
+    //--------------------------------------------------------------------------
     try {
         command.execute(message, args);
     } catch (error) {
@@ -94,10 +84,5 @@ client.on('message', message => {
     }
 });
 
-// Logins with the bot token
-if (token === "") {
-    client.login(process.env.BOT_TOKEN)
-}
-else {
-    client.login(token);
-}
+// Login with the bot token
+client.login(process.env.BOT_TOKEN);
