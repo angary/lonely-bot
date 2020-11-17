@@ -1,28 +1,49 @@
 const fetch = require('node-fetch');
 const Discord = require('discord.js');
 const raw_data = require(`../assets/id.json`);
+const game_modes = require(`../assets/game_modes`);
+const lobby_types = require(`../assets/lobby_types`);
 
+
+// Convert rank_tier to medal and leaderboard rank
+function medal(player) {
+    if (player.rank_tier === null) return "unranked";
+    if (player.leader_board) return `Immortal ** | rank **${player.leaderboard_rank}`;
+    if (player.rank_tier[0] === 8) return `Immortal`;
+    let medal_tier = player.rank_tier.toString();
+    let medals = ["Lower than Herald?", "Herald", "Guardian", "Crusader", "Archon", "Legend", "Ancient", "Divine"];
+    return `${medals[medal_tier[0]]} ${medal_tier[1]}`;
+}
+
+// Convert from seconds into HH MM SS
+function secondsToHms(duration) {
+    let hours = duration / 3600;
+    duration = duration % (3600);
+    let min = parseInt(duration / 60);
+    duration = duration % (60);
+    let sec = parseInt(duration);
+    if (sec < 10)
+        sec = `0${sec}`;
+    if (min < 10)
+        min = `0${min}`;
+    if (parseInt(hours, 10) > 0)
+        return `${parseInt(hours, 10)}h ${min}m ${sec}s`;
+    else if (min == 0)
+        return `${sec}s`;
+    else
+        return `${min}m ${sec}s`;
+  }
 
 
 module.exports = {
 	name: 'opendota',
-    description: 'Uses opendota API to collect general information on player, and their three most played heroes',
+    description: 'Uses opendota API to collect general information on player',
     aliases: ['od'],
     args: true,
     usage: `[Steam32 ID]`,
     cooldown: 1,
     execute(message, args) {
 
-        // Convert rank_tier to medal and leaderboard rank
-        function medal(player) {
-            if (player.rank_tier === null) return "unranked";
-            if (player.leader_board) return `Immortal ** | rank **${player.rank}`;
-            if (player.rank_tier[0] === 8) return `Immortal`;
-            let medal_tier = player.rank_tier.toString();
-            let medals = ["Lower than Herald?", "Herald", "Guardian", "Crusader", "Archon", "Legend", "Ancient", "Divine"];
-            return `${medals[medal_tier[0]]} ${medal_tier[1]}`;
-        }
-        
         // Checks for id
         if (args[0] === "me") {
             args[0] = raw_data[`${message.author.id}`];
@@ -44,113 +65,128 @@ module.exports = {
             fetch(`${url}/recentMatches`)                   // 5 For most recent match data
         ])
 
-            // Convert data to .json
-            .then(response => Promise.all(response.map(response => response.json())))
+        // Convert data to .json
+        .then(response => Promise.all(response.map(response => response.json())))
 
-            // Extract data
-            .then(data => {
+        // Extract data
+        .then(data => {
 
-                // Profile details
-                p.name = data[0].profile.personaname;
-                p.pic = data[0].profile.avatarfull;
-                p.country = data[0].profile.loccountrycode;
-                p.rank_tier = data[0].rank_tier;
-                p.rank = data[0].leaderboard_rank;
-                p.mmr_estimate = data[0].mmr_estimate.estimate;
+            // Profile details
+            p = data[0];
 
-                // Won and lost games
-                p.won = data[1].win;
-                p.lost = data[1].lose;
+            // Won and lost games
+            p.w = data[1].win;
+            p.l = data[1].lose;
+            p.wr = (100 * p.w / (p.w + p.l)).toPrecision(4)
 
-                // Heroes
-                p.heroes = [];
-                for (let i = 0; i < 3; i++) {
-                    p.heroes.push(data[2][i]);
-                    for (let j = 0; j < data[4].length - 1; j++) {
-                            if (data[4][j].hero_id == data[2][i].hero_id) {
-                            p.heroes[i].percentile = +(100 * data[4][j].percent_rank).toFixed(2);
-                            break;
-                        }
-                    }
-                    for (let j = 0; i < data[3].length - 1; j++) {
-                        if (data[3][j].id == data[2][i].hero_id) {
-                            p.heroes[i].name = data[3][j].localized_name;
-                            break;
-                        } 
-                    }
-                } 
-
-                // Most recent match
-                p.recent = {};
-                p.recent.outcome = 'Lost';
-                if ((data[5][0].player_slot < 6 && data[5][0].radiant_win == true) 
-                    || (data[5][0].player_slot > 5 && data[5][0].radiant_win == false)) {
-                    p.recent.outcome = 'Won';
-                }
-                for (let i = 0; i < data[3].length - 1; i++) {
-                    if (data[3][i].id == data[5][0].hero_id) {
-                        p.recent.hero = data[3][i].localized_name;
+            // Top 3 heroes
+            p.heroes = [];
+            for (let i = 0; i < 3; i++) {
+                p.heroes.push(data[2][i]);
+                for (let j = 0; j < data[4].length - 1; j++) {
+                    if (data[4][j].hero_id == data[2][i].hero_id) {
+                        p.heroes[i].percentile = +(100 * data[4][j].percent_rank).toFixed(2);
                         break;
                     }
                 }
-                p.recent.time = Date(data[5][0].start_time).substr(0, 24);
-                p.recent.k = data[5][0].kills;
-                p.recent.d = data[5][0].deaths;
-                p.recent.a = data[5][0].assists;
-                p.recent.lane = data[5][0].lane;
-                let skill = ['Error', 'Normal', 'High', 'Very High'];
-                p.recent.skill = skill[data[5][0].skill];
-                p.recent.gpm = data[5][0].gold_per_min;
-                p.recent.xpm = data[5][0].xp_per_min;
-            })
+                for (let j = 0; i < data[3].length - 1; j++) {
+                    if (data[3][j].id == data[2][i].hero_id) {
+                        p.heroes[i].name = data[3][j].localized_name;
+                        break;
+                    } 
+                }
+                p.heroes[i].winAs = (100 * p.heroes[i].win / p.heroes[i].games).toPrecision(2);
+            } 
+            
+            // Most recent match
+            p.recent = data[5][0];
+            p.recent.time = Date(p.recent.start_time).substr(0, 15);
+            p.recent.skill = ['invalid', 'normal', 'high', 'very high'][p.recent.skill];
 
-            // Format data onto embed
-            .then(() => {
-                const profileEmbed = new Discord.MessageEmbed()
-                    .setColor('#0099ff')
-                    .setTitle(`${p.name}`)
-                    .setURL(`https://www.opendota.com/players/${args[0]}`)
-                    .setAuthor(
-                        'Lonely Bot', 
-                        'https://cdn.discordapp.com/avatars/647044127313362980/9ca1222828d05412825fce12222ea48e.png?size=256', 
-                        'https://github.com/Gy74S/Lonely-Bot'
-                    )
-                    .setDescription(`Medal: **${medal(p)}**\nMMR Estimate: **${p.mmr_estimate}**\nCountry: **${p.country}**`)
-                    .setThumbnail(p.pic)
-                    .setTimestamp()
-                    .setFooter(`Total Processing Time: ${Date.now() - message.createdTimestamp} ms | Generating Time: ${Date.now() - time_recieved} ms`) // Can take additional argument of a small picture
-                    .addFields(
-                        {
-                            name: '**General Match Data**', 
-                            value: `Total: **${p.won + p.lost}** | Won: **${p.won}** | Lost: **${p.lost}** | Winrate: **${(100 * p.won / (p.won + p.lost)).toPrecision(4)}%**\n`
-                        }
-                    )
-                    for (let i = 0; i < p.heroes.length; i++) {
-                        profileEmbed.addFields(
-                            { 
-                                name: `**${p.heroes[i].name}**`, 
-                                value: `Games: **${p.heroes[i].games}**
-                                    Win as: **${(100 * p.heroes[i].win / p.heroes[i].games).toPrecision(2)}%**
-                                    Win with: **${(100 * p.heroes[i].with_win / p.heroes[i].with_games).toPrecision(2)}%**
-                                    Win against: **${(100 * p.heroes[i].against_win / p.heroes[i].against_games).toPrecision(2)}%**
-                                    Percentile: **${p.heroes[i].percentile}%**`, 
-                                inline: true 
-                            },  
-                        )
-                    }
-                    profileEmbed.addFields(
-                        {
-                            name: `**Most Recent Match Data**`,
-                            value: `*${p.recent.time}*
-                                Status: **${p.recent.outcome}**\t\t| Hero: **${p.recent.hero}** | KDA: **${p.recent.k}/${p.recent.d}/${p.recent.a}**
-                                GPM: **${p.recent.gpm}** | XPM: **${p.recent.xpm}** | Skill: **${p.recent.skill}**`
-                        }
-                    )
-                message.channel.send(profileEmbed);
-            })
-            .catch(function(error) {
-                message.channel.send(`There was an error: ${error}`);
-            })
+            // Find game mode and lobby, for some reason lobby is not always updated
+            try {
+                p.recent.game_mode = game_modes[p.recent.game_mode].replace(/_/g, " ");
+            }
+            catch {
+                p.recent.game_mode = "";
+            }
+            try {
+                p.recent.lobby_type = lobby_types[p.recent.lobby_type].replace(/_/g, " ");
+            }
+            catch {
+                p.recent.lobby_type = "";
+            }
+            
+            // Check if they've won or lost
+            p.recent.outcome = 'Lost';
+            if ((p.recent.player_slot < 6 && p.recent.radiant_win == true) 
+                || (p.recent.player_slot > 5 && p.recent.radiant_win == false)) {
+                p.recent.outcome = 'Won';
+            }
 
+            // Find name of hero they played
+            for (let i = 0; i < data[3].length - 1; i++) {
+                if (data[3][i].id == p.recent.hero_id) {
+                    p.recent.hero = data[3][i].localized_name;
+                    break;
+                }
+            }
+        })
+
+        // Format data onto embed
+        .then(() => {
+            const profileEmbed = new Discord.MessageEmbed()
+                .setColor('#0099ff')
+                .setTitle(`${p.profile.personaname}`)
+                .setURL(`https://www.opendota.com/players/${args[0]}`)
+                .setAuthor(
+                    'Lonely Bot', 
+                    'https://i.imgur.com/b0sTfNL.png', 
+                    'https://github.com/Gy74S/Lonely-Bot'
+                )
+                .setDescription(
+                    `Medal: **${medal(p)}**
+                    MMR Estimate: **${p.mmr_estimate.estimate}**
+                    Country: **${p.profile.loccountrycode}**`
+                )
+                .setThumbnail(p.profile.avatarfull)
+                .setTimestamp()
+                .setFooter(
+                    // Can take additional argument of a small picture
+                    `Total Processing Time: ${Date.now() - message.createdTimestamp} ms | Generating Time: ${Date.now() - time_recieved} ms`
+                )
+
+                // Win Lose info
+                .addFields({
+                    name: '**General Match Data**', 
+                    value: `Total: **${p.w + p.l}** | Won: **${p.w}** | Lost: **${p.l}** | Winrate: **${p.wr}%**\n`
+                })
+
+                // Top 3 heroes
+                for (let i = 0; i < p.heroes.length; i++) {
+                    profileEmbed.addFields({ 
+                        name: `**${p.heroes[i].name}**`, 
+                        value: `
+                            Games: **${p.heroes[i].games}**
+                            Win as: **${p.heroes[i].winAs}%**
+                            Percentile: **${p.heroes[i].percentile}%**
+                            `, 
+                        inline: true 
+                    })
+                }
+
+                // Most recent match data
+                profileEmbed.addFields({
+                    name: `**Most Recent Match**`,
+                    value: `*${p.recent.time} ${secondsToHms(p.recent.duration)}*
+                        **${p.recent.outcome}** playing a **${p.recent.skill}** skill **${p.recent.lobby_type} ${p.recent.game_mode}** as **${p.recent.hero}**
+                        KDA: **${p.recent.kills}/${p.recent.deaths}/${p.recent.assists}** | GPM: **${p.recent.gold_per_min}** | XPM: **${p.recent.xp_per_min}**`
+                })
+            
+            message.channel.send(profileEmbed);
+        })
+        .catch(function(error) {
+            message.channel.send(`There was an error: ${error}`);
+        })
 	},
 };
