@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const mongoPath = '';
 
 module.exports = {
     name: 'id',

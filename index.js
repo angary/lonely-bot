@@ -1,13 +1,32 @@
-const fs = require('fs');
 const Discord = require('discord.js');
 const { prefix } = require('./config.json');
+const fs = require('fs');
+const mongoose = require('mongoose');
+
 const client = new Discord.Client();
+
+// Load all the commands
 client.commands = new Discord.Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 for (const file of commandFiles) {
 	const command = require(`./commands/${file}`);
 	client.commands.set(command.name, command);
 }
+
+
+// Connect to mongoose database
+mongoose.connect(process.env.BOT_URI, {
+    useNewUrlParser: true, 
+    useUnifiedTopology: true
+}).then(() => {
+    // If it connects
+    console.log("Connected to MongoDB");
+}).catch((err) => {
+    // If it couldn't connect
+    console.log("Was not able to connect to MongoDB", err);
+});
+
+
 const cooldowns = new Discord.Collection();
 
 
@@ -23,7 +42,6 @@ client.once('ready', () => {
 
 // Responses to messages
 ////////////////////////////////////////////////////////////////////////////////
-
 client.on('message', message => {
 
     // Does nothing if it doesn't being with the proper prefix
@@ -84,5 +102,4 @@ client.on('message', message => {
     }
 });
 
-// Login with the bot token
-client.login(process.env.BOT_TOKEN);
+client.login(process.env.BOT_TOKEN)

@@ -32,11 +32,11 @@ function secondsToHms(duration) {
         return `${sec}s`;
     else
         return `${min}m ${sec}s`;
-  }
+}
 
 
 module.exports = {
-	name: 'opendota',
+    name: 'opendota',
     description: 'Uses opendota API to collect general information on player',
     aliases: ['od'],
     args: true,
