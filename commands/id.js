@@ -1,4 +1,4 @@
-let User = require('../models/user')
+const User = require('../models/user')
 
 module.exports = {
     name: '>id',
@@ -9,16 +9,24 @@ module.exports = {
     cooldown: 1,
     execute(message, args) {
 
-        // If the user has already set their IDs
-
-
-        // If the usre hasn't set their IDs
         const discordID = message.author.id;
         const steamID = args[0]
 
-        const newUser = new User({discordID, steamID});
-        newUser.save()
-            .then(() => message.channel.send(`Mapped Discord ID **${discordID}** to  Steam ID **${steamID}**`))
-            .catch(err => message.channel.send('Error: ' + err))
+        const query = { "discordID": discordID };
+        const update = { "steamID": steamID };
+        const options = { returnNewDocument: true };
+
+        User.findOneAndUpdate(query, update, options)
+            .then(updatedDocument => {
+                if (updatedDocument) {
+                    message.channel.send(`Successfully updated Discord ID **${discordID}** and Steam ID **${steamID}**`);
+                } else {
+                    const newUser = new User({discordID, steamID});
+                    newUser.save()
+                        .then(() => message.channel.send(`Added Discord ID **${discordID}** and Steam ID **${steamID}**`))
+                        .catch(err => message.channel.send('Error: ' + err))
+                }
+            })
+            .catch(err => message.channel.send(`Failed to find and update ID for ${message.author.name}`))
     },
 };

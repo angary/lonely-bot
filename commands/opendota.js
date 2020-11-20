@@ -3,6 +3,7 @@ const Discord = require('discord.js');
 const raw_data = require(`../assets/id.json`);
 const game_modes = require(`../assets/game_modes`);
 const lobby_types = require(`../assets/lobby_types`);
+const User = require('../models/user')
 
 
 // Convert rank_tier to medal and leaderboard rank
@@ -34,11 +35,21 @@ function secondsToHms(duration) {
         return `${min}m ${sec}s`;
 }
 
+// Find the steamID based off the discord ID
+function discordToSteamID(message, discordID) {
+    const query = { "discordID": discordID };
+    return User.findOne(query);
+}
 
+
+// Database interaction has to be asynchronous, so making new async function
+async function opendota(message, args) {
+
+}
 module.exports = {
     name: 'opendota',
     description: 'Uses opendota API to collect general information on player',
-    aliases: ['od'],
+    aliases: ['>od'],
     args: true,
     usage: `[Steam32 ID]`,
     cooldown: 1,
@@ -46,7 +57,9 @@ module.exports = {
 
         // Checks for id
         if (args[0] === "me") {
-            args[0] = raw_data[`${message.author.id}`];
+            discordToSteamID(message, message.author.id)
+                .then(result => args[0] = result.steamID)
+                .catch(err => message.channel.send(`There was an error getting id ${err}`))
         }
 
         // Object to hold data
@@ -68,7 +81,7 @@ module.exports = {
         // Convert data to .json
         .then(response => Promise.all(response.map(response => response.json())))
 
-        // Extract data
+        // Extract and format data
         .then(data => {
 
             // Profile details
@@ -106,14 +119,12 @@ module.exports = {
             // Find game mode and lobby, for some reason lobby is not always updated
             try {
                 p.recent.game_mode = game_modes[p.recent.game_mode].replace(/_/g, " ");
-            }
-            catch {
+            } catch {
                 p.recent.game_mode = "";
             }
             try {
                 p.recent.lobby_type = lobby_types[p.recent.lobby_type].replace(/_/g, " ");
-            }
-            catch {
+            } catch {
                 p.recent.lobby_type = "";
             }
             
@@ -133,7 +144,7 @@ module.exports = {
             }
         })
 
-        // Format data onto embed
+        // Add data onto embed
         .then(() => {
             const profileEmbed = new Discord.MessageEmbed()
                 .setColor('#0099ff')
@@ -162,26 +173,26 @@ module.exports = {
                     value: `Total: **${p.w + p.l}** | Won: **${p.w}** | Lost: **${p.l}** | Winrate: **${p.wr}%**\n`
                 })
 
-                // Top 3 heroes
-                for (let i = 0; i < p.heroes.length; i++) {
-                    profileEmbed.addFields({ 
-                        name: `**${p.heroes[i].name}**`, 
-                        value: `
-                            Games: **${p.heroes[i].games}**
-                            Win as: **${p.heroes[i].winAs}%**
-                            Percentile: **${p.heroes[i].percentile}%**
-                            `, 
-                        inline: true 
-                    })
-                }
-
-                // Most recent match data
-                profileEmbed.addFields({
-                    name: `**Most Recent Match**`,
-                    value: `*${p.recent.time} ${secondsToHms(p.recent.duration)}*
-                        **${p.recent.outcome}** playing a **${p.recent.skill}** skill **${p.recent.lobby_type} ${p.recent.game_mode}** as **${p.recent.hero}**
-                        KDA: **${p.recent.kills}/${p.recent.deaths}/${p.recent.assists}** | GPM: **${p.recent.gold_per_min}** | XPM: **${p.recent.xp_per_min}**`
+            // Top 3 heroes
+            for (let i = 0; i < p.heroes.length; i++) {
+                profileEmbed.addFields({ 
+                    name: `**${p.heroes[i].name}**`, 
+                    value: `
+                        Games: **${p.heroes[i].games}**
+                        Win as: **${p.heroes[i].winAs}%**
+                        Percentile: **${p.heroes[i].percentile}%**
+                        `, 
+                    inline: true 
                 })
+            }
+
+            // Most recent match data
+            profileEmbed.addFields({
+                name: `**Most Recent Match**`,
+                value: `*${p.recent.time} ${secondsToHms(p.recent.duration)}*
+                    **${p.recent.outcome}** playing a **${p.recent.skill}** skill **${p.recent.lobby_type} ${p.recent.game_mode}** as **${p.recent.hero}**
+                    KDA: **${p.recent.kills}/${p.recent.deaths}/${p.recent.assists}** | GPM: **${p.recent.gold_per_min}** | XPM: **${p.recent.xp_per_min}**`
+            })
             
             message.channel.send(profileEmbed);
         })
