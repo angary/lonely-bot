@@ -1,7 +1,7 @@
 const User = require('../models/user')
 
 module.exports = {
-    name: '>id',
+    name: 'id',
     description: 'Link your current Discord ID to your Steam ID',
     aliases: false,
     args: true,
