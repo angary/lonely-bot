@@ -1,34 +1,48 @@
 # Discord Lonely Bot
 
+Link to add to your server [here](https://discord.com/oauth2/authorize?client_id=647044127313362980&scope=bot&permissions=0).
+
 ## Table Of Contents
-1. [Current Capabilities](#To-Do-List)
+1. [Current Capabilities](#Current_Capabilties)
 2. [Setup](#Setup)
-3. [Extra Information](#Extra-Information)
+3. [Extra Information](#Extra_Information)
 
 
-## Current Capabilities: <a name="To-Do-List"></a>
-- [x] Can calculate the area of the stat pentagon
-- [x] Can fetch data from Opendota API using promises
-- [ ] Generate algorithim to give user a 'hero' rating
-- [ ] Use database to hold Discord ID and steam32 ID
-- [ ] Generate sentences based on words said in game chat/ something similar
-
+## Current Capabilities: <a name="Current_Capabilties"></a>
+- [x] Can calculate the area of the stat pentagon in dota
+- [x] Can fetch data from Opendota API about a player
+- [x] Use database to hold discord ID and steam32 ID
+- [ ] Grab information about latest patch
+- [ ] Dank memes
+- [ ] Generate sentences from words in game chat/ something similar
 
 ## Example usages
-Using the opendota command
-![open dota command example](https://i.imgur.com/5fmql4z.png)
+| Command name | Example |
+|---|---|
+|opendota|![open dota command example](https://i.imgur.com/5fmql4z.png)|
+
 
 
 ## Setup <a name="Setup"></a>
-Ensure that you have node installed, and run:
+Ensure that you have node and npm installed, and run:
 ```
 npm install
 ```
-To run the bot, set environment variable ```BOT_TOKEN``` to your bot token and run:
+To run the bot, set the following environment variables 
+
+|Environment variable|Value|
+|---|---|
+| ```BOT_TOKEN```| Discord bot token |
+| ```BOT_URI``` | Mongodb connection uri | 
+</br>
+
+Afterwards, run:
+
 ```
 node index.js
 ```
 
-## Extra Information <a name="Extra-Information"></a>
-- The bot is hosted on Heroku's servers.
-- The lack of commands is a feature and not because I'm too lazy. 
+## Extra Information <a name="Extra_Information"></a>
+- The bot is named lonely bot after Lone Druid a Dota 2 hero who has a cool bear.
+- The lack of commands is a 'software engineering technique' and not because I'm too lazy. 
+- Heroku runs whatever code is on the master branch - so keep that branch clean!
