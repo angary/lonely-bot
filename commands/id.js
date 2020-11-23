@@ -1,8 +1,9 @@
 const User = require('../models/user');
 
 module.exports = {
-  name: 'id',
+  name: 'steamid',
   description: 'Link your current Discord ID to your Steam ID',
+  information: 'Stores or updates your steam ID. Once your steam ID is saved, you do not need to type your steamID the next time you use the opendota command.',
   aliases: false,
   args: true,
   usage: '[Steam32 ID]',

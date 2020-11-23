@@ -19,16 +19,11 @@ Link to add to your server [here](https://discord.com/oauth2/authorize?client_id
 ## Example usages
 | Command name | Example |
 |---|---|
-|opendota|![open dota command example](https://i.imgur.com/5fmql4z.png)|
-
+|profile|![profile command example](https://i.imgur.com/5fmql4z.png)|
 
 
 ## Setup <a name="Setup"></a>
-Ensure that you have node and npm installed, and run:
-```
-npm install
-```
-To run the bot, set the following environment variables 
+First, set the following environment variables 
 
 |Environment variable|Value|
 |---|---|
@@ -36,13 +31,16 @@ To run the bot, set the following environment variables
 | ```BOT_URI``` | Mongodb connection uri | 
 </br>
 
-Afterwards, run:
+Ensure that you have node and npm installed, and run
+```bash
+# Install dependencies
+npm install
 
-```
+# Run the bot
 node index.js
 ```
 
 ## Extra Information <a name="Extra_Information"></a>
 - The bot is named lonely bot after Lone Druid a Dota 2 hero who has a cool bear.
-- The lack of commands is a 'software engineering technique' and not because I'm too lazy. 
+- The lack of commands is a 'software engineering technique' and not because I'm too lazy.
 - Heroku runs whatever code is on the master branch - so keep that branch clean!

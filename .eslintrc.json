@@ -12,6 +12,6 @@
   },
     "rules": {
     "semi": ["error", "always"],
-    "eqeqeq": ["error", "never"]
+    "eqeqeq": "off"
   }
 }

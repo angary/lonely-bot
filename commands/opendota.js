@@ -5,11 +5,12 @@ const lobbyTypes = require('../assets/lobbyTypes');
 const User = require('../models/user');
 
 module.exports = {
-  name: 'opendota',
+  name: 'profile',
   description: 'Uses opendota API to collect general information on player',
-  aliases: ['od'],
-  args: true,
-  usage: "[Steam32 ID] or 'me'",
+  information: 'Given a steamID, return general info about the player, top 3 heroes, and recent match.\nIf your steamID is saved with the id command, then the steamID argument is not required',
+  aliases: ['od', 'opendota'],
+  args: false,
+  usage: '[Steam32 ID]',
   cooldown: 5,
   execute: opendota
 };
@@ -17,7 +18,7 @@ module.exports = {
 // Database interaction has to be asynchronous, so making new async function
 async function opendota (message, args) {
   // Checks for id
-  if (args[0] == 'me') {
+  if (!args[0]) {
     const details = await discordToSteamID(message.author.id);
     if (details) {
       args[0] = details.steamID;
@@ -37,21 +38,33 @@ async function opendota (message, args) {
     fetch(`${url}/rankings`), // 4 For hero rankings
     fetch(`${url}/recentMatches`) // 5 For most recent match data
   ])
+    // Check for valid response
+    .then(responses => checkAPIResponse(responses))
 
     // Convert data to .json
-    .then(response => Promise.all(response.map(response => response.json())))
+    .then(responses => Promise.all(responses.map(response => response.json())))
 
     // Extract and format data
     .then(data => {
       return formatData(data[0], data[1], data[2], data[3], data[4], data[5]);
     })
+
     // Add data onto embed
-    .then(playerData => {
-      sendEmbed(message, timeRecieved, playerData, playerData.recent);
-    })
-    .catch(error => {
-      message.channel.send(`There was an error: ${error}`);
-    });
+    .then(playerData => sendEmbed(message, timeRecieved, playerData, playerData.recent))
+
+    // Catch errors
+    .catch(error => message.channel.send(`There was an error: ${error}`));
+}
+
+// Check the status code of the API response
+function checkAPIResponse (responses) {
+  // Takes a long time to loop, can be optimised
+  for (let i = 0; i < responses.length; i++) {
+    if (responses[i].status != 200) {
+      throw Error('Invalid API response, check that the id was correct!');
+    }
+  }
+  return responses;
 }
 
 // Collect data from opendota api and return object containing data
@@ -114,14 +127,14 @@ function sendEmbed (message, timeRecieved, p, match) {
       'https://github.com/Gy74S/Lonely-Bot'
     )
     .setDescription(
-        `Medal: **${medal(p)}**
-        MMR Estimate: **${p.mmr_estimate.estimate}**
-        Country: **${p.profile.loccountrycode}**`
+      `Medal: **${medal(p)}**
+      MMR Estimate: **${p.mmr_estimate.estimate}**
+      Country: **${p.profile.loccountrycode}**`
     )
     .setThumbnail(p.profile.avatarfull)
     .setTimestamp()
     .setFooter(
-        `Total Processing Time: ${Date.now() - message.createdTimestamp} ms | Generating Time: ${Date.now() - timeRecieved} ms`
+      `Total Processing Time: ${Date.now() - message.createdTimestamp} ms | Generating Time: ${Date.now() - timeRecieved} ms`
     )
     .addFields({
       name: '**General Match Data**',
@@ -133,10 +146,9 @@ function sendEmbed (message, timeRecieved, p, match) {
     profileEmbed.addFields({
       name: `**${p.heroes[i].name}**`,
       value: `
-          Games: **${p.heroes[i].games}**
-          Win as: **${p.heroes[i].winAs}%**
-          Percentile: **${p.heroes[i].percentile}**
-          `,
+        Games: **${p.heroes[i].games}**
+        Win as: **${p.heroes[i].winAs}%**
+        Percentile: **${p.heroes[i].percentile}**`,
       inline: true
     });
   }
@@ -144,9 +156,10 @@ function sendEmbed (message, timeRecieved, p, match) {
   // Add most recent match data
   profileEmbed.addFields({
     name: '**Most Recent Match**',
-    value: `Date: **${match.time}** | Duration: **${secondsToHms(match.duration)}**
-        **${match.outcome}** playing a **${match.skill}** skill **${match.lobby_type} ${match.game_mode}** as **${match.hero}**
-        KDA: **${match.kills}/${match.deaths}/${match.assists}** | GPM: **${match.gold_per_min}** | XPM: **${match.xp_per_min}**`
+    value: `
+      Date: **${match.time}** | Duration: **${secondsToHms(match.duration)}**
+      **${match.outcome}** playing a **${match.skill}** skill **${match.lobby_type} ${match.game_mode}** as **${match.hero}**
+      KDA: **${match.kills}/${match.deaths}/${match.assists}** | GPM: **${match.gold_per_min}** | XPM: **${match.xp_per_min}**`
   });
 
   message.channel.send(profileEmbed);
@@ -162,9 +175,9 @@ function invalidDatabaseResponse (message) {
 }
 
 // Return a hero ranking given the hero id and list of ranking details
-function idToHeroRanking(rankings, hero_id) {
+function idToHeroRanking (rankings, heroId) {
   for (let i = 0; i < rankings.length; i++) {
-    if (rankings[i].hero_id == hero_id) {
+    if (rankings[i].hero_id == heroId) {
       return `${+(100 * rankings[i].percent_rank).toFixed(2)}%`;
     }
   }
@@ -172,9 +185,9 @@ function idToHeroRanking(rankings, hero_id) {
 }
 
 // Return a hero name given the hero id and list of hero details
-function idToHeroName(heroes, hero_id) {
+function idToHeroName (heroes, heroId) {
   for (let i = 0; i < heroes.length; i++) {
-    if (heroes[i].id == hero_id) {
+    if (heroes[i].id == heroId) {
       return heroes[i].localized_name;
     }
   }
