@@ -20,14 +20,14 @@ module.exports = {
     User.findOneAndUpdate(query, update, options)
       .then(updatedDocument => {
         if (updatedDocument) {
-          message.channel.send(`Successfully updated Discord ID **${discordID}** and Steam ID **${steamID}**`);
+          message.channel.send(`${message.author} Successfully updated Steam ID to be **${steamID}**`);
         } else {
           const newUser = new User({ discordID, steamID });
           newUser.save()
-            .then(() => message.channel.send(`Added Discord ID **${discordID}** and Steam ID **${steamID}**`))
+            .then(() => message.channel.send(`${message.author} Added Steam ID to be **${steamID}**`))
             .catch(err => message.channel.send('Error: ' + err));
         }
       })
-      .catch(err => message.channel.send(`Failed to find and update ID for ${message.author.name}. ${err}`));
+      .catch(err => message.channel.send(`${message.author} Failed to find and add/ update ID. ${err}`));
   }
 };
