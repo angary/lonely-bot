@@ -7,7 +7,7 @@ const User = require('../models/user');
 module.exports = {
   name: 'profile',
   description: 'Uses opendota API to collect general information on player',
-  information: 'Given a steamID, return general info about the player. If your steamID is saved with the id command, then the steamID argument is not required',
+  information: 'Given a steamID, return general info about the player. If your steamID is saved with the id command, then the steamID argument is not required.',
   aliases: ['od', 'opendota'],
   args: false,
   usage: '[Steam32 ID]',
@@ -19,25 +19,26 @@ module.exports = {
 // Database interaction has to be asynchronous, so making new async function
 async function profile (message, args) {
   // Checks for id
-  if (!args[0]) {
+  let id = args[0];
+  if (!id) {
     const details = await discordToSteamID(message.author.id);
     if (details) {
-      args[0] = details.steamID;
+      id = details.steamID;
     } else {
       return invalidDatabaseResponse(message);
     }
   }
 
   const timeRecieved = Date.now();
-  const url = `https://api.opendota.com/api/players/${args[0]}`;
+  const url = 'https://api.opendota.com/api/';
 
   Promise.all([
-    fetch(url), // 0 For basic information
-    fetch(`${url}/wl`), // 1 For won and lost game totals
-    fetch(`${url}/heroes`), // 2 For top heroes
-    fetch('https://api.opendota.com/api/heroes'), // 3 For hero names
-    fetch(`${url}/rankings`), // 4 For hero rankings
-    fetch(`${url}/recentMatches`) // 5 For most recent match data
+    fetch(`${url}players/${id}`), // 0 For basic information
+    fetch(`${url}players/${id}/wl`), // 1 For won and lost game totals
+    fetch(`${url}players/${id}/heroes`), // 2 For top heroes
+    fetch(`${url}/heroes`), // 3 For hero names
+    fetch(`${url}players/${id}/rankings`), // 4 For hero rankings
+    fetch(`${url}players/${id}/recentMatches`) // 5 For most recent match data
   ])
     // Check for valid response
     .then(responses => checkAPIResponse(responses))
