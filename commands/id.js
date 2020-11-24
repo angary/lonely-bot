@@ -8,6 +8,7 @@ module.exports = {
   args: true,
   usage: '[Steam32 ID]',
   cooldown: 1,
+  category: 'dota',
   execute (message, args) {
     const discordID = message.author.id;
     const steamID = args[0];

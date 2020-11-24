@@ -6,6 +6,7 @@ module.exports = {
   args: true,
   usage: '[Fighting] [Farming] [Supporting] [Pushing] [Versatility]',
   cooldown: 0,
+  category: 'dota',
   execute (message, args) {
     if (args.length !== 5) {
       return message.channel.send("You didn't give 5 values");

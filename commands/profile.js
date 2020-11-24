@@ -7,16 +7,17 @@ const User = require('../models/user');
 module.exports = {
   name: 'profile',
   description: 'Uses opendota API to collect general information on player',
-  information: 'Given a steamID, return general info about the player, top 3 heroes, and recent match.\nIf your steamID is saved with the id command, then the steamID argument is not required',
+  information: 'Given a steamID, return general info about the player. If your steamID is saved with the id command, then the steamID argument is not required',
   aliases: ['od', 'opendota'],
   args: false,
   usage: '[Steam32 ID]',
   cooldown: 5,
-  execute: opendota
+  category: 'dota',
+  execute: profile
 };
 
 // Database interaction has to be asynchronous, so making new async function
-async function opendota (message, args) {
+async function profile (message, args) {
   // Checks for id
   if (!args[0]) {
     const details = await discordToSteamID(message.author.id);
