@@ -19,7 +19,10 @@ Link to add to your server [here](https://discord.com/oauth2/authorize?client_id
 ## Example usages
 | Command name | Example |
 |---|---|
-|profile|![profile command example](https://i.imgur.com/5fmql4z.png)|
+|help|![help command example](https://i.imgur.com/P8Gd4pJ.png)|
+|steamid|![steamid command example](https://i.imgur.com/ZK8Z1uQ.png)|
+|profile|![profile command example](https://i.imgur.com/Ea1BTm8.png)|
+|team|![team command example](https://i.imgur.com/14jHNTM.png)|
 
 
 ## Setup <a name="Setup"></a>
