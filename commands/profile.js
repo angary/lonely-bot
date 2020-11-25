@@ -18,6 +18,7 @@ module.exports = {
 
 // Database interaction has to be asynchronous, so making new async function
 async function profile (message, args) {
+  message.channel.startTyping();
   // Checks for id
   let id = args[0];
   if (!id) {
@@ -28,7 +29,6 @@ async function profile (message, args) {
       return invalidDatabaseResponse(message);
     }
   }
-
   const timeRecieved = Date.now();
   const url = 'https://api.opendota.com/api/';
 
@@ -55,7 +55,10 @@ async function profile (message, args) {
     .then(playerData => sendEmbed(message, timeRecieved, playerData, playerData.recent))
 
     // Catch errors
-    .catch(error => message.channel.send(`There was an error: ${error}`));
+    .catch(error => {
+      message.channel.stopTyping();
+      message.channel.send(`There was an error: ${error}`);
+    });
 }
 
 // Check the status code of the API response
@@ -164,6 +167,7 @@ function sendEmbed (message, timeRecieved, p, match) {
       KDA: **${match.kills}/${match.deaths}/${match.assists}** | GPM: **${match.gold_per_min}** | XPM: **${match.xp_per_min}**`
   });
 
+  message.channel.stopTyping();
   message.channel.send(profileEmbed);
 }
 
@@ -173,6 +177,7 @@ function invalidDatabaseResponse (message) {
   response += 'In order to use the me argument, you have to have your id added. ';
   response += "Either you haven't added your id, or there was a database error. ";
   response += 'You can add you id with the id command!';
+  message.channel.stopTyping();
   message.channel.send(response);
 }
 

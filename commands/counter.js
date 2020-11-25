@@ -4,11 +4,11 @@ const aliasToHeroName = require('../assets/heroNames');
 
 module.exports = {
   name: 'counter',
-  description: 'Returns top 5 counters to given heroes',
-  information: 'Given the name of multiple heroes seperated by commas, return the top 5 counters to a team composition of those heroes',
-  aliases: [],
+  description: 'Returns ideal and unideal hero picks',
+  information: 'Given the name of heroes on your team seperated by commas, followed by a "|", and then heroes on the enemy team seperated by commas, return the top 10 ideal and unideal picks for your team. If here is no "|", it is assumed all heroes are on your team. If there is no hero before "|", it is assumed all heroes are on the enemy team.',
+  aliases: false,
   args: true,
-  usage: 'hero_name_1, hero_name_2, ...',
+  usage: '[ally_1], [ally_2] ... | [enemy_1], [enemy_2] ...',
   cooldown: 2,
   category: 'dota',
   execute: counter
@@ -18,15 +18,33 @@ module.exports = {
 async function counter (message, args) {
   // Trigger bot to start typing and record time message was recieved
   const timeRecieved = Date.now();
+  message.channel.startTyping();
 
-  // Grabs the hero names
-  args = args.join('').split(',');
+  // Find the number of allies in the argument
+  args = args.join('');
+  let allyCount = 0;
+  if (args.includes('|')) {
+    args = args.split('|');
+    args = args.map(team => team.split(','));
+    if (args[0] == '') {
+      allyCount = 0;
+      args = args[1];
+    } else {
+      allyCount = args[0].length;
+      args = args[0].concat(args[1]);
+    }
+  } else {
+    args = args.split(',');
+    allyCount = args.length;
+  }
+
+  // Convert argument names into official names
   const names = args.map(name => aliasToHeroName[name.trim().toLowerCase()]);
-  console.log(names);
 
   // Collect response
   const response = await fetchAllHeroes();
   if (response.status != 200) {
+    message.channel.stopTyping();
     return message.channel.send('Invalid API response, when getting information on heroes.');
   }
 
@@ -36,6 +54,7 @@ async function counter (message, args) {
   for (let i = 0; i < names.length; i++) {
     const hero = nameToHero(heroes, names[i]);
     if (!hero) {
+      message.channel.stopTyping();
       return message.channel.send(`Could not find information for ${names[i]}`);
     }
     argHeroes.push(hero);
@@ -58,25 +77,29 @@ async function counter (message, args) {
     .then(responses => Promise.all(responses.map(response => response.json())))
 
     // Find the best counters
-    .then(data => aggregateData(data, heroes, names))
+    .then(data => aggregateData(data, heroes, names, allyCount))
 
-    // Formate data onto an embed message
-    .then(best => sendEmbed(message, timeRecieved, names, best.splice(0, 10)))
+    // Format data onto an embed message
+    .then(counters => sendEmbed(message, timeRecieved, names, counters, allyCount))
 
     // Handle errors
-    .catch(error => message.channel.send(`There was an error: ${error}`));
+    .catch(error => {
+      message.channel.stopTyping();
+      message.channel.send(`There was an error: ${error}`);
+    });
 }
 
 // Aggregate data
-function aggregateData(data, heroes, names) {
-  const counters = aggregateWinrate(data, 'vs');
-  let best = Object.entries(counters);
-  best.sort((a, b) => {
-    if (a[1] > b[1]) return 1;
-    else if (a[1] < b[1]) return -1;
-    return 0;
-  });
+function aggregateData (data, heroes, names, allyCount) {
+  // Find winrate with / against given team composition
+  const picks = aggregateWinrate(data, allyCount);
+
+  // Sort picks based off winrate, and convert from objects into hero name
+  let best = Object.entries(picks);
+  best.sort((a, b) => (a[1] - b[1]));
   best = best.map((hero) => idToHeroName(heroes, hero[0]));
+
+  // Remove the hero if it's an ally or enemy
   for (const i in names) {
     const index = best.indexOf(names[i]);
     if (index != -1) best.splice(index, 1);
@@ -85,25 +108,50 @@ function aggregateData(data, heroes, names) {
 }
 
 // Format data and send an embed to channel with details
-function sendEmbed (message, timeRecieved, heroes, counters) {
-  let description = '';
-  for (let i = 0; i < counters.length; i++) {
-    description += `${i + 1}: **${counters[i]}**\n`;
-  }
-  const profileEmbed = new Discord.MessageEmbed()
+function sendEmbed (message, timeRecieved, heroes, counters, allyCount) {
+  // Boilerplate formatting
+  const heroesEmbed = new Discord.MessageEmbed()
     .setColor('#0099ff')
-    .setTitle(`Counters for **${heroes.join(', ')}**`)
+    .setTitle('Team picker help')
     .setAuthor(
       'Lonely Bot',
       'https://i.imgur.com/b0sTfNL.png',
       'https://github.com/Gy74S/Lonely-Bot'
     )
-    .setDescription(description)
     .setTimestamp()
     .setFooter(
       `Total Processing Time: ${Date.now() - message.createdTimestamp} ms | Generating Time: ${Date.now() - timeRecieved} ms`
     );
-  message.channel.send(profileEmbed);
+
+  // Description formatting
+  let description = '';
+  if (allyCount > 0) {
+    description += `Heroes good with: **${heroes.slice().splice(0, allyCount).join(', ')}**\n`;
+  }
+  if (heroes.length > allyCount) {
+    description += `Heroes good against: **${heroes.slice().splice(allyCount).join(', ')}**\n`;
+  }
+  heroesEmbed.setDescription(description);
+
+  // Ideal pick formatting
+  let goodHeroes = '';
+  let badHeroes = '';
+  for (let i = 0; i < 10; i++) {
+    goodHeroes += `${i + 1}: **${counters[i]}**\n`;
+    badHeroes += `${i + 1}: **${counters[counters.length - 1 - i]}**\n`;
+  }
+  heroesEmbed.addFields({
+    name: '**Best Picks**:',
+    value: goodHeroes,
+    inline: true
+  });
+  heroesEmbed.addFields({
+    name: '**Worst Picks**:',
+    value: badHeroes,
+    inline: true
+  });
+  message.channel.stopTyping();
+  message.channel.send(heroesEmbed);
 }
 
 // Send a get request to find information on all heroes
@@ -134,10 +182,24 @@ function checkAPIResponse (responses) {
 }
 
 // Given data of matchups
-function aggregateWinrate (data, type) {
+function aggregateWinrate (data, allyCount) {
   const aggregate = {};
-  for (const hero in data) {
-    const heroes = data[hero].advantage[0][type];
+
+  // Grab winrate of heroes with allies
+  for (const hero in data.slice().splice(0, allyCount)) {
+    const heroes = data[hero].advantage[0].with;
+    for (const i in heroes) {
+      if (aggregate[heroes[i].heroId2]) {
+        aggregate[heroes[i].heroId2] += heroes[i].wins;
+      } else {
+        aggregate[heroes[i].heroId2] = heroes[i].wins;
+      }
+    }
+  }
+
+  // Grab winrate of heroes against enemy
+  for (const hero in data.slice().splice(allyCount)) {
+    const heroes = data[hero].advantage[0].vs;
     for (const i in heroes) {
       if (aggregate[heroes[i].heroId2]) {
         aggregate[heroes[i].heroId2] += heroes[i].wins;
