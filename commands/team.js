@@ -3,7 +3,7 @@ const Discord = require('discord.js');
 const aliasToHeroName = require('../assets/heroNames');
 
 module.exports = {
-  name: 'counter',
+  name: 'team',
   description: 'Returns ideal and unideal hero picks',
   information: 'Given the name of heroes on your team seperated by commas, followed by a "|", and then heroes on the enemy team seperated by commas, return the top 10 ideal and unideal picks for your team. If here is no "|", it is assumed all heroes are on your team. If there is no hero before "|", it is assumed all heroes are on the enemy team.',
   aliases: false,
@@ -11,11 +11,11 @@ module.exports = {
   usage: '[ally_1], [ally_2] ... | [enemy_1], [enemy_2] ...',
   cooldown: 2,
   category: 'dota',
-  execute: counter
+  execute: team
 };
 
 // Database interaction has to be asynchronous, so making new async function
-async function counter (message, args) {
+async function team (message, args) {
   // Trigger bot to start typing and record time message was recieved
   const timeRecieved = Date.now();
   message.channel.startTyping();
