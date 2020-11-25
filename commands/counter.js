@@ -6,93 +6,99 @@ module.exports = {
   name: 'counter',
   description: 'Returns top 5 counters to given heroes',
   information: 'Given the name of multiple heroes seperated by commas, return the top 5 counters to a team composition of those heroes',
-  aliases: ['od', 'opendota'],
-  args: false,
+  aliases: [],
+  args: true,
   usage: 'hero_name_1, hero_name_2, ...',
-  cooldown: 0,
+  cooldown: 2,
   category: 'dota',
   execute: counter
 };
 
 // Database interaction has to be asynchronous, so making new async function
 async function counter (message, args) {
-  message.channel.startTyping();
-  // Grabs the hero names
-  args = args.join('').split(',');
-  const aliases = args.map(name => aliasToHeroName[name.trim().toLowerCase()]);
-  console.log(aliases);
-
+  // Trigger bot to start typing and record time message was recieved
   const timeRecieved = Date.now();
 
+  // Grabs the hero names
+  args = args.join('').split(',');
+  const names = args.map(name => aliasToHeroName[name.trim().toLowerCase()]);
+  console.log(names);
+
+  // Collect response
   const response = await fetchAllHeroes();
   if (response.status != 200) {
     return message.channel.send('Invalid API response, when getting information on heroes.');
   }
 
-  // Convert all to hero objects
+  // Convert all heroes to hero objects
   const heroes = await response.json();
-  const argsHeroes = [];
-  for (let i = 0; i < aliases.length; i++) {
-    argsHeroes.push(nameToHero(heroes, aliases[i]));
-  }
-
-  // Fetch data on that hero's matchups
-  const argsHeroesMatchup = [];
-  for (let i = 0; i < argsHeroes.length; i++) {
-    const url = `https://api.opendota.com/api/heroes/${argsHeroes[i].id}/matchups`;
-    console.log(url);
-    const response = await fetch(url);
-    if (response.status != 200) {
-      return message.channel.send(`Invalid response when getting data for ${argsHeroes[i].localized_name}.`);
+  const argHeroes = [];
+  for (let i = 0; i < names.length; i++) {
+    const hero = nameToHero(heroes, names[i]);
+    if (!hero) {
+      return message.channel.send(`Could not find information for ${names[i]}`);
     }
-    const heroMatchups = await response.json();
-    argsHeroesMatchup.push(heroMatchups);
+    argHeroes.push(hero);
   }
 
-  // Add winrate
-  argsHeroesMatchup[0].forEach((hero) => {
-    hero.winrate = hero.wins / hero.games_played;
-  });
-  // Loop through all the heroes specified by the user
-  for (let i = 1; i < argsHeroesMatchup.length; i++) {
-    // Loop through all the matchups
-    for (let j = 0; j < argsHeroesMatchup[i].length; j++) {
-      // Find the same matchup as for the first hero specified
-      for (let k = 0; k < argsHeroesMatchup[0].length; k++) {
-        // If it's the same matchup
-        if (argsHeroesMatchup[i][j].hero_id == argsHeroesMatchup[0][k].hero_id) {
-          argsHeroesMatchup[0][k].winrate += argsHeroesMatchup[i][j].wins / argsHeroesMatchup[i][j].games_played;
-          break;
-        }
-      }
-    }
+  // Fetch data on hero's matchups
+  const urls = [];
+  for (const hero in argHeroes) {
+    const url = `https://api.stratz.com/api/v1/hero/${argHeroes[hero].id}/matchup`;
+    urls.push(fetch(url));
   }
 
-  // Find the respective winrate
-  let aggregateMatchups = argsHeroesMatchup[0];
+  // Once recieved the data on all the heroes
+  Promise.all(urls)
 
-  // Sort array such that counters appear first
-  aggregateMatchups.sort((a, b) => {
-    if (a.winrate < b.winrate) return -1;
-    else if (a.winrate > b.winrate) return 1;
+    // Check that the status code of the API response was 200
+    .then(responses => checkAPIResponse(responses))
+
+    // Convert response into json
+    .then(responses => Promise.all(responses.map(response => response.json())))
+
+    // Find the best counters
+    .then(data => aggregateData(data, heroes, names))
+
+    // Formate data onto an embed message
+    .then(best => sendEmbed(message, timeRecieved, names, best.splice(0, 10)))
+
+    // Handle errors
+    .catch(error => message.channel.send(`There was an error: ${error}`));
+}
+
+// Aggregate data
+function aggregateData(data, heroes, names) {
+  const counters = aggregateWinrate(data, 'vs');
+  let best = Object.entries(counters);
+  best.sort((a, b) => {
+    if (a[1] > b[1]) return 1;
+    else if (a[1] < b[1]) return -1;
     return 0;
   });
-  aggregateMatchups = aggregateMatchups.slice(0, 5).map(hero => idToHeroName(heroes, hero.hero_id));
-  message.channel.stopTyping();
-  sendEmbed(message, timeRecieved, aliases, aggregateMatchups);
+  best = best.map((hero) => idToHeroName(heroes, hero[0]));
+  for (const i in names) {
+    const index = best.indexOf(names[i]);
+    if (index != -1) best.splice(index, 1);
+  }
+  return best;
 }
 
 // Format data and send an embed to channel with details
 function sendEmbed (message, timeRecieved, heroes, counters) {
+  let description = '';
+  for (let i = 0; i < counters.length; i++) {
+    description += `${i + 1}: **${counters[i]}**\n`;
+  }
   const profileEmbed = new Discord.MessageEmbed()
     .setColor('#0099ff')
-    .setTitle(`Counters for **${heroes.join(' ')}**`)
+    .setTitle(`Counters for **${heroes.join(', ')}**`)
     .setAuthor(
       'Lonely Bot',
       'https://i.imgur.com/b0sTfNL.png',
       'https://github.com/Gy74S/Lonely-Bot'
     )
-    .setDescription(`${counters.join('\n')}`)
+    .setDescription(description)
     .setTimestamp()
     .setFooter(
       `Total Processing Time: ${Date.now() - message.createdTimestamp} ms | Generating Time: ${Date.now() - timeRecieved} ms`
@@ -102,25 +108,53 @@ function sendEmbed (message, timeRecieved, heroes, counters) {
 
 // Send a get request to find information on all heroes
 async function fetchAllHeroes () {
-  const response = fetch('https://api.opendota.com/api/heroes');
+  const response = fetch('https://api.stratz.com/api/v1/hero');
   return response;
 }
 
 // Return a hero object given the hero's localized name
 function nameToHero (heroes, name) {
-  for (let i = 0; i < heroes.length; i++) {
-    if (heroes[i].localized_name == name) {
-      return heroes[i];
+  for (const hero in heroes) {
+    if (heroes[hero].displayName == name) {
+      return heroes[hero];
     }
   }
   return null;
 }
 
-function idToHeroName (heroes, heroId) {
-  for (let i = 0; i < heroes.length; i++) {
-    if (heroes[i].id == heroId) {
-      return heroes[i].localized_name;
+// Check the status code of the API response
+function checkAPIResponse (responses) {
+  // Takes a long time to loop, can be optimised
+  for (let i = 0; i < responses.length; i++) {
+    if (responses[i].status != 200) {
+      throw Error('Invalid API response, check that the id was correct!');
     }
   }
-  return 'Unknown';
+  return responses;
+}
+
+// Given data of matchups
+function aggregateWinrate (data, type) {
+  const aggregate = {};
+  for (const hero in data) {
+    const heroes = data[hero].advantage[0][type];
+    for (const i in heroes) {
+      if (aggregate[heroes[i].heroId2]) {
+        aggregate[heroes[i].heroId2] += heroes[i].wins;
+      } else {
+        aggregate[heroes[i].heroId2] = heroes[i].wins;
+      }
+    }
+  }
+  return aggregate;
+}
+
+// Given hero data from stratz, and hero id, return hero object with same id
+function idToHeroName (heroes, heroId) {
+  for (const hero in heroes) {
+    if (heroes[hero].id == heroId) {
+      return heroes[hero].displayName;
+    }
+  }
+  return null;
 }

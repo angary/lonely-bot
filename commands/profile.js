@@ -11,7 +11,7 @@ module.exports = {
   aliases: ['od', 'opendota'],
   args: false,
   usage: '[Steam32 ID]',
-  cooldown: 5,
+  cooldown: 2,
   category: 'dota',
   execute: profile
 };
