@@ -36,7 +36,7 @@ async function profile (message, args) {
     fetch(`${url}players/${id}`), // 0 For basic information
     fetch(`${url}players/${id}/wl`), // 1 For won and lost game totals
     fetch(`${url}players/${id}/heroes`), // 2 For top heroes
-    fetch(`${url}/heroes`), // 3 For hero names
+    fetch(`${url}heroes`), // 3 For hero names
     fetch(`${url}players/${id}/rankings`), // 4 For hero rankings
     fetch(`${url}players/${id}/recentMatches`) // 5 For most recent match data
   ])
