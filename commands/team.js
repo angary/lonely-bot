@@ -39,7 +39,14 @@ async function team (message, args) {
   }
 
   // Convert argument names into official names
-  const names = args.map(name => aliasToHeroName[name.trim().toLowerCase()]);
+  const names = args.map(name => {
+    const adjustedName = name.trim().toLowerCase();
+    if (aliasToHeroName[adjustedName]) {
+      return aliasToHeroName[adjustedName];
+    }
+    message.channel.stopTyping();
+    return message.channel.send(`Invalid name ${name}.`);
+  });
 
   // Collect response
   const response = await fetchAllHeroes();
