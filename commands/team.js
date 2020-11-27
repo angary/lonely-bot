@@ -5,7 +5,7 @@ const aliasToHeroName = require('../assets/heroNames');
 module.exports = {
   name: 'team',
   description: 'Returns ideal and unideal hero picks',
-  information: 'Given the name of heroes on your team seperated by commas, followed by a "|", and then heroes on the enemy team seperated by commas, return the top 10 ideal and unideal picks for your team. If here is no "|", it is assumed all heroes are on your team. If there is no hero before "|", it is assumed all heroes are on the enemy team.',
+  information: 'Given the name of heroes on your team seperated by commas, followed by a "|", and then heroes on the enemy team seperated by commas, return the top 10 ideal and unideal picks for your team.\n\nIf there is no "|", it is assumed all heroes are on your team. If there is no hero before "|", it is assumed all heroes are on the enemy team.\n\nRating is measured by winrate with/ against in matches from the past week, so heroes with naturally high winrates may score higher as an ideal pick',
   aliases: false,
   args: true,
   usage: '[ally_1], [ally_2] ... | [enemy_1], [enemy_2] ...',
@@ -20,33 +20,21 @@ async function team (message, args) {
   const timeRecieved = Date.now();
   message.channel.startTyping();
 
-  // Find the number of allies in the argument
-  args = args.join('');
-  let allyCount = 0;
-  if (args.includes('|')) {
-    args = args.split('|');
-    args = args.map(team => team.split(','));
-    if (args[0] == '') {
-      allyCount = 0;
-      args = args[1];
-    } else {
-      allyCount = args[0].length;
-      args = args[0].concat(args[1]);
-    }
-  } else {
-    args = args.split(',');
-    allyCount = args.length;
-  }
+  // Find the number of allies in the argument and the names of the heroes
+  const [allyCount, argNames] = parseArgs(args);
 
   // Convert argument names into official names
-  const names = args.map(name => {
-    const adjustedName = name.trim().toLowerCase();
-    if (aliasToHeroName[adjustedName]) {
-      return aliasToHeroName[adjustedName];
+  const names = [];
+  for (const name of argNames) {
+    const officialName = aliasToHeroName[name.trim().toLowerCase()];
+    if (officialName) {
+      names.push(officialName);
+    } else {
+      message.channel.stopTyping();
+      console.log('stopped');
+      return message.channel.send(`Invalid name ${name}.`);
     }
-    message.channel.stopTyping();
-    return message.channel.send(`Invalid name ${name}.`);
-  });
+  }
 
   // Collect response
   const response = await fetchAllHeroes();
@@ -69,8 +57,8 @@ async function team (message, args) {
 
   // Fetch data on hero's matchups
   const urls = [];
-  for (const hero in argHeroes) {
-    const url = `https://api.stratz.com/api/v1/hero/${argHeroes[hero].id}/matchup`;
+  for (const hero of argHeroes) {
+    const url = `https://api.stratz.com/api/v1/hero/${hero.id}/matchup`;
     urls.push(fetch(url));
   }
 
@@ -96,6 +84,22 @@ async function team (message, args) {
     });
 }
 
+// Find the number of allies and heroes in the argument
+function parseArgs (args) {
+  args = args.join('');
+  if (args.includes('|')) {
+    args = args.split('|');
+    args = args.map(team => team.split(','));
+    if (args[0] == '') {
+      return [0, args[1]];
+    } else {
+      return [args[0].length, args[0].concat(args[1])];
+    }
+  } else {
+    return [args.length, args.split(',')];
+  }
+}
+
 // Aggregate data
 function aggregateData (data, heroes, names, allyCount) {
   // Find winrate with / against given team composition
@@ -107,8 +111,8 @@ function aggregateData (data, heroes, names, allyCount) {
   best = best.map((hero) => idToHeroName(heroes, hero[0]));
 
   // Remove the hero if it's an ally or enemy
-  for (const i in names) {
-    const index = best.indexOf(names[i]);
+  for (const name of names) {
+    const index = best.indexOf(name);
     if (index != -1) best.splice(index, 1);
   }
   return best;
@@ -169,9 +173,9 @@ async function fetchAllHeroes () {
 
 // Return a hero object given the hero's localized name
 function nameToHero (heroes, name) {
-  for (const hero in heroes) {
-    if (heroes[hero].displayName == name) {
-      return heroes[hero];
+  for (const i in heroes) {
+    if (heroes[i].displayName == name) {
+      return heroes[i];
     }
   }
   return null;
@@ -188,13 +192,13 @@ function checkAPIResponse (responses) {
   return responses;
 }
 
-// Given data of matchups
+// Given data of matchups, return winrates of heroes with allies and against enemys
 function aggregateWinrate (data, allyCount) {
   const aggregate = {};
 
-  // Grab winrate of heroes with allies
-  for (const hero in data.slice().splice(0, allyCount)) {
-    const heroes = data[hero].advantage[0].with;
+  // Given a winrate list, add winrates of each hero to the aggregate object
+  // where the property name is the hero id
+  function addWinrates (heroes) {
     for (const i in heroes) {
       if (aggregate[heroes[i].heroId2]) {
         aggregate[heroes[i].heroId2] += heroes[i].wins;
@@ -204,25 +208,25 @@ function aggregateWinrate (data, allyCount) {
     }
   }
 
+  // Grab winrate of heroes with allies
+  for (const hero of data.slice().splice(0, allyCount)) {
+    const withHeroes = hero.advantage[0].with;
+    addWinrates(withHeroes);
+  }
+
   // Grab winrate of heroes against enemy
-  for (const hero in data.slice().splice(allyCount)) {
-    const heroes = data[hero].advantage[0].vs;
-    for (const i in heroes) {
-      if (aggregate[heroes[i].heroId2]) {
-        aggregate[heroes[i].heroId2] += heroes[i].wins;
-      } else {
-        aggregate[heroes[i].heroId2] = heroes[i].wins;
-      }
-    }
+  for (const hero of data.slice().splice(allyCount)) {
+    const vsHeroes = hero.advantage[0].vs;
+    addWinrates(vsHeroes);
   }
   return aggregate;
 }
 
 // Given hero data from stratz, and hero id, return hero object with same id
 function idToHeroName (heroes, heroId) {
-  for (const hero in heroes) {
-    if (heroes[hero].id == heroId) {
-      return heroes[hero].displayName;
+  for (const i in heroes) {
+    if (heroes[i].id == heroId) {
+      return heroes[i].displayName;
     }
   }
   return null;
