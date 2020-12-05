@@ -22,6 +22,8 @@
   },
   "homepage": "https://github.com/Gy74S/Lonely-Bot#readme",
   "dependencies": {
+    "axios": "^0.21.0",
+    "cheerio": "^1.0.0-rc.3",
     "discord.js": "^12.2.0",
     "mongoose": "^5.10.6",
     "node-fetch": "^2.6.1"
