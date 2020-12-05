@@ -1,6 +1,6 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
-// const Discord = require('discord.js');
+const Discord = require('discord.js');
 const aliasToHeroName = require('../assets/heroNames');
 
 module.exports = {
@@ -21,33 +21,33 @@ const tableSelector = 'body > div.container-outer.seemsgood > div.skin-container
 // Database interaction has to be asynchronous, so making new async function
 async function counter (message, args) {
   // Trigger bot to start typing and record time message was recieved
+  const timeRecieved = Date.now();
   message.channel.startTyping();
 
   // Convert argument names into official names
-  const names = [];
+  const enemies = [];
   for (const name of parseArgs(args)) {
     const officialName = aliasToHeroName[name.trim().toLowerCase()];
     if (officialName) {
-      names.push(officialName.toLowerCase().replace(' ', '-'));
+      enemies.push(officialName.toLowerCase().replace(' ', '-'));
     } else {
       return sendMessage(message.channel, `Invalid name ${name}.`);
     }
   }
-  console.log(names);
 
-  // Dictionary to store data for each hero
+  // Object to store data for each hero
   const heroes = {};
 
   // Webscrape the data
-  const url = `https://www.dotabuff.com/heroes/${names[0]}/counters`;
+  const url = `https://www.dotabuff.com/heroes/${enemies[0]}/counters`;
   axios.get(url)
     .then(async response => {
       // Grab the data from the counters table
       const $ = await cheerio.load(response.data);
-      const counters = $(tableSelector);
+      const counterTable = $(tableSelector);
 
       // Extract data from each hero
-      counters.each((index, element) => {
+      counterTable.each((index, element) => {
         // Data is in given in the form of a string
         const name = $(element).find('td.cell-xlarge').text();
         const disadvantage = $(element).find('td:nth-child(3)').text();
@@ -61,8 +61,8 @@ async function counter (message, args) {
       });
     })
     .then(() => {
-      console.log(heroes);
-      message.channel.stopTyping();
+      const counters = Object.values(heroes);
+      sendEmbed(message, timeRecieved, enemies, counters);
     })
     .catch(err => console.log(err));
 }
@@ -70,6 +70,53 @@ async function counter (message, args) {
 // Find the number of allies and heroes in the argument
 function parseArgs (args) {
   return args.join('').split(',');
+}
+
+
+// Format data and send an embed to channel with details
+function sendEmbed (message, timeRecieved, enemies, counters) {
+  // Boilerplate formatting
+  const heroesEmbed = new Discord.MessageEmbed()
+    .setColor('#0099ff')
+    .setTitle('Team picker help')
+    .setAuthor(
+      'Lonely Bot',
+      'https://i.imgur.com/b0sTfNL.png',
+      'https://github.com/Gy74S/Lonely-Bot'
+    )
+    .setTimestamp()
+    .setFooter(
+      `Total Processing Time: ${Date.now() - message.createdTimestamp} ms | Generating Time: ${Date.now() - timeRecieved} ms`
+    );
+
+  // Description formatting
+  heroesEmbed.setDescription(`Heroes good against **${enemies.join(', ')}**`);
+
+  // Ideal pick formatting
+  let heroes = '';
+  let disadvantages = '';
+  let winrates = '';
+  for (let i = 0; i < 10; i++) {
+    heroes += `${i + 1}: **${counters[i].name}**\n`;
+    disadvantages += `${counters[i].disadvantage}%\n`;
+    winrates += `${counters[i].winrate}%\n`;
+  }
+  heroesEmbed.addFields({
+    name: '**Heroes**:',
+    value: heroes,
+    inline: true
+  });
+  heroesEmbed.addFields({
+    name: '**Disadvantage**:',
+    value: disadvantages,
+    inline: true
+  });
+  heroesEmbed.addFields({
+    name: '**Winrate**:',
+    value: winrates,
+    inline: true
+  });
+  sendMessage(message.channel, heroesEmbed);
 }
 
 // Stop typing message in chat and send the message
