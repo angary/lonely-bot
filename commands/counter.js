@@ -39,29 +39,43 @@ async function counter (message, args) {
   const heroes = {};
 
   // Webscrape the data
-  const url = `https://www.dotabuff.com/heroes/${enemies[0]}/counters`;
-  axios.get(url)
-    .then(async response => {
-      // Grab the data from the counters table
-      const $ = await cheerio.load(response.data);
-      const counterTable = $(tableSelector);
+  const promises = enemies.map(hero => axios.get(`https://www.dotabuff.com/heroes/${hero}/counters`));
+  axios.all(promises)
 
-      // Extract data from each hero
-      counterTable.each((index, element) => {
-        // Data is in given in the form of a string
-        const name = $(element).find('td.cell-xlarge').text();
-        const disadvantage = $(element).find('td:nth-child(3)').text();
-        const winrate = $(element).find('td:nth-child(4)').text();
+    // Collect via webscraping
+    .then(async responses => {
+      for (const response of responses) {
+        // Grab the data from the counters table
+        const $ = await cheerio.load(response.data);
+        const counterTable = $(tableSelector);
 
-        // Convert data into numbers and store them
-        heroes[name] = {};
-        heroes[name].name = name;
-        heroes[name].disadvantage = parseFloat(disadvantage.slice(0, -1));
-        heroes[name].winrate = parseFloat(winrate.slice(0, -1));
-      });
+        // Extract data from each hero
+        counterTable.each((index, element) => {
+          // Data is in given in the form of a string
+          const name = $(element).find('td.cell-xlarge').text();
+          const disadvantage = $(element).find('td:nth-child(3)').text();
+          const winrate = $(element).find('td:nth-child(4)').text();
+
+          // Convert data into numbers and store them
+          heroes[name] = {};
+          heroes[name].name = name;
+          heroes[name].disadvantage = parseFloat(disadvantage.slice(0, -1));
+          heroes[name].winrate = parseFloat(winrate.slice(0, -1));
+        });
+      }
     })
+
+    // Format data and send it
     .then(() => {
-      const counters = Object.values(heroes);
+      // Convert data into an array
+      const heroesArray = Object.values(heroes);
+
+      // Remove heroes if they are in the enemy team
+      console.log(enemies);
+      const counters = heroesArray.filter(hero => !enemies.includes(hero.name.toLowerCase().replace(' ', '-')));
+
+      // Sort counters based on disadvantage
+      counters.sort((a, b) => b.disadvantage - a.disadvantage);
       sendEmbed(message, timeRecieved, enemies, counters);
     })
     .catch(err => console.log(err));
@@ -71,7 +85,6 @@ async function counter (message, args) {
 function parseArgs (args) {
   return args.join('').split(',');
 }
-
 
 // Format data and send an embed to channel with details
 function sendEmbed (message, timeRecieved, enemies, counters) {
