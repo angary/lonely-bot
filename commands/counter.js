@@ -29,17 +29,22 @@ async function counter (message, args) {
   for (const name of parseArgs(args)) {
     const officialName = aliasToHeroName[name.trim().toLowerCase()];
     if (officialName) {
-      enemies.push(officialName.toLowerCase().replace(' ', '-'));
+      enemies.push(officialName);
     } else {
-      return sendMessage(message.channel, `Invalid name ${name}.`);
+      return sendMessage(message.channel, `Invalid hero name **${name}**.`);
     }
   }
+  console.log(enemies);
 
   // Object to store data for each hero
   const heroes = {};
 
   // Webscrape the data
-  const promises = enemies.map(hero => axios.get(`https://www.dotabuff.com/heroes/${hero}/counters`));
+  const promises = enemies.map(hero => {
+    const urlName = hero.replace("'", '').toLowerCase().replace(' ', '-');
+    return axios.get(`https://www.dotabuff.com/heroes/${urlName}/counters`);
+  });
+
   axios.all(promises)
 
     // Collect via webscraping
@@ -71,14 +76,14 @@ async function counter (message, args) {
       const heroesArray = Object.values(heroes);
 
       // Remove heroes if they are in the enemy team
-      console.log(enemies);
-      const counters = heroesArray.filter(hero => !enemies.includes(hero.name.toLowerCase().replace(' ', '-')));
+      const counters = heroesArray.filter(hero => !enemies.includes(hero.name));
 
       // Sort counters based on disadvantage
-      counters.sort((a, b) => b.disadvantage - a.disadvantage);
       sendEmbed(message, timeRecieved, enemies, counters);
     })
-    .catch(err => console.log(err));
+    .catch(error => {
+      sendMessage(message.channel, `There was an error: ${error}`);
+    });
 }
 
 // Find the number of allies and heroes in the argument
@@ -106,30 +111,30 @@ function sendEmbed (message, timeRecieved, enemies, counters) {
   heroesEmbed.setDescription(`Heroes good against **${enemies.join(', ')}**`);
 
   // Ideal pick formatting
-  let heroes = '';
-  let disadvantages = '';
-  let winrates = '';
-  for (let i = 0; i < 10; i++) {
-    heroes += `${i + 1}: **${counters[i].name}**\n`;
-    disadvantages += `${counters[i].disadvantage}%\n`;
-    winrates += `${counters[i].winrate}%\n`;
-  }
-  heroesEmbed.addFields({
-    name: '**Heroes**:',
-    value: heroes,
-    inline: true
-  });
-  heroesEmbed.addFields({
-    name: '**Disadvantage**:',
-    value: disadvantages,
-    inline: true
-  });
-  heroesEmbed.addFields({
-    name: '**Winrate**:',
-    value: winrates,
-    inline: true
-  });
+  addHeroes(heroesEmbed, counters, 'winrate', 5);
+  addHeroes(heroesEmbed, counters, 'disadvantage', 5);
+  // addHeroes(heroesEmbed, counters, 'disadvantage', 5);
   sendMessage(message.channel, heroesEmbed);
+}
+
+// Add fields to embed, given the hero details
+function addHeroes (heroesEmbed, counters, sortMethod, displayCount) {
+  // Sort the heroes
+  let winCounters = [...counters].sort((a, b) => a[sortMethod] - b[sortMethod]);
+  winCounters = winCounters.slice(0, 5);
+
+  // Add details to embed
+  const details = [];
+  details[`Sorted by ${sortMethod}\n**Heroes**:`] = `**${winCounters.map(counter => counter.name).join('**\n**')}**`;
+  details['**\nDisadvantage**:'] = `${winCounters.map(counter => counter.disadvantage).join('%\n')}%`;
+  details['**\nWinrate**:'] = `${winCounters.map(counter => counter.winrate).join('%\n')}%`;
+  for (const [key, value] of Object.entries(details)) {
+    heroesEmbed.addFields({
+      name: key,
+      value: value,
+      inline: true
+    });
+  }
 }
 
 // Stop typing message in chat and send the message

@@ -89,7 +89,7 @@ module.exports = {
   'leshrac': 'Leshrac',
   'natures': "Nature's Prophet",
   "nature's": "Nature's Prophet",
-  'np': "Natures's Prophet",
+  'np': "Nature's Prophet",
   'furion': "Nature's Prophet",
   'naturesprophet': "Nature's Prophet",
   "nature'sprophet": "Nature's Prophet",
