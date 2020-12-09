@@ -35,7 +35,6 @@ const tableSelector = 'body > div.container-outer.seemsgood > div.skin-container
 // Database interaction has to be asynchronous, so making new async function
 async function counter (message, args) {
   // Trigger bot to start typing and record time message was recieved
-  const timeRecieved = Date.now();
   message.channel.startTyping();
 
   // Convert argument names into official names
@@ -61,7 +60,7 @@ async function counter (message, args) {
     .then(async responses => aggregateData(responses, enemies))
 
     // Format data and send it
-    .then((counters) => sendEmbed(message, timeRecieved, enemies, counters))
+    .then((counters) => sendEmbed(message, enemies, counters))
 
     // Handle errors
     .catch(error => {
@@ -119,7 +118,7 @@ async function aggregateData (responses, enemies) {
 }
 
 // Format data and send an embed to channel with details
-function sendEmbed (message, timeRecieved, enemies, counters) {
+function sendEmbed (message, enemies, counters) {
   // Boilerplate formatting
   const heroesEmbed = new Discord.MessageEmbed()
     .setColor('#0099ff')
@@ -131,7 +130,8 @@ function sendEmbed (message, timeRecieved, enemies, counters) {
     )
     .setTimestamp()
     .setFooter(
-      `Total Processing Time: ${Date.now() - message.createdTimestamp} ms | Generating Time: ${Date.now() - timeRecieved} ms`
+      `Source: Dotabuff | Total Processing Time: ${Date.now() - message.createdTimestamp} ms`,
+      'https://pbs.twimg.com/profile_images/879332626414358528/eHLyVWo-_400x400.jpg'
     );
 
   // Description formatting
@@ -157,8 +157,8 @@ function addHeroes (heroesEmbed, counters, sortMethod) {
     heroes += `${index + 1}: **${element.name}**\n`;
   });
   details[`**__Sorted by ${sortMethod}__\nHeroes**:`] = heroes;
-  details['**\nDisadvantage**:'] = `${counters.map(counter => counter.disadvantage.toFixed(2)).join('%\n')}%`;
-  details['**\nWinrate**:'] = `${counters.map(counter => counter.winrate.toFixed(2)).join('%\n')}%`;
+  details['**\nDisadvantage**:'] = `${counters.map(c => c.disadvantage.toFixed(2)).join('%\n')}%`;
+  details['**\nWinrate**:'] = `${counters.map(c => c.winrate.toFixed(2)).join('%\n')}%`;
   for (const [key, value] of Object.entries(details)) {
     heroesEmbed.addFields({
       name: key,

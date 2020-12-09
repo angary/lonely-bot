@@ -8,7 +8,7 @@ module.exports = {
   name: 'profile',
   description: 'Uses opendota API to collect general information on player',
   information: 'Given a steamID, return general info about the player. If your steamID is saved with the id command, then the steamID argument is not required.',
-  aliases: ['od', 'opendota'],
+  aliases: [],
   args: false,
   usage: '[Steam32 ID]',
   example: '193480093',
@@ -30,16 +30,21 @@ async function profile (message, args) {
       return invalidDatabaseResponse(message);
     }
   }
-  const timeRecieved = Date.now();
   const url = 'https://api.opendota.com/api/';
 
+  // 0: Basic information
+  // 1: Won and lost game totals
+  // 2: Top heroes
+  // 3: Hero names
+  // 4: Hero rankings
+  // 5: Most recent match data
   Promise.all([
-    fetch(`${url}players/${id}`), // 0 For basic information
-    fetch(`${url}players/${id}/wl`), // 1 For won and lost game totals
-    fetch(`${url}players/${id}/heroes`), // 2 For top heroes
-    fetch(`${url}heroes`), // 3 For hero names
-    fetch(`${url}players/${id}/rankings`), // 4 For hero rankings
-    fetch(`${url}players/${id}/recentMatches`) // 5 For most recent match data
+    fetch(`${url}players/${id}`),
+    fetch(`${url}players/${id}/wl`),
+    fetch(`${url}players/${id}/heroes`),
+    fetch(`${url}heroes`),
+    fetch(`${url}players/${id}/rankings`),
+    fetch(`${url}players/${id}/recentMatches`)
   ])
     // Check for valid response
     .then(responses => checkAPIResponse(responses))
@@ -48,12 +53,10 @@ async function profile (message, args) {
     .then(responses => Promise.all(responses.map(response => response.json())))
 
     // Extract and format data
-    .then(data => {
-      return formatData(data[0], data[1], data[2], data[3], data[4], data[5]);
-    })
+    .then(data => formatData(data))
 
     // Add data onto embed
-    .then(playerData => sendEmbed(message, timeRecieved, playerData, playerData.recent))
+    .then(playerData => sendEmbed(message, playerData, playerData.recent))
 
     // Catch errors
     .catch(error => {
@@ -74,12 +77,16 @@ function checkAPIResponse (responses) {
 }
 
 // Collect data from opendota api and return object containing data
-function formatData (profile, wl, playerHeroes, heroes, rankings, recentMatches) {
+function formatData (data) {
+  // Destructure data
+  const [profile, wl, playerHeroes, heroes, rankings, recentMatches] = data;
+
   // Profile details
   const p = profile;
   p.w = wl.win;
   p.l = wl.lose;
   p.wr = (100 * p.w / (p.w + p.l)).toPrecision(4);
+  if (!p.profile.loccountrycode) p.profile.loccountrycode = 'Unknown';
 
   // Top 3 heroes
   p.heroes = [];
@@ -113,8 +120,8 @@ function formatData (profile, wl, playerHeroes, heroes, rankings, recentMatches)
 
   // Check if they've won or lost
   p.recent.outcome = 'Lost';
-  if ((p.recent.player_slot < 6 && p.recent.radiant_win == true) ||
-    (p.recent.player_slot > 5 && p.recent.radiant_win == false)) {
+  if ((p.recent.player_slot < 6 && p.recent.radiant_win) ||
+    (p.recent.player_slot > 5 && !p.recent.radiant_win)) {
     p.recent.outcome = 'Won';
   }
 
@@ -122,7 +129,7 @@ function formatData (profile, wl, playerHeroes, heroes, rankings, recentMatches)
 }
 
 // Format data and send an embed to channel with details
-function sendEmbed (message, timeRecieved, p, match) {
+function sendEmbed (message, p, match) {
   const profileEmbed = new Discord.MessageEmbed()
     .setColor('#0099ff')
     .setTitle(`${p.profile.personaname}`)
@@ -140,7 +147,8 @@ function sendEmbed (message, timeRecieved, p, match) {
     .setThumbnail(p.profile.avatarfull)
     .setTimestamp()
     .setFooter(
-      `Total Processing Time: ${Date.now() - message.createdTimestamp} ms | Generating Time: ${Date.now() - timeRecieved} ms`
+      `Source: Opendota | Total Processing Time: ${Date.now() - message.createdTimestamp} ms`,
+      'https://pbs.twimg.com/profile_images/962444554967203840/G6KHe1q3.jpg'
     )
     .addFields({
       name: '**General Match Data**',
@@ -163,9 +171,9 @@ function sendEmbed (message, timeRecieved, p, match) {
   profileEmbed.addFields({
     name: '**Most Recent Match**',
     value: `
-      Date: **${match.time}** | Duration: **${secondsToHms(match.duration)}**
-      **${match.outcome}** playing a **${match.skill}** skill **${match.lobby_type} ${match.game_mode}** as **${match.hero}**
-      KDA: **${match.kills}/${match.deaths}/${match.assists}** | GPM: **${match.gold_per_min}** | XPM: **${match.xp_per_min}**`
+    **${match.outcome}** playing a **${match.skill}** skill **${match.lobby_type} ${match.game_mode}** as **${match.hero}**
+    KDA: **${match.kills}/${match.deaths}/${match.assists}** | GPM: **${match.gold_per_min}** | XPM: **${match.xp_per_min}**
+    Date: **${match.time}** | Duration: **${secondsToHms(match.duration)}**`
   });
 
   message.channel.stopTyping();
