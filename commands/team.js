@@ -30,17 +30,14 @@ async function team (message, args) {
     if (officialName) {
       names.push(officialName);
     } else {
-      message.channel.stopTyping();
-      console.log('stopped');
-      return message.channel.send(`Invalid name ${name}.`);
+      return sendMessage(message.channel, `Invalid name ${name}`);
     }
   }
 
   // Collect response
   const response = await fetchAllHeroes();
   if (response.status != 200) {
-    message.channel.stopTyping();
-    return message.channel.send('Invalid API response, when getting information on heroes.');
+    return sendMessage(message.channel, 'Invalid API response when getting info on heroes.');
   }
 
   // Convert all heroes to hero objects
@@ -49,12 +46,10 @@ async function team (message, args) {
   for (let i = 0; i < names.length; i++) {
     const hero = nameToHero(heroes, names[i]);
     if (!hero) {
-      message.channel.stopTyping();
-      return message.channel.send(`Could not find information for ${names[i]}`);
+      return sendMessage(message.channel, `Could not find information for ${names[i]}`);
     }
     argHeroes.push(hero);
   }
-
   // Fetch data on hero's matchups
   const urls = [];
   for (const hero of argHeroes) {
@@ -79,8 +74,7 @@ async function team (message, args) {
 
     // Handle errors
     .catch(error => {
-      message.channel.stopTyping();
-      message.channel.send(`There was an error: ${error}`);
+      return sendMessage(message.channel, `There was an error: ${error}`);
     });
 }
 
@@ -161,8 +155,7 @@ function sendEmbed (message, timeRecieved, heroes, counters, allyCount) {
     value: badHeroes,
     inline: true
   });
-  message.channel.stopTyping();
-  message.channel.send(heroesEmbed);
+  sendMessage(message.channel, heroesEmbed);
 }
 
 // Send a get request to find information on all heroes
@@ -230,4 +223,10 @@ function idToHeroName (heroes, heroId) {
     }
   }
   return null;
+}
+
+// Stop typing message in chat and send the message
+function sendMessage (channel, message) {
+  channel.stopTyping();
+  return channel.send(message);
 }
