@@ -23,6 +23,7 @@ module.exports = {
   aliases: false,
   args: true,
   usage: '[enemy_1], [enemy_2] ...',
+  example: 'am, venge, lone druid',
   cooldown: 2,
   category: 'dota',
   execute: counter

@@ -72,11 +72,23 @@ function specificInformation (args, helpEmbed, commands) {
   // Else find information on the command
   helpEmbed.setTitle(`Help for: ${command.name}`);
   const data = [];
-  if (command.aliases) data.push(`**Aliases:** ${command.aliases.join(', ')}`);
-  if (command.information) data.push(`**Information:** ${command.information}`);
-  else if (command.description) data.push(`**Information:** ${command.description}`);
-  if (command.usage) data.push(`**Usage:** \`${prefix}${command.name} ${command.usage}\``);
-  if (command.cooldown) data.push(`**Cooldown:** ${command.cooldown} second(s)`);
+  if (command.aliases) {
+    data.push(`**Aliases:** ${command.aliases.join(', ')}`);
+  }
+  if (command.information) {
+    data.push(`**Information:** ${command.information}`);
+  } else if (command.description) {
+    data.push(`**Information:** ${command.description}`);
+  }
+  if (command.usage) {
+    data.push(`**Usage:** \`${prefix}${command.name} ${command.usage}\``);
+  }
+  if (command.example) {
+    data.push(`**Example:** \`${prefix}${command.name} ${command.example}\``);
+  }
+  if (command.cooldown) {
+    data.push(`**Cooldown:** ${command.cooldown} second(s)`);
+  }
   helpEmbed.setDescription(data);
   return helpEmbed;
 }

@@ -7,6 +7,7 @@ module.exports = {
   aliases: false,
   args: true,
   usage: '[Steam32 ID]',
+  example: '193480093',
   cooldown: 1,
   category: 'dota',
   execute (message, args) {
