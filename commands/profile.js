@@ -81,6 +81,11 @@ function formatData (data) {
   // Destructure data
   const [profile, wl, playerHeroes, heroes, rankings, recentMatches] = data;
 
+  // Check for missing profile data
+  if (!profile) {
+    throw Error('Unable to retrieve steam profile data. Is your profile public?');
+  }
+
   // Profile details
   const p = profile;
   p.w = wl.win;
