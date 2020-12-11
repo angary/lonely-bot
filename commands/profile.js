@@ -7,7 +7,7 @@ const User = require('../models/user');
 module.exports = {
   name: 'profile',
   description: 'Uses opendota API to collect general information on player',
-  information: 'Given a steamID, return general info about the player. If your steamID is saved with the id command, then the steamID argument is not required.',
+  information: 'Given a steamID, return general info about the player. If your steamID is saved with the id command, then the steamID argument is not required. \nThe steamID should consist of only numbers and be the number that you see as your steam friend id or in your steam URL, or the number at the end of your dotabuff/ opendota URL.',
   aliases: [],
   args: false,
   usage: '[Steam32 ID]',
