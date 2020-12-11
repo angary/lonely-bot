@@ -16,6 +16,9 @@ module.exports = {
     function area (lengths) {
       let sum = 0;
       for (let i = 0; i < 4; i++) {
+        if (isNaN(lengths[i])) {
+          return message.channel.send(`${lengths[i]} is not a number - example usage is \`>pentagon 7.5 0.5 9.8 5.1 0.7\``);
+        }
         if (lengths[i] > 0 && lengths[i] <= 10) {
           sum += (0.5) * (lengths[i]) * (lengths[i + 1]) * (Math.sin(72 * Math.PI / 180));
         } else {
