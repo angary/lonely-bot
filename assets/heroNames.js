@@ -133,9 +133,10 @@ module.exports = {
   'karl': 'Invoker',
   'invoker': 'Invoker',
   'silencer': 'Silencer',
-  'od': 'Outworld Devourer',
-  'outworld': 'Outworld Devourer',
-  'outworlddevourer': 'Outworld Devourer',
+  'od': 'Outworld Destroyer',
+  'outworld': 'Outworld Destroyer',
+  'outworlddevourer': 'Outworld Destroyer',
+  'outworlddestroyer': 'Outworld Destroyer',
   'lycan': 'Lycan',
   'brew': 'Brew Master',
   'brewmaster': 'Brew Master',
@@ -210,5 +211,8 @@ module.exports = {
   'voidspirit': 'Void Spirit',
   'snap': 'Snapfire',
   'snapfire': 'Snapfire',
-  'mars': 'Mars'
+  'mars': 'Mars',
+  'hoodwink': 'Hoodwink',
+  'hood': 'Hoodwink',
+  'hw': 'Hoodwink'
 };
