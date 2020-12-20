@@ -61,7 +61,7 @@ async function profile (message, args) {
     // Catch errors
     .catch(error => {
       message.channel.stopTyping();
-      message.channel.send(`There was an error: ${error}`);
+      message.channel.send(`There was an ${error}`);
     });
 }
 
@@ -82,8 +82,8 @@ function formatData (data) {
   const [profile, wl, playerHeroes, heroes, rankings, recentMatches] = data;
 
   // Check for missing profile data
-  if (!profile) {
-    throw Error('Unable to retrieve steam profile data. Is your profile public?');
+  if (!profile || !profile.profile) {
+    throw Error('Unable to retrieve dota profile. Is your profile public and have you played matches?');
   }
 
   // Profile details
@@ -188,9 +188,8 @@ function sendEmbed (message, p, match) {
 // Send message regarding invalid database response
 function invalidDatabaseResponse (message) {
   let response = `${message.author} Invalid response from database. `;
-  response += 'In order to use the me argument, you have to have your id added. ';
   response += "Either you haven't added your id, or there was a database error. ";
-  response += 'You can add you id with the id command!';
+  response += 'You can add you id with the steamid command!';
   message.channel.stopTyping();
   message.channel.send(response);
 }
