@@ -14,9 +14,8 @@ Link to add to your server [here](https://discord.com/oauth2/authorize?client_id
 - [x] Can fetch data from Opendota API about a player
 - [x] Use database to hold discord ID and steam32 ID
 - [x] Aggregate winrates to find ideal counters/ synergies
-- [ ] Grab information about latest patch
-- [ ] Dank memes
-- [ ] Generate sentences from words in game chat/ something similar
+- [x] Dank memes
+- [ ] Spicy algorithm
 
 ## Example Usages <a name="Example_Usages"></a>
 | Command name | Example |
