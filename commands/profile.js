@@ -1,5 +1,6 @@
 const fetch = require('node-fetch');
 const Discord = require('discord.js');
+const { clientName, profilePicture, githubLink } = require('../config.json');
 const gameModes = require('../assets/gameModes');
 const lobbyTypes = require('../assets/lobbyTypes');
 const User = require('../models/user');
@@ -140,9 +141,9 @@ function sendEmbed (message, p, match) {
     .setTitle(`${p.profile.personaname}`)
     .setURL(`https://www.opendota.com/players/${p.profile.account_id}`)
     .setAuthor(
-      'Lonely Bot',
-      'https://i.imgur.com/b0sTfNL.png',
-      'https://github.com/Gy74S/Lonely-Bot'
+      clientName,
+      profilePicture,
+      githubLink
     )
     .setDescription(
       `Medal: **${medal(p)}**

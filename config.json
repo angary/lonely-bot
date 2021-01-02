@@ -1,4 +1,7 @@
 {
   "prefix": ">",
-  "activity": "help"
+  "activity": "help",
+  "clientName": "lonely",
+  "profilePicture": "https://i.imgur.com/DruFG9t.png",
+  "githubLink": "https://github.com/angary/Lonely-Bot"
 }

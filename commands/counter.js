@@ -1,6 +1,7 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
 const Discord = require('discord.js');
+const { clientName, profilePicture, githubLink } = require('../config.json');
 const aliasToHeroName = require('../assets/heroNames');
 const information = `
 Given the enemy hero names seperated by commas, return the top counters by winrate and advantage.
@@ -124,9 +125,9 @@ function sendEmbed (message, enemies, counters) {
     .setColor('#0099ff')
     .setTitle('Team picker help')
     .setAuthor(
-      'Lonely Bot',
-      'https://i.imgur.com/b0sTfNL.png',
-      'https://github.com/Gy74S/Lonely-Bot'
+      clientName,
+      profilePicture,
+      githubLink
     )
     .setTimestamp()
     .setFooter(

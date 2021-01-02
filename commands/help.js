@@ -1,4 +1,4 @@
-const { prefix } = require('../config.json');
+const { prefix, clientName, profilePicture, githubLink } = require('../config.json');
 const Discord = require('discord.js');
 
 module.exports = {
@@ -15,9 +15,9 @@ module.exports = {
     let helpEmbed = new Discord.MessageEmbed()
       .setColor('#0099ff')
       .setAuthor(
-        'Lonely Bot',
-        'https://i.imgur.com/b0sTfNL.png',
-        'https://github.com/Gy74S/Lonely-Bot'
+        clientName,
+        profilePicture,
+        githubLink
       );
 
     // If they didn't specify a specific commmand
