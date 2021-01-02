@@ -1,7 +1,7 @@
 {
   "name": "lonely-bot",
   "version": "1.0.0",
-  "description": "Link to add to your server: <br>\r https://discordapp.com/api/oauth2/authorize?client_id=647044127313362980&permissions=8&scope=bot",
+  "description": "Discord bot for aggregating and presenting Dota 2 stats",
   "main": "index.js",
   "engines": {
     "node": "12.16.1",
@@ -13,14 +13,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Gy74S/Lonely-Bot.git"
+    "url": "git+https://github.com/angary/Lonely-Bot.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/Gy74S/Lonely-Bot/issues"
+    "url": "https://github.com/angary/Lonely-Bot/issues"
   },
-  "homepage": "https://github.com/Gy74S/Lonely-Bot#readme",
+  "homepage": "https://github.com/angary/Lonely-Bot#readme",
   "dependencies": {
     "axios": "^0.21.0",
     "cheerio": "^1.0.0-rc.3",
