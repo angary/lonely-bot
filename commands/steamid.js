@@ -1,4 +1,4 @@
-const User = require('../models/user');
+const User = require('../database/user');
 
 module.exports = {
   name: 'steamid',
@@ -25,7 +25,9 @@ module.exports = {
         } else {
           const newUser = new User({ discordID, steamID });
           newUser.save()
-            .then(() => message.channel.send(`${message.author} Added Steam ID to be **${steamID}**`))
+            .then(() => {
+              message.channel.send(`${message.author} Added Steam ID to be **${steamID}**`);
+            })
             .catch(err => message.channel.send('Error: ' + err));
         }
       })

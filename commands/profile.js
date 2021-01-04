@@ -3,7 +3,7 @@ const Discord = require('discord.js');
 const { clientName, profilePicture, githubLink } = require('../config.json');
 const gameModes = require('../assets/gameModes');
 const lobbyTypes = require('../assets/lobbyTypes');
-const User = require('../models/user');
+const User = require('../database/user');
 
 module.exports = {
   name: 'profile',
