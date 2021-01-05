@@ -13,6 +13,12 @@ module.exports = {
       return message.channel.send("You didn't give 5 values");
     }
 
+    // Strip commas and space from the numbers if there are any at the end
+    for (let i = 0; i < 5; i++) {
+      args[i] = args[i].replace(/[ ,]/g, '');
+    }
+
+    // Given the five lengths from center to corners of pentagon, calculate area
     function area (lengths) {
       let sum = 0;
       for (let i = 0; i < 4; i++) {
@@ -29,7 +35,7 @@ module.exports = {
       return sum;
     }
 
-    const unsortedArgs = [args[0], args[1], args[2], args[3], args[4]];
+    const unsortedArgs = [...args];
     args.sort((a, b) => a - b);
     const sortedArgs = [args[1], args[3], args[4], args[2], args[0]];
     const max = [10, 10, 10, 10, 10];
