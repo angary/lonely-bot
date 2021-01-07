@@ -105,7 +105,7 @@ function formatData (data) {
 
   // Most recent match
   p.recent = recentMatches[0];
-  p.recent.time = Date(p.recent.start_time).substr(0, 15);
+  p.recent.time = new Date(p.recent.start_time * 1000).toString().substr(0, 15);
   p.recent.skill = ['invalid', 'normal', 'high', 'very high'][p.recent.skill];
   p.recent.hero = idToHeroName(heroes, p.recent.hero_id);
 

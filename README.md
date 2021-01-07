@@ -20,10 +20,10 @@ Link to add to your server [here](https://discord.com/oauth2/authorize?client_id
 ## Example Usages <a name="Example_Usages"></a>
 | Command name | Example |
 |---|---|
-|`help`|![help command example](https://i.imgur.com/zCcqlml.png)|
-|`steamid`|![steamid command example](https://i.imgur.com/ZK8Z1uQ.png)|
-|`profile`|![profile command example](https://i.imgur.com/IV3vjnS.png)|
-|`counter`|![counter command example](https://i.imgur.com/wKw4LZg.png)|
+|`help`|![help command example](https://i.imgur.com/pdmNJWq.png)|
+|`steamid`|![steamid command example](https://i.imgur.com/DtaQ7dF.png)|
+|`profile`|![profile command example](https://i.imgur.com/7Pjjnrk.png)|
+|`counter`|![counter command example](https://i.imgur.com/wAvEkgj.png)|
 
 
 ## Setup <a name="Setup"></a>
