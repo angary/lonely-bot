@@ -1,17 +1,14 @@
 const Discord = require('discord.js');
 const cooldowns = new Discord.Collection();
 const Guild = require('../database/guild');
-let { prefix } = require('../config.json');
+const config = require('../config.json');
 
 module.exports = async (client, message) => {
   // Does nothing if sender is a bot
   if (message.author.bot) return;
 
-  // If it was a guild, check what the server prefix was
-  if (message.guild) {
-    const details = await findGuild(message.guild.id);
-    if (details) prefix = details.prefix;
-  }
+  // Check if there was a custom prefix, else use default
+  const prefix = await findPrefix(message);
 
   if (!message.content.startsWith(prefix)) return;
 
@@ -71,6 +68,17 @@ module.exports = async (client, message) => {
     message.reply('there was an error trying to execute that command');
   }
 };
+
+// Find the suitable prefix for the command
+async function findPrefix (message) {
+  if (message.guild) {
+    const details = await findGuild(message.guild.id);
+    if (details) {
+      return details.prefix;
+    }
+  }
+  return config.prefix;
+}
 
 // Find details about the guild given the guild ID
 function findGuild (guildId) {
