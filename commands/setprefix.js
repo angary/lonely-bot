@@ -1,5 +1,5 @@
 const Guild = require('../database/guild');
-const prefix = require('../config.json');
+const { prefix } = require('../config.json');
 
 module.exports = {
   name: 'setprefix',
@@ -33,7 +33,7 @@ module.exports = {
         if (updatedDocument) {
           message.channel.send(`Successfully updated server prefix to be **${newPrefix}**`);
         } else {
-          const newGuild = new Guild({ guildId, newPrefix });
+          const newGuild = new Guild({ guildId, prefix: newPrefix });
           newGuild.save()
             .then(() => {
               message.channel.send(`Added server prefix to be **${newPrefix}**`);
