@@ -38,7 +38,7 @@ module.exports = async (client, message) => {
       reply += `\nThe proper usage would be: \`${prefix}${command.name} ${command.usage}\``;
     }
     if (command.example) {
-      reply += `\nExample: \`${prefix}${command.name} ${command.example}`;
+      reply += `\nExample: \`${prefix}${command.name} ${command.example}\``;
     }
     return message.channel.send(reply);
   }
