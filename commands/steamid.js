@@ -18,6 +18,7 @@ module.exports = {
     const update = { steamID: steamID };
     const options = { returnNewDocument: true };
 
+    // Remove steamID from the database
     if (steamID === '0') {
       User.remove(query)
         .then(() => {
@@ -26,6 +27,14 @@ module.exports = {
         .catch(err => message.channel.send(`${message.author} Failed to find and remove steamID ${err}`));
       return;
     }
+
+    // Basic check if the steamID is valid
+    if (isNaN(steamID) || isNaN(parseInt(steamID))) {
+      message.channel.send(`${message.author} Invalid steamID. It should only consist of numbers`);
+      return;
+    }
+
+    // Update the steamID in the database
     User.findOneAndUpdate(query, update, options)
       .then(updatedDocument => {
         if (updatedDocument) {
