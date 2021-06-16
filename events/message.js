@@ -1,7 +1,7 @@
-const Discord = require('discord.js');
+const Discord = require("discord.js");
 const cooldowns = new Discord.Collection();
-const Guild = require('../database/guild');
-const config = require('../config.json');
+const Guild = require("../database/guild");
+const config = require("../config.json");
 
 module.exports = async (client, message) => {
   // Does nothing if sender is a bot
@@ -19,15 +19,18 @@ module.exports = async (client, message) => {
   const commandName = args.shift().toLowerCase();
 
   // Checks the commands folder if it has a command that the message requested
-  const command = client.commands.get(commandName) ||
-    client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
+  const command =
+    client.commands.get(commandName) ||
+    client.commands.find(
+      (cmd) => cmd.aliases && cmd.aliases.includes(commandName)
+    );
   if (!command) return;
 
   // Errors with command
   // ---------------------------------------------------------------------------
 
   // DMs
-  if (command.guildOnly && message.channel.type !== 'text') {
+  if (command.guildOnly && message.channel.type !== "text") {
     return message.reply("I can't execute that command inside DMs!");
   }
 
@@ -49,12 +52,16 @@ module.exports = async (client, message) => {
   }
   const now = Date.now();
   const timestamps = cooldowns.get(command.name);
-  const cooldownAmount = (command.cooldown) * 1000;
+  const cooldownAmount = command.cooldown * 1000;
   if (timestamps.has(message.author.id)) {
     const expirationTime = timestamps.get(message.author.id) + cooldownAmount;
     if (now < expirationTime) {
       const timeLeft = (expirationTime - now) / 1000;
-      return message.reply(`please wait ${timeLeft.toFixed(1)} more seconds before reusing the \`${command.name}\` command.`);
+      return message.reply(
+        `please wait ${timeLeft.toFixed(1)} more seconds before reusing the \`${
+          command.name
+        }\` command.`
+      );
     }
   }
   timestamps.set(message.author.id, now);
@@ -65,12 +72,12 @@ module.exports = async (client, message) => {
   try {
     command.execute(message, args);
   } catch (error) {
-    message.reply('there was an error trying to execute that command');
+    message.reply("there was an error trying to execute that command");
   }
 };
 
 // Find the suitable prefix for the command
-async function findPrefix (message) {
+async function findPrefix(message) {
   if (message.guild) {
     const details = await findGuild(message.guild.id);
     if (details) {
@@ -81,7 +88,7 @@ async function findPrefix (message) {
 }
 
 // Find details about the guild given the guild ID
-function findGuild (guildId) {
+function findGuild(guildId) {
   const query = { guildId: guildId };
   return Guild.findOne(query);
 }

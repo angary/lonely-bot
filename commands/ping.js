@@ -1,14 +1,14 @@
 module.exports = {
-  name: 'ping',
+  name: "ping",
   description: 'Sends back "Pong!" and the latency of user from bot server',
-  information: '',
+  information: "",
   aliases: false,
   args: false,
-  usage: '',
+  usage: "",
   cooldown: false,
-  category: 'misc',
-  execute (message, args) {
+  category: "misc",
+  execute(message, args) {
     const ping = `${Date.now() - message.createdTimestamp} ms`;
     message.channel.send(`Pong! Your ping is **${ping}**.`);
-  }
+  },
 };

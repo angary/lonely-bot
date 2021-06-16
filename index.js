@@ -1,7 +1,7 @@
-require('dotenv').config();
-const Discord = require('discord.js');
-const fs = require('fs');
-const mongoose = require('mongoose');
+require("dotenv").config();
+const Discord = require("discord.js");
+const fs = require("fs");
+const mongoose = require("mongoose");
 
 // Set up the bot user and commands
 // -----------------------------------------------------------------------------
@@ -10,7 +10,9 @@ client.commands = new Discord.Collection();
 
 // Load all the commands
 // -----------------------------------------------------------------------------
-const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+const commandFiles = fs
+  .readdirSync("./commands")
+  .filter((file) => file.endsWith(".js"));
 for (const file of commandFiles) {
   const command = require(`./commands/${file}`);
   client.commands.set(command.name, command);
@@ -18,24 +20,29 @@ for (const file of commandFiles) {
 
 // Load all the events
 // -----------------------------------------------------------------------------
-const eventFiles = fs.readdirSync('./events/').filter(file => file.endsWith('.js'));
+const eventFiles = fs
+  .readdirSync("./events/")
+  .filter((file) => file.endsWith(".js"));
 for (const file of eventFiles) {
   const event = require(`./events/${file}`);
-  const eventName = file.split('.')[0];
+  const eventName = file.split(".")[0];
   client.on(eventName, event.bind(null, client));
 }
 
 // Connect to mongoose database
 // -----------------------------------------------------------------------------
-mongoose.connect(process.env.BOT_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  useFindAndModify: false
-}).then(() => {
-  console.log('Connected to MongoDB');
-}).catch((err) => {
-  console.log('Was not able to connect to MongoDB', err);
-});
+mongoose
+  .connect(process.env.BOT_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    useFindAndModify: false,
+  })
+  .then(() => {
+    console.log("Connected to MongoDB");
+  })
+  .catch((err) => {
+    console.log("Was not able to connect to MongoDB", err);
+  });
 
 // Login
 // -----------------------------------------------------------------------------
