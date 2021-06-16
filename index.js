@@ -4,12 +4,12 @@ const fs = require("fs");
 const mongoose = require("mongoose");
 
 // Set up the bot user and commands
-// -----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 const client = new Discord.Client();
 client.commands = new Discord.Collection();
 
 // Load all the commands
-// -----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 const commandFiles = fs
   .readdirSync("./commands")
   .filter((file) => file.endsWith(".js"));
@@ -19,7 +19,7 @@ for (const file of commandFiles) {
 }
 
 // Load all the events
-// -----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 const eventFiles = fs
   .readdirSync("./events/")
   .filter((file) => file.endsWith(".js"));
@@ -30,7 +30,7 @@ for (const file of eventFiles) {
 }
 
 // Connect to mongoose database
-// -----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 mongoose
   .connect(process.env.BOT_URI, {
     useNewUrlParser: true,
@@ -45,5 +45,5 @@ mongoose
   });
 
 // Login
-// -----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 client.login(process.env.BOT_TOKEN);

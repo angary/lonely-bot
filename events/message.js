@@ -27,7 +27,7 @@ module.exports = async (client, message) => {
   if (!command) return;
 
   // Errors with command
-  // ---------------------------------------------------------------------------
+  //----------------------------------------------------------------------------
 
   // DMs
   if (command.guildOnly && message.channel.type !== "text") {
@@ -68,7 +68,7 @@ module.exports = async (client, message) => {
   setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
 
   // Else executes the command
-  // ---------------------------------------------------------------------------
+  //----------------------------------------------------------------------------
   try {
     command.execute(message, args);
   } catch (error) {

@@ -4,7 +4,7 @@ const Discord = require("discord.js");
 const { clientName, profilePicture, githubLink } = require("../config.json");
 const aliasToHeroName = require("../assets/heroNames");
 const information = `
-Given the enemy hero names seperated by commas, return the top counters by winrate and advantage.
+Given the enemy hero names separated by commas, return the top counters by winrate and advantage.
 
 Explanation of data:
 
@@ -36,7 +36,7 @@ const tableSelector =
 
 // Database interaction has to be asynchronous, so making new async function
 async function counter(message, args) {
-  // Trigger bot to start typing and record time message was recieved
+  // Trigger bot to start typing and record time message was received
   message.channel.startTyping();
 
   // Convert argument names into official names
@@ -79,7 +79,7 @@ function parseArgs(args) {
 // Collect all relevant data from webscraping
 async function aggregateData(responses, enemies) {
   const heroes = {};
-  // Extra data from each hero coutner request
+  // Extra data from each hero counter request
   for (const response of responses) {
     // Grab the data from the counters table
     const $ = await cheerio.load(response.data);
@@ -116,7 +116,7 @@ async function aggregateData(responses, enemies) {
     heroes[key].disadvantage /= count;
   }
 
-  // Convert object into array and remove heroes if they are in enemmy team
+  // Convert object into array and remove heroes if they are in enemy team
   return Object.values(heroes).filter((hero) => !enemies.includes(hero.name));
 }
 
