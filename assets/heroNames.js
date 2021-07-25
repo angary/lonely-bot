@@ -215,4 +215,7 @@ module.exports = {
   hoodwink: "Hoodwink",
   hood: "Hoodwink",
   hw: "Hoodwink",
+  dawnbreaker: "Dawnbreaker",
+  dawn: "Dawnbreaker",
+  db: "Dawnbreaker"
 };
