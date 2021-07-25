@@ -21,7 +21,7 @@ module.exports = {
       .setColor("#0099ff")
       .setAuthor(clientName, profilePicture, githubLink);
 
-    // If they didn't specify a specific commmand
+    // If they didn't specify a specific command
     if (!args.length) {
       helpEmbed = generalInformation(helpEmbed, commands);
     } else {
@@ -39,7 +39,7 @@ module.exports = {
 
 function generalInformation(helpEmbed, commands) {
   // Add all the details of the commands
-  helpEmbed.setTitle("Avaliable commands");
+  helpEmbed.setTitle("Available commands");
 
   // Add relevant category to the embed
   function addCategory(category) {
