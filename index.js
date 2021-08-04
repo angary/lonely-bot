@@ -2,11 +2,13 @@ require("dotenv").config();
 const Discord = require("discord.js");
 const fs = require("fs");
 const mongoose = require("mongoose");
+const Guild = require("./database/guild");
 
 // Set up the bot user and commands
 //------------------------------------------------------------------------------
 const client = new Discord.Client();
 client.commands = new Discord.Collection();
+client.prefixes = {};
 
 // Load all the commands
 //------------------------------------------------------------------------------
@@ -39,6 +41,20 @@ mongoose
   })
   .then(() => {
     console.log("Connected to MongoDB");
+  })
+  .then(() => {
+    Guild.find()
+      .then((guilds) => {
+        guilds.forEach((guild) => {
+          client.prefixes[guild.guildId] = guild.prefix;
+        });
+      })
+      .then(() => {
+        console.log(client.prefixes);
+      })
+      .catch((err) => {
+        console.log("Unable to cache server ids", err);
+      });
   })
   .catch((err) => {
     console.log("Was not able to connect to MongoDB", err);
