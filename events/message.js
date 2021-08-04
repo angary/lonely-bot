@@ -8,7 +8,7 @@ module.exports = async (client, message) => {
   if (message.author.bot) return;
 
   // Check if there was a custom prefix, else use default
-  const prefix = await findPrefix(message);
+  const prefix = await findPrefix(message, client);
 
   if (!message.content.startsWith(prefix)) return;
 
@@ -70,25 +70,16 @@ module.exports = async (client, message) => {
   // Else executes the command
   //----------------------------------------------------------------------------
   try {
-    command.execute(message, args);
+    command.execute(message, args, client);
   } catch (error) {
     message.reply("there was an error trying to execute that command");
   }
 };
 
 // Find the suitable prefix for the command
-async function findPrefix(message) {
-  if (message.guild) {
-    const details = await findGuild(message.guild.id);
-    if (details) {
-      return details.prefix;
-    }
-  }
+async function findPrefix(message, client) {
+  if (client.prefixes.hasOwnProperty(message.guild.id)) {
+    return client.prefixes[message.guild.id];
+  } 
   return config.prefix;
-}
-
-// Find details about the guild given the guild ID
-function findGuild(guildId) {
-  const query = { guildId: guildId };
-  return Guild.findOne(query);
 }

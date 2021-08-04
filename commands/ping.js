@@ -7,7 +7,7 @@ module.exports = {
   usage: "",
   cooldown: false,
   category: "misc",
-  execute(message, args) {
+  execute(message, args, client) {
     const ping = `${Date.now() - message.createdTimestamp} ms`;
     message.channel.send(`Pong! Your ping is **${ping}**.`);
   },

@@ -11,7 +11,7 @@ module.exports = {
   example: "193480093",
   cooldown: 1,
   category: "dota",
-  execute(message, args) {
+  execute(message, args, client) {
     const discordID = message.author.id;
     const steamID = args[0];
 

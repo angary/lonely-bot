@@ -15,7 +15,7 @@ module.exports = {
   usage: "[command name]",
   cooldown: 0,
   category: "misc",
-  execute(message, args) {
+  execute(message, args, client) {
     const { commands } = message.client;
     let helpEmbed = new Discord.MessageEmbed()
       .setColor("#0099ff")

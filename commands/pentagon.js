@@ -9,7 +9,7 @@ module.exports = {
   example: "7.5 0.5 9.8 5.1 0.7",
   cooldown: 0,
   category: "dota",
-  execute(message, args) {
+  execute(message, args, client) {
     if (args.length !== 5) {
       return message.channel.send("You didn't give 5 values");
     }

@@ -11,7 +11,7 @@ module.exports = {
   example: ">>",
   cooldown: 1,
   category: "misc",
-  execute(message, args) {
+  execute(message, args, client) {
     const guildId = message.guild.id;
     const newPrefix = args[0];
 
@@ -20,8 +20,9 @@ module.exports = {
     const options = { returnNewDocument: true };
 
     if (prefix === newPrefix) {
-      Guild.remove(query)
+      Guild.removeOne(query)
         .then(() => {
+          delete client.prefixes[guildId];
           message.channel.send(
             `Successfully reset server prefix to be **${prefix}**`
           );
@@ -39,7 +40,8 @@ module.exports = {
         if (updatedDocument) {
           message.channel.send(
             `Successfully updated server prefix to be **${newPrefix}**`
-          );
+            );
+          client.prefixes[guildId] = newPrefix;
         } else {
           const newGuild = new Guild({ guildId, prefix: newPrefix });
           newGuild
@@ -48,6 +50,7 @@ module.exports = {
               message.channel.send(
                 `Added server prefix to be **${newPrefix}**`
               );
+              client.prefixes[guildId] = newPrefix;
             })
             .catch((err) => message.channel.send("Error: " + err));
         }
