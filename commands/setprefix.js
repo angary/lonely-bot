@@ -24,7 +24,7 @@ module.exports = {
         .then(() => {
           delete client.prefixes[guildId];
           message.channel.send(
-            `Successfully reset server prefix to be **${prefix}**`
+            `Successfully reset server prefix to be **${prefix}**!`
           );
         })
         .catch((err) =>
@@ -39,7 +39,7 @@ module.exports = {
       .then((updatedDocument) => {
         if (updatedDocument) {
           message.channel.send(
-            `Successfully updated server prefix to be **${newPrefix}**`
+            `Successfully updated server prefix to be **${newPrefix}**!`
             );
           client.prefixes[guildId] = newPrefix;
         } else {
@@ -52,12 +52,12 @@ module.exports = {
               );
               client.prefixes[guildId] = newPrefix;
             })
-            .catch((err) => message.channel.send("Error: " + err));
+            .catch((err) => message.channel.send(`Error: ${err}`));
         }
       })
       .catch((err) =>
         message.channel.send(
-          `${message.author} Failed to find and add/ update prefix ${err}`
+          `${message.author} Failed to find and add/update prefix ${err}`
         )
       );
   },

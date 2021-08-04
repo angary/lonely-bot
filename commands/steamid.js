@@ -4,7 +4,7 @@ module.exports = {
   name: "steamid",
   description: "Link your current Discord ID to your Steam ID",
   information:
-    "Stores or updates your steam ID (it should consist of only numbers and be the number that you see as your steam friend id or in your steam URL, or the number at the end of your dotabuff/ opendota URL). Once your steam ID is saved, you do not need to type your steamID the next time you use the opendota command. If you would like to remove your steamID info from the database, you can use `steamid 0`",
+    "Stores or updates your steam ID (it should consist of only numbers and be the number that you see as your steam friend id or in your steam URL, or the number at the end of your dotabuff/ opendota URL). Once your steam ID is saved, you do not need to type your steamID the next time you use the opendota command. If you would like to remove your steamID info from the database, you can use `steamid 0`.",
   aliases: false,
   args: true,
   usage: "[Steam32 ID]",
@@ -23,7 +23,7 @@ module.exports = {
     if (steamID === "0") {
       User.remove(query)
         .then(() => {
-          message.channel.send("Successfully removed steamID from database.");
+          message.channel.send("Successfully removed steamID from database!");
         })
         .catch((err) =>
           message.channel.send(
@@ -36,7 +36,7 @@ module.exports = {
     // Basic check if the steamID is valid
     if (isNaN(steamID) || isNaN(parseInt(steamID))) {
       message.channel.send(
-        `${message.author} Invalid steamID. It should only consist of numbers`
+        `${message.author} Invalid steamID. It should only consist of numbers.`
       );
       return;
     }
@@ -46,7 +46,7 @@ module.exports = {
       .then((updatedDocument) => {
         if (updatedDocument) {
           message.channel.send(
-            `${message.author} Successfully updated Steam ID to be **${steamID}**`
+            `${message.author} Successfully updated Steam ID to be **${steamID}**!`
           );
         } else {
           const newUser = new User({ discordID, steamID });
@@ -54,7 +54,7 @@ module.exports = {
             .save()
             .then(() => {
               message.channel.send(
-                `${message.author} Added Steam ID to be **${steamID}**`
+                `${message.author} Added Steam ID to be **${steamID}**.`
               );
             })
             .catch((err) => message.channel.send("Error: " + err));

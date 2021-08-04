@@ -25,14 +25,14 @@ module.exports = {
       for (let i = 0; i < 4; i++) {
         if (isNaN(lengths[i])) {
           return message.channel.send(
-            `${lengths[i]} is not a number - example usage is \`>pentagon 7.5 0.5 9.8 5.1 0.7\``
+            `${lengths[i]} is not a number - example usage is \`>pentagon 7.5 0.5 9.8 5.1 0.7\`.`
           );
         }
         if (lengths[i] > 0 && lengths[i] <= 10) {
           sum +=
             0.5 * lengths[i] * lengths[i + 1] * Math.sin((72 * Math.PI) / 180);
         } else {
-          return message.channel.send(`${lengths[i]} was not a valid value`);
+          return message.channel.send(`${lengths[i]} was not a valid value.`);
         }
       }
       sum += 0.5 * lengths[0] * lengths[4] * Math.sin((72 * Math.PI) / 180);
@@ -54,7 +54,7 @@ module.exports = {
     message.channel.send(
       `Max area of your pentagon is **${area(sortedArgs).toFixed(
         2
-      )}**, rating: **${sortedPercentage.toFixed(2)}%**`
+      )}**, rating: **${sortedPercentage.toFixed(2)}%**.`
     );
   },
 };

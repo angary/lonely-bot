@@ -49,9 +49,6 @@ mongoose
           client.prefixes[guild.guildId] = guild.prefix;
         });
       })
-      .then(() => {
-        console.log(client.prefixes);
-      })
       .catch((err) => {
         console.log("Unable to cache server ids", err);
       });
