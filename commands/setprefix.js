@@ -20,7 +20,7 @@ module.exports = {
     const options = { returnNewDocument: true };
 
     if (prefix === newPrefix) {
-      Guild.removeOne(query)
+      Guild.deleteOne(query)
         .then(() => {
           delete client.prefixes[guildId];
           message.channel.send(
