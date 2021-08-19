@@ -18,7 +18,8 @@ module.exports = {
   execute: help,
 };
 
-function help (message, args, client) {
+function help(message, args, client) {
+
   const { commands } = message.client;
   let helpEmbed = new Discord.MessageEmbed()
     .setColor("#0099ff")
@@ -39,39 +40,40 @@ function help (message, args, client) {
   message.channel.send(helpEmbed);
 }
 
-
 function generalInformation(helpEmbed, commands) {
   // Add all the details of the commands
   helpEmbed.setTitle("Available commands");
 
-  // Add relevant category to the embed
-  function addCategory(category) {
-    // Format the relevant data, not sure how to use filter function
-    const data = [];
-    const dataCommands = commands;
-    data.push(
-      dataCommands
-        .map(function (command) {
-          if (command.category == category)
-            return `**${command.name}**: ${command.description}\n`;
-          return "";
-        })
-        .join("")
-    );
-
-    // Add it to the embed
-    helpEmbed.addFields({
-      name: `**${category.charAt(0).toUpperCase() + category.slice(1)}**`,
-      value: data,
-    });
-  }
-
-  addCategory("dota");
-  addCategory("misc");
+  addCategory("general", helpEmbed, commands);
+  addCategory("dota", helpEmbed, commands);
   helpEmbed.setFooter(
     `You can send '${prefix}help [command name]' to get info on a specific command!`
   );
   return helpEmbed;
+}
+
+// Add relevant category to the embed
+function addCategory(category, helpEmbed, commands) {
+  // Format the relevant data, not sure how to use filter function
+  const data = [];
+  const dataCommands = commands;
+  data.push(
+    dataCommands
+      .map(command => {
+        if (command.category == category) {
+          return `**${command.name}**: ${command.description}\n`;
+        } else {
+          return "";
+        }
+      })
+      .join("")
+  );
+
+  // Add it to the embed
+  helpEmbed.addFields({
+    name: `**${category.charAt(0).toUpperCase() + category.slice(1)}**`,
+    value: data,
+  });
 }
 
 function specificInformation(args, helpEmbed, commands) {

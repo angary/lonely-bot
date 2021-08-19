@@ -74,6 +74,7 @@ module.exports = async (client, message) => {
     command.execute(message, args, client);
   } catch (error) {
     message.reply("there was an error trying to execute that command");
+    console.log(error);
   }
 };
 
