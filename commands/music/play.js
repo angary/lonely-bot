@@ -8,7 +8,7 @@ module.exports = {
   args: true,
   usage: "",
   cooldown: 0,
-  category: "general",
+  category: "music",
   execute: play,
 };
 
