@@ -9,61 +9,63 @@ module.exports = {
   args: true,
   usage: "[Steam32 ID]",
   example: "193480093",
-  cooldown: 1,
+  cooldown: 0,
   category: "dota",
-  execute(message, args, client) {
-    const discordID = message.author.id;
-    const steamID = args[0];
+  execute: steamid,
+};
 
-    const query = { discordID: discordID };
-    const update = { steamID: steamID };
-    const options = { returnNewDocument: true };
+function steamid(message, args, client) {
+  const discordID = message.author.id;
+  const steamID = args[0];
 
-    // Remove steamID from the database
-    if (steamID === "0") {
-      User.remove(query)
-        .then(() => {
-          message.channel.send("Successfully removed steamID from database!");
-        })
-        .catch((err) =>
-          message.channel.send(
-            `${message.author} Failed to find and remove steamID ${err}`
-          )
-        );
-      return;
-    }
+  const query = { discordID: discordID };
+  const update = { steamID: steamID };
+  const options = { returnNewDocument: true };
 
-    // Basic check if the steamID is valid
-    if (isNaN(steamID) || isNaN(parseInt(steamID))) {
-      message.channel.send(
-        `${message.author} Invalid steamID. It should only consist of numbers.`
-      );
-      return;
-    }
-
-    // Update the steamID in the database
-    User.findOneAndUpdate(query, update, options)
-      .then((updatedDocument) => {
-        if (updatedDocument) {
-          message.channel.send(
-            `${message.author} Successfully updated Steam ID to be **${steamID}**!`
-          );
-        } else {
-          const newUser = new User({ discordID, steamID });
-          newUser
-            .save()
-            .then(() => {
-              message.channel.send(
-                `${message.author} Added Steam ID to be **${steamID}**.`
-              );
-            })
-            .catch((err) => message.channel.send("Error: " + err));
-        }
+  // Remove steamID from the database
+  if (steamID === "0") {
+    User.remove(query)
+      .then(() => {
+        message.channel.send("Successfully removed steamID from database!");
       })
       .catch((err) =>
         message.channel.send(
-          `${message.author} Failed to find and add/ update ID. ${err}`
+          `${message.author} Failed to find and remove steamID ${err}`
         )
       );
-  },
-};
+    return;
+  }
+
+  // Basic check if the steamID is valid
+  if (isNaN(steamID) || isNaN(parseInt(steamID))) {
+    message.channel.send(
+      `${message.author} Invalid steamID. It should only consist of numbers.`
+    );
+    return;
+  }
+
+  // Update the steamID in the database
+  User.findOneAndUpdate(query, update, options)
+    .then((updatedDocument) => {
+      if (updatedDocument) {
+        message.channel.send(
+          `${message.author} Successfully updated Steam ID to be **${steamID}**!`
+        );
+      } else {
+        const newUser = new User({ discordID, steamID });
+        newUser
+          .save()
+          .then(() => {
+            message.channel.send(
+              `${message.author} Added Steam ID to be **${steamID}**.`
+            );
+          })
+          .catch((err) => message.channel.send("Error: " + err));
+      }
+    })
+    .catch((err) =>
+      message.channel.send(
+        `${message.author} Failed to find and add/ update ID. ${err}`
+      )
+    );
+}

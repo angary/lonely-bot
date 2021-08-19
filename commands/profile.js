@@ -14,14 +14,16 @@ module.exports = {
   args: false,
   usage: "[Steam32 ID]",
   example: "193480093",
-  cooldown: 2,
+  cooldown: 0,
   category: "dota",
   execute: profile,
 };
 
 // Database interaction has to be asynchronous, so making new async function
-async function profile(message, args) {
+async function profile(message, args, client) {
+
   message.channel.startTyping();
+
   // Checks for id
   let id = args[0];
   if (!id) {
@@ -72,8 +74,8 @@ async function profile(message, args) {
 // Check the status code of the API response
 function checkAPIResponse(responses) {
   // Takes a long time to loop, can be optimised
-  for (let i = 0; i < responses.length; i++) {
-    if (responses[i].status != 200) {
+  for (const response of responses) {
+    if (response.status != 200) {
       throw Error("Invalid API response, check that the id was correct!");
     }
   }
@@ -133,13 +135,8 @@ function formatData(data) {
   }
 
   // Check if they've won or lost
-  p.recent.outcome = "Lost";
-  if (
-    (p.recent.player_slot < 6 && p.recent.radiant_win) ||
-    (p.recent.player_slot > 5 && !p.recent.radiant_win)
-  ) {
-    p.recent.outcome = "Won";
-  }
+  const won = p.recent.player_slot < 6 ? p.recent.radiant_win : !p.recent.radiant_win;
+  p.recent.outcome = won ? "Won" : "Lost";
 
   return p;
 }
@@ -172,13 +169,13 @@ function sendEmbed(message, p, match) {
     });
 
   // Add player's top three heroes
-  for (let i = 0; i < p.heroes.length; i++) {
+  for (const hero of p.heroes) {
     profileEmbed.addFields({
-      name: `**${p.heroes[i].name}**`,
+      name: `**${hero.name}**`,
       value: `
-        Games: **${p.heroes[i].games}**
-        Win as: **${p.heroes[i].winAs}%**
-        Percentile: **${p.heroes[i].percentile}**`,
+        Games: **${hero.games}**
+        Win as: **${hero.winAs}%**
+        Percentile: **${hero.percentile}**`,
       inline: true,
     });
   }
@@ -212,9 +209,9 @@ function invalidDatabaseResponse(message) {
 
 // Return a hero ranking given the hero id and list of ranking details
 function idToHeroRanking(rankings, heroId) {
-  for (let i = 0; i < rankings.length; i++) {
-    if (rankings[i].hero_id == heroId) {
-      return `${+(100 * rankings[i].percent_rank).toFixed(2)}%`;
+  for (const ranking of rankings) {
+    if (ranking.hero_id == heroId) {
+      return `${+(100 * ranking.percent_rank).toFixed(2)}%`;
     }
   }
   return "Unknown";
@@ -222,9 +219,9 @@ function idToHeroRanking(rankings, heroId) {
 
 // Return a hero name given the hero id and list of hero details
 function idToHeroName(heroes, heroId) {
-  for (let i = 0; i < heroes.length; i++) {
-    if (heroes[i].id == heroId) {
-      return heroes[i].localized_name;
+  for (hero of heroes) {
+    if (hero.id == heroId) {
+      return hero.localized_name;
     }
   }
   return "Unknown";

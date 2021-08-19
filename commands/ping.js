@@ -5,10 +5,12 @@ module.exports = {
   aliases: false,
   args: false,
   usage: "",
-  cooldown: false,
+  cooldown: 0,
   category: "misc",
-  execute(message, args, client) {
-    const ping = `${Date.now() - message.createdTimestamp} ms`;
-    message.channel.send(`Pong! Your ping is **${ping}**.`);
-  },
+  execute: ping,
 };
+
+function ping(message, args, client) {
+  const ping = `${Date.now() - message.createdTimestamp} ms`;
+  message.channel.send(`Pong! Your ping is **${ping}**.`);
+}

@@ -15,27 +15,30 @@ module.exports = {
   usage: "[command name]",
   cooldown: 0,
   category: "misc",
-  execute(message, args, client) {
-    const { commands } = message.client;
-    let helpEmbed = new Discord.MessageEmbed()
-      .setColor("#0099ff")
-      .setAuthor(clientName, profilePicture, githubLink);
-
-    // If they didn't specify a specific command
-    if (!args.length) {
-      helpEmbed = generalInformation(helpEmbed, commands);
-    } else {
-      try {
-        helpEmbed = specificInformation(args, helpEmbed, commands);
-      } catch {
-        return message.channel.send(
-          `${message.author} Command **${args[0]}** was not valid!`
-        );
-      }
-    }
-    message.channel.send(helpEmbed);
-  },
+  execute: help,
 };
+
+function help (message, args, client) {
+  const { commands } = message.client;
+  let helpEmbed = new Discord.MessageEmbed()
+    .setColor("#0099ff")
+    .setAuthor(clientName, profilePicture, githubLink);
+
+  // If they didn't specify a specific command
+  if (!args.length) {
+    helpEmbed = generalInformation(helpEmbed, commands);
+  } else {
+    try {
+      helpEmbed = specificInformation(args, helpEmbed, commands);
+    } catch {
+      return message.channel.send(
+        `${message.author} Command **${args[0]}** was not valid!`
+      );
+    }
+  }
+  message.channel.send(helpEmbed);
+}
+
 
 function generalInformation(helpEmbed, commands) {
   // Add all the details of the commands

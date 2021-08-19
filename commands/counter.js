@@ -3,6 +3,8 @@ const cheerio = require("cheerio");
 const Discord = require("discord.js");
 const { clientName, profilePicture, githubLink } = require("../config.json");
 const aliasToHeroName = require("../assets/heroNames");
+
+// Information for the command
 const information = `
 Given the enemy hero names separated by commas, return the top counters by winrate and advantage.
 
@@ -25,7 +27,7 @@ module.exports = {
   args: true,
   usage: "[enemy_1], [enemy_2] ...",
   example: "am, venge, lone druid",
-  cooldown: 2,
+  cooldown: 0,
   category: "dota",
   execute: counter,
 };

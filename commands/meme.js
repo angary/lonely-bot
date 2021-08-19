@@ -8,12 +8,12 @@ module.exports = {
   aliases: ["dm", "dankmeme"],
   args: false,
   usage: "",
-  cooldown: false,
+  cooldown: 0,
   category: "misc",
   execute: meme,
 };
 
-async function meme(message, args) {
+async function meme(message, args, client) {
   message.channel.startTyping();
   axios
     .get("https://www.reddit.com/r/dankmemes/random/.json")
