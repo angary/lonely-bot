@@ -26,11 +26,15 @@ async function play(message, args, client) {
     return;
   }
 
+  // Check if it's a valid youtube URL
+  if (!ytdl.validateURL(args[0])) {
+    return message.channel.send("Sorry I only support youtube URLs for now!");
+  }
+
   // Find the song details from URL
   const songInfo = await ytdl.getInfo(args[0]);
   if (!songInfo) {
-    message.channel.send("Could not find details from youtube");
-    return;
+    return message.channel.send("Could not find details from youtube");
   }
 
   // Collect song details

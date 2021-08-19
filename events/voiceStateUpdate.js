@@ -1,4 +1,3 @@
-
 module.exports = async (client, oldMember, newMember) => {
   // Check the guild they are in
   const guild = oldMember.guild;
@@ -6,11 +5,8 @@ module.exports = async (client, oldMember, newMember) => {
   // If the guild has music playing
   const serverQueue = client.musicQueue.get(guild.id);
   if (!serverQueue) {
-    console.log("Could not find serverQueue");
     return;
   }
-
-  console.log(serverQueue);
 
   // Check if the voice channel is empty
   if (serverQueue.voiceChannel.members.size === 1) {

@@ -88,7 +88,7 @@ function specificInformation(args, helpEmbed, commands) {
   // Else find information on the command
   helpEmbed.setTitle(`Help for: ${command.name}`);
   const data = [];
-  if (command.aliases) {
+  if (command.aliases.length > 0) {
     data.push(`**Aliases:** ${command.aliases.join(", ")}`);
   }
   if (command.information) {

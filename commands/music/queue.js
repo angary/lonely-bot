@@ -27,7 +27,6 @@ async function queue(message, args, client) {
   // Collect all song details
   for (let i = 0; i < songs.length; i++) {
     totalDuration += parseInt(songs[i].duration);
-    console.log(totalDuration);
 
     // Only print out the first ten songs
     if (i < 10) {
