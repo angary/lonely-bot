@@ -22,12 +22,17 @@
   },
   "homepage": "https://github.com/angary/Lonely-Bot#readme",
   "dependencies": {
+    "@discordjs/opus": "^0.5.3",
     "axios": "^0.21.1",
     "cheerio": "^1.0.0-rc.9",
     "discord.js": "^12.5.3",
     "dotenv": "^9.0.2",
+    "ffmpeg": "^0.0.4",
+    "ffmpeg-static": "^4.4.0",
+    "fluent-ffmpeg": "^2.1.2",
     "mongoose": "^5.12.8",
-    "node-fetch": "^2.6.1"
+    "node-fetch": "^2.6.1",
+    "ytdl-core": "^4.9.1"
   },
   "devDependencies": {
     "eslint": "^7.26.0",
