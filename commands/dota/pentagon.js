@@ -1,6 +1,6 @@
 module.exports = {
   name: "pentagon",
-  aliases: ["areapentagon", "dotapentagon", "p"],
+  aliases: [],
   description: "Return area of the dota 2 stat pentagon",
   information:
     "Given 5 values of the player's pentagon, it gives the area of the pentagon with those values, the maximum possible area by swapping value positions, and the ratio of area of the given area to the maximum area.",

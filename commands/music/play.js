@@ -30,24 +30,47 @@ async function play(message, args, client) {
   const songInfo = await ytdl.getInfo(args[0]);
   if (!songInfo) {
     message.channel.send("Could not find details from youtube");
+    return;
   }
 
+  // Collect song details
   const song = {
     title: songInfo.videoDetails.title,
     url: songInfo.videoDetails.video_url,
   };
 
-  message.channel.send(`Found **${song.title}**`);
+  // Check if there is a music queue
+  const musicQueue = client.musicQueue;
+  const serverQueue = musicQueue.get(message.guild.id);
 
-  try {
-    const connection = await voiceChannel.join();
-    const dispatcher = connection
-      .play(ytdl(song.url))
-      .on("finish", () => {
-        message.channel.send(`Finished playing ${song.title}`);
-      });
-  } catch (error) {
-    console.log(error);
+  if (!serverQueue) {
+    // Create the new queue
+    const queueConstruct = {
+      voiceChannel: voiceChannel,
+      textChannel: message.channel,
+      connection: null,
+      songs: [],
+      playing: true,
+    };
+    
+    // Add the queue
+    musicQueue.set(message.guild.id, queueConstruct);
+    queueConstruct.songs.push(song);
+
+    // Play the song
+    try {
+      // Join the voice channel
+      queueConstruct.connection = await voiceChannel.join();
+      playSong(message, client);
+    } catch (error) {
+      // Catch error and remove the server's queue
+      console.log(error);
+      musicQueue.delete(message.guild.id);
+    }
+  } else {
+    // Add the new song to the queue
+    serverQueue.songs.push(song);
+    message.channel.send(`Added **${song.title}** to the queue`);
   }
 }
 
@@ -61,4 +84,29 @@ function hasPermissions(voiceChannel, message) {
     return false;
   } 
   return true;
+}
+
+function playSong(message, client) {
+  const musicQueue = client.musicQueue;
+  const serverQueue = musicQueue.get(message.guild.id);
+  
+  if (serverQueue.songs.length === 0) {
+    message.channel.send("Finished queue");
+    serverQueue.voiceChannel.leave();
+    musicQueue.delete(message.guild.id);
+    return;
+  }
+
+  const song = serverQueue.songs[0];
+
+  serverQueue.connection
+    .play(ytdl(song.url))
+    .on("finish", () => {
+      serverQueue.songs.shift();
+      playSong(message, client);
+    })
+    .on("error", error => {
+      console.log(error);
+    });
+  serverQueue.textChannel.send(`Started playing **${song.title}**`);
 }

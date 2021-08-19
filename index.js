@@ -4,11 +4,14 @@ const fs = require("fs");
 const mongoose = require("mongoose");
 const Guild = require("./database/guild");
 
+
 // Set up the bot user and commands
 //------------------------------------------------------------------------------
 const client = new Discord.Client();
 client.commands = new Discord.Collection();
 client.prefixes = {};
+client.musicQueue = new Map();
+
 
 // Load all the commands
 //------------------------------------------------------------------------------
@@ -21,6 +24,7 @@ fs.readdirSync("./commands").forEach(dir => {
   }
 });
 
+
 // Load all the events
 //------------------------------------------------------------------------------
 const eventFiles = fs.readdirSync("./events/").filter(f => f.endsWith(".js"));
@@ -29,6 +33,7 @@ for (const file of eventFiles) {
   const eventName = file.split(".")[0];
   client.on(eventName, event.bind(null, client));
 }
+
 
 // Connect to mongoose database
 //------------------------------------------------------------------------------
@@ -55,6 +60,7 @@ mongoose
   .catch((err) => {
     console.log("Was not able to connect to MongoDB", err);
   });
+
 
 // Login
 //------------------------------------------------------------------------------
