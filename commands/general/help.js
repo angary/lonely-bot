@@ -46,6 +46,7 @@ function generalInformation(helpEmbed, commands) {
 
   addCategory("general", helpEmbed, commands);
   addCategory("dota", helpEmbed, commands);
+  addCategory("music", helpEmbed, commands);
   helpEmbed.setFooter(
     `You can send '${prefix}help [command name]' to get info on a specific command!`
   );
