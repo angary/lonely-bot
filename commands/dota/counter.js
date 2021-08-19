@@ -1,8 +1,8 @@
 const axios = require("axios");
 const cheerio = require("cheerio");
 const Discord = require("discord.js");
-const { clientName, profilePicture, githubLink } = require("../config.json");
-const aliasToHeroName = require("../assets/heroNames");
+const { clientName, profilePicture, githubLink } = require("../../config.json");
+const aliasToHeroName = require("../../assets/heroNames");
 
 // Information for the command
 const information = `

@@ -3,7 +3,7 @@ const {
   clientName,
   profilePicture,
   githubLink,
-} = require("../config.json");
+} = require("../../config.json");
 const Discord = require("discord.js");
 
 module.exports = {
@@ -14,7 +14,7 @@ module.exports = {
   args: false,
   usage: "[command name]",
   cooldown: 0,
-  category: "misc",
+  category: "general",
   execute: help,
 };
 

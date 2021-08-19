@@ -1,4 +1,4 @@
-const User = require("../database/user");
+const User = require("../../database/user");
 
 module.exports = {
   name: "steamid",
@@ -10,7 +10,7 @@ module.exports = {
   usage: "[Steam32 ID]",
   example: "193480093",
   cooldown: 0,
-  category: "dota",
+  category: "general",
   execute: steamid,
 };
 

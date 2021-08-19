@@ -12,19 +12,18 @@ client.prefixes = {};
 
 // Load all the commands
 //------------------------------------------------------------------------------
-const commandFiles = fs
-  .readdirSync("./commands")
-  .filter((file) => file.endsWith(".js"));
-for (const file of commandFiles) {
-  const command = require(`./commands/${file}`);
-  client.commands.set(command.name, command);
-}
+fs.readdirSync("./commands").forEach(dir => {
+  const commands = fs.readdirSync(`./commands/${dir}`).filter(f => f.endsWith(".js"));
+  for (const file of commands) {
+    const command = require(`./commands/${dir}/${file}`);
+    console.log(`Loaded command ${dir}/${file}`);
+    client.commands.set(command.name, command);
+  }
+});
 
 // Load all the events
 //------------------------------------------------------------------------------
-const eventFiles = fs
-  .readdirSync("./events/")
-  .filter((file) => file.endsWith(".js"));
+const eventFiles = fs.readdirSync("./events/").filter(f => f.endsWith(".js"));
 for (const file of eventFiles) {
   const event = require(`./events/${file}`);
   const eventName = file.split(".")[0];

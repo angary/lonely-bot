@@ -9,7 +9,7 @@ module.exports = {
   args: false,
   usage: "",
   cooldown: 0,
-  category: "misc",
+  category: "general",
   execute: meme,
 };
 

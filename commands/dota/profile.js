@@ -1,9 +1,9 @@
 const fetch = require("node-fetch");
 const Discord = require("discord.js");
-const { clientName, profilePicture, githubLink } = require("../config.json");
-const gameModes = require("../assets/gameModes");
-const lobbyTypes = require("../assets/lobbyTypes");
-const User = require("../database/user");
+const { clientName, profilePicture, githubLink } = require("../../config.json");
+const gameModes = require("../../assets/gameModes");
+const lobbyTypes = require("../../assets/lobbyTypes");
+const User = require("../../database/user");
 
 module.exports = {
   name: "profile",

@@ -1,5 +1,5 @@
-const Guild = require("../database/guild");
-const { prefix } = require("../config.json");
+const Guild = require("../../database/guild");
+const { prefix } = require("../../config.json");
 
 module.exports = {
   name: "setprefix",
@@ -10,7 +10,7 @@ module.exports = {
   usage: "[new prefix]",
   example: ">>",
   cooldown: 0,
-  category: "misc",
+  category: "general",
   execute: setprefix,
 };
 
