@@ -2,8 +2,8 @@ const ytdl = require('ytdl-core');
 
 module.exports = {
   name: "play",
-  description: "WORK IN PROGRESS Play a song from url",
-  information: "",
+  description: "Add a song from url to the queue",
+  information: "Add a song from url to the queue. Currently only supports youtube URLs.",
   aliases: ["p"],
   args: true,
   usage: "",
@@ -37,6 +37,7 @@ async function play(message, args, client) {
   const song = {
     title: songInfo.videoDetails.title,
     url: songInfo.videoDetails.video_url,
+    duration: songInfo.videoDetails.lengthSeconds,
   };
 
   // Check if there is a music queue
@@ -70,7 +71,7 @@ async function play(message, args, client) {
   } else {
     // Add the new song to the queue
     serverQueue.songs.push(song);
-    message.channel.send(`Added **${song.title}** to the queue`);
+    message.channel.send(`Added **${song.title}** (${song.duration}) to the queue`);
   }
 }
 
@@ -108,5 +109,15 @@ function playSong(message, client) {
     .on("error", error => {
       console.log(error);
     });
-  serverQueue.textChannel.send(`Started playing **${song.title}**`);
+  let duration = formatDuration(song.duration);
+  serverQueue.textChannel.send(`Playing **${song.title}** (${duration})`);
+}
+
+
+function formatDuration(seconds) {
+  if (seconds < 3600) {
+    return new Date(seconds * 1000).toISOString().substr(14, 5);
+  } else {
+    return new Date(seconds * 1000).toISOString().substr(11, 8);
+  }
 }

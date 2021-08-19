@@ -1,5 +1,3 @@
-const ytdl = require('ytdl-core');
-
 module.exports = {
   name: "skip",
   description: "Skip the current song in the queue",
