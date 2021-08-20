@@ -32,7 +32,8 @@
     "fluent-ffmpeg": "^2.1.2",
     "mongoose": "^5.12.8",
     "node-fetch": "^2.6.1",
-    "ytdl-core": "^4.9.1"
+    "ytdl-core": "^4.9.1",
+    "ytsr": "^3.5.3"
   },
   "devDependencies": {
     "eslint": "^7.26.0",

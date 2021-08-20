@@ -30,5 +30,10 @@ async function skip(message, args, client) {
     return message.channel.send("You are not in the same channel");
   }
 
-  serverQueue.connection.dispatcher.end();
+  try {
+    serverQueue.connection.dispatcher.end();
+  } catch (error) {
+    serverQueue.songs = [];
+    console.log(error);
+  }
 }
