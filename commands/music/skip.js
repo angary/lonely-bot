@@ -11,11 +11,12 @@ module.exports = {
 };
 
 async function skip(message, args, client) {
-  
   // Check if we are in a voice channel
   const voiceChannel = message.member.voice.channel;
   if (!voiceChannel) {
-    message.channel.send("You need to be in a voice channel to stop the queue!");
+    message.channel.send(
+      "You need to be in a voice channel to stop the queue!"
+    );
     return;
   }
 

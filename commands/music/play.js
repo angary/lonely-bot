@@ -132,9 +132,8 @@ async function playSong(message, client) {
       console.log("Issue with ytdl playing");
       console.log(error);
     });
-  let duration = formatDuration(song.duration);
   serverQueue.textChannel.send(
-    `Playing **${song.title}** (${formatDuration(duration)``})`
+    `Playing **${song.title}** (${formatDuration(song.duration)})`
   );
 }
 
