@@ -11,7 +11,13 @@ module.exports = async (client, oldMember, newMember) => {
   // Check if the voice channel is empty
   if (serverQueue.voiceChannel.members.size === 1) {
     serverQueue.songs = [];
-    serverQueue.connection.dispatcher.end();
-    return serverQueue.textChannel.send("Stopping music as all members have left the voice channel");
+
+    // If the bot is the last person connected
+    if (serverQueue.connection != null) {
+      serverQueue.connection.dispatcher.end();
+      return serverQueue.textChannel.send(
+        "Stopping music as all members have left the voice channel"
+      );
+    }
   }
 };

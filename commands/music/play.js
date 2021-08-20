@@ -4,7 +4,8 @@ const ytsr = require("ytsr");
 module.exports = {
   name: "play",
   description: "Add a song from url to the queue",
-  information: "Add a song from url to the queue. Currently only supports youtube URLs.",
+  information:
+    "Add a song from url to the queue. Currently only supports youtube URLs.",
   aliases: ["p"],
   args: true,
   usage: "",
@@ -14,7 +15,6 @@ module.exports = {
 };
 
 async function play(message, args, client) {
-  
   // Check if we are in a voice channel
   const voiceChannel = message.member.voice.channel;
   if (!voiceChannel) {
@@ -38,7 +38,7 @@ async function play(message, args, client) {
     try {
       const searchString = await ytsr.getFilters(args.join(" "));
       const videoSearch = searchString.get("Type").get("Video");
-      const results = await ytsr(videoSearch.url, {limit: 1});
+      const results = await ytsr(videoSearch.url, { limit: 1 });
       songInfo = await ytdl.getInfo(results.items[0].url);
     } catch (error) {
       console.log(error);
@@ -48,6 +48,7 @@ async function play(message, args, client) {
 
   // Collect song details
   const song = {
+    info: songInfo,
     title: songInfo.videoDetails.title,
     url: songInfo.videoDetails.video_url,
     duration: songInfo.videoDetails.lengthSeconds,
@@ -66,7 +67,7 @@ async function play(message, args, client) {
       songs: [],
       playing: true,
     };
-    
+
     // Add the queue
     musicQueue.set(message.guild.id, queueConstruct);
     queueConstruct.songs.push(song);
@@ -84,7 +85,9 @@ async function play(message, args, client) {
   } else {
     // Add the new song to the queue
     serverQueue.songs.push(song);
-    message.channel.send(`Added **${song.title}** (${song.duration}) to the queue`);
+    message.channel.send(
+      `Added **${song.title}** (${formatDuration(song.duration)}) to the queue`
+    );
   }
 }
 
@@ -94,18 +97,19 @@ function hasPermissions(voiceChannel, message) {
     message.channel.send("I need the permissions to join your voice channel!");
     return false;
   } else if (!permissions.has("SPEAK")) {
-    message.channel.send("I need the permissions to speak in your voice channel!");
+    message.channel.send(
+      "I need the permissions to speak in your voice channel!"
+    );
     return false;
-  } 
+  }
   return true;
 }
 
-function playSong(message, client) {
+async function playSong(message, client) {
   const musicQueue = client.musicQueue;
   const serverQueue = musicQueue.get(message.guild.id);
-  
+
   if (serverQueue.songs.length === 0) {
-    message.channel.send("Finished queue");
     serverQueue.voiceChannel.leave();
     musicQueue.delete(message.guild.id);
     return;
@@ -113,19 +117,25 @@ function playSong(message, client) {
 
   const song = serverQueue.songs[0];
 
-  serverQueue.connection
-    .play(ytdl(song.url))
+  const dispatcher = serverQueue.connection
+    .play(
+      await ytdl.downloadFromInfo(song.info, {
+        highWaterMark: 1 << 25, // Increase memory for song to 32 mb
+        filter: "audioonly",
+      })
+    )
     .on("finish", () => {
       serverQueue.songs.shift();
       playSong(message, client);
     })
-    .on("error", error => {
+    .on("error", (error) => {
+      console.log("Issue with ytdl playing");
       console.log(error);
     });
-  let duration = formatDuration(song.duration);
-  serverQueue.textChannel.send(`Playing **${song.title}** (${duration})`);
+  serverQueue.textChannel.send(
+    `Playing **${song.title}** (${formatDuration(song.duration)})`
+  );
 }
-
 
 function formatDuration(seconds) {
   seconds = parseInt(seconds);

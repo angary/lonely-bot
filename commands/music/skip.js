@@ -11,11 +11,12 @@ module.exports = {
 };
 
 async function skip(message, args, client) {
-  
   // Check if we are in a voice channel
   const voiceChannel = message.member.voice.channel;
   if (!voiceChannel) {
-    message.channel.send("You need to be in a voice channel to stop the queue!");
+    message.channel.send(
+      "You need to be in a voice channel to stop the queue!"
+    );
     return;
   }
 
@@ -30,5 +31,10 @@ async function skip(message, args, client) {
     return message.channel.send("You are not in the same channel");
   }
 
-  serverQueue.connection.dispatcher.end();
+  try {
+    serverQueue.connection.dispatcher.end();
+  } catch (error) {
+    serverQueue.songs = [];
+    console.log(error);
+  }
 }
