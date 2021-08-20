@@ -1,4 +1,5 @@
-const ytdl = require('ytdl-core');
+const ytdl = require("ytdl-core");
+const ytsr = require("ytsr");
 
 module.exports = {
   name: "play",
@@ -26,15 +27,23 @@ async function play(message, args, client) {
     return;
   }
 
-  // Check if it's a valid youtube URL
-  if (!ytdl.validateURL(args[0])) {
-    return message.channel.send("Sorry I only support youtube URLs for now!");
-  }
-
-  // Find the song details from URL
-  const songInfo = await ytdl.getInfo(args[0]);
-  if (!songInfo) {
-    return message.channel.send("Could not find details from youtube");
+  let songInfo = null;
+  if (ytdl.validateURL(args[0])) {
+    // Find the song details from URL
+    songInfo = await ytdl.getInfo(args[0]);
+    if (!songInfo) {
+      return message.channel.send("Could not find details from youtube");
+    }
+  } else {
+    try {
+      const searchString = await ytsr.getFilters(args.join(" "));
+      const videoSearch = searchString.get("Type").get("Video");
+      const results = await ytsr(videoSearch.url, {limit: 1});
+      songInfo = await ytdl.getInfo(results.items[0].url);
+    } catch (error) {
+      console.log(error);
+      return message.channel.send("There was an error searching for that song");
+    }
   }
 
   // Collect song details
@@ -119,7 +128,10 @@ function playSong(message, client) {
 
 
 function formatDuration(seconds) {
-  if (seconds < 3600) {
+  seconds = parseInt(seconds);
+  if (seconds === 0) {
+    return "livestream"; 
+  } else if (seconds < 3600) {
     return new Date(seconds * 1000).toISOString().substr(14, 5);
   } else {
     return new Date(seconds * 1000).toISOString().substr(11, 8);
