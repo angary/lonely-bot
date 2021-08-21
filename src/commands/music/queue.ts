@@ -1,16 +1,20 @@
-import { MessageEmbed } from "discord.js";
+import { Message, MessageEmbed } from "discord.js";
+import { IBot, ICommand } from "../../interfaces/Bot";
 
-module.exports = {
-  name: "queue",
-  description: "Print out the current queue of songs",
-  information: "",
-  aliases: ["q"],
-  args: false,
-  usage: "",
-  cooldown: 0,
-  category: "music",
-  execute: queue,
-};
+export default class Queue implements ICommand {
+  name: string = "queue";
+  description: string = "Print out the current queue of songs";
+  information: string = "Add a song from url to the queue. Currently only supports youtube URLs.";
+  aliases: string[] = ["q"];
+  args: boolean = false;
+  usage: string = "";
+  example: string = "";
+  cooldown: number = 0;
+  category: string = "music";
+  guildOnly: boolean = false;
+  execute: (message: Message, args: string[], client: IBot) => void =
+    queue;
+}
 
 async function queue(message, args, client) {
   // Check if there is a music queue

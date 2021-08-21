@@ -1,16 +1,21 @@
-module.exports = {
-  name: "pentagon",
-  aliases: [],
-  description: "Return area of the dota 2 stat pentagon",
-  information:
-    "Given 5 values of the player's pentagon, it gives the area of the pentagon with those values, the maximum possible area by swapping value positions, and the ratio of area of the given area to the maximum area.",
-  args: true,
-  usage: "[Fighting] [Farming] [Supporting] [Pushing] [Versatility]",
-  example: "7.5 0.5 9.8 5.1 0.7",
-  cooldown: 0,
-  category: "dota",
-  execute: pentagon,
-};
+import { Message } from "discord.js";
+import { IBot, ICommand } from "../../interfaces/Bot";
+
+export default class Pentagon implements ICommand {
+  name: string = "pentagon";
+  description: string = "Returns a list of top counters to given heroes";
+  information: string =
+  "Given 5 values of the player's pentagon, it gives the area of the pentagon with those values, the maximum possible area by swapping value positions, and the ratio of area of the given area to the maximum area.";
+  aliases: string[] = [];
+  args: boolean = true;
+  usage: string = "[Fighting] [Farming] [Supporting] [Pushing] [Versatility]";
+  example: string = "7.5 0.5 9.8 5.1 0.7";
+  cooldown: number = 0;
+  category: string = "dota";
+  guildOnly: boolean = false;
+  execute: (message: Message, args: string[], client: IBot) => Promise<void> =
+    pentagon;
+}
 
 function pentagon(message, args, client) {
   if (args.length !== 5) {
@@ -18,14 +23,16 @@ function pentagon(message, args, client) {
   }
 
   // Strip commas and space from the numbers if there are any at the end
-  args.foreach(arg => arg.replace(/[ ,]/g, ""));
+  args.foreach((arg) => arg.replace(/[ ,]/g, ""));
 
   const unsortedArgs = [...args];
   args.sort((a, b) => a - b);
   const sortedArgs = [args[1], args[3], args[4], args[2], args[0]];
   const max = [10, 10, 10, 10, 10];
-  const unsortedPercentage = (area(message, unsortedArgs) * 100) / area(message, max);
-  const sortedPercentage = (area(message, sortedArgs) * 100) / area(message, max);
+  const unsortedPercentage =
+    (area(message, unsortedArgs) * 100) / area(message, max);
+  const sortedPercentage =
+    (area(message, sortedArgs) * 100) / area(message, max);
 
   message.channel.send(
     `The area of your pentagon is **${area(message, unsortedArgs).toFixed(

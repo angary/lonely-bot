@@ -5,19 +5,23 @@ import {
   githubLink,
 } from "../../config.json";
 
-import { MessageEmbed } from "discord.js";
+import { Message, MessageEmbed } from "discord.js";
+import { IBot, ICommand } from "../../interfaces/Bot";
 
-module.exports = {
-  name: "help",
-  description: "List all of my commands or info about a specific command.",
-  information: "",
-  aliases: ["commands"],
-  args: false,
-  usage: "[command name]",
-  cooldown: 0,
-  category: "general",
-  execute: help,
-};
+export default class Help implements ICommand {
+  name: string = "help";
+  description: string = "List all of my commands or info about a specific command.";
+  information: string = "";
+  aliases: string[] = ["commands"];
+  args: boolean = false;
+  usage: string = "[command name]";
+  example: string = "help";
+  cooldown: number = 0;
+  category: string = "general";
+  guildOnly: boolean = false;
+  execute: (message: Message, args: string[], client: IBot) => Promise<void> =
+    help;
+}
 
 function help(message, args, client) {
   const { commands } = message.client;

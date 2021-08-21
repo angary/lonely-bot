@@ -1,18 +1,21 @@
+import { Message } from "discord.js";
 import { User, UserModel } from "../../database/User";
+import { IBot, ICommand } from "../../interfaces/Bot";
 
-module.exports = {
-  name: "steamid",
-  description: "Link your current Discord ID to your Steam ID",
-  information:
-    "Stores or updates your steam ID (it should consist of only numbers and be the number that you see as your steam friend id or in your steam URL, or the number at the end of your dotabuff/ opendota URL). Once your steam ID is saved, you do not need to type your steamID the next time you use the opendota command. If you would like to remove your steamID info from the database, you can use `steamid 0`.",
-  aliases: false,
-  args: true,
-  usage: "[Steam32 ID]",
-  example: "193480093",
-  cooldown: 0,
-  category: "general",
-  execute: steamid,
-};
+export default class SetPrefix implements ICommand {
+  name: string = "steamid";
+  description: string = "Change the prefix of the bot for the current server";
+  information: string = "Stores or updates your steam ID (it should consist of only numbers and be the number that you see as your steam friend id or in your steam URL, or the number at the end of your dotabuff/ opendota URL). Once your steam ID is saved, you do not need to type your steamID the next time you use the opendota command. If you would like to remove your steamID info from the database, you can use `steamid 0`.";
+  aliases: string[] = [];
+  args: boolean = true;
+  usage: string = "[Steam32 ID]";
+  example: string = "193480093";
+  cooldown: number = 0;
+  category: string = "general";
+  guildOnly: boolean = false;
+  execute: (message: Message, args: string[], client: IBot) => void =
+    steamid;
+}
 
 function steamid(message, args, client) {
   const discordID = message.author.id;

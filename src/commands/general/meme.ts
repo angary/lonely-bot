@@ -1,17 +1,21 @@
 import axios from "axios";
-import { MessageEmbed } from "discord.js";
+import { Message, MessageEmbed } from "discord.js";
+import { IBot, ICommand } from "../../interfaces/Bot";
 
-module.exports = {
-  name: "meme",
-  description: "Get a random meme from r/dankmemes",
-  information: "",
-  aliases: ["dm", "dankmeme"],
-  args: false,
-  usage: "",
-  cooldown: 0,
-  category: "general",
-  execute: meme,
-};
+export default class Meme implements ICommand {
+  name: string = "meme";
+  description: string = "Get a random meme from r/dankmemes";
+  information: string = "";
+  aliases: string[] = [];
+  args: boolean = false;
+  usage: string = "";
+  example: string = "";
+  cooldown: number = 0;
+  category: string = "general";
+  guildOnly: boolean = false;
+  execute: (message: Message, args: string[], client: IBot) => Promise<void> =
+    meme;
+}
 
 async function meme(message, args, client) {
   message.channel.startTyping();

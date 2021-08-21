@@ -1,14 +1,20 @@
-module.exports = {
-  name: "stop",
-  description: "Remove all songs from the current queue",
-  information: "",
-  aliases: [],
-  args: false,
-  usage: "",
-  cooldown: 0,
-  category: "music",
-  execute: _stop,
-};
+import { Message } from "discord.js";
+import { IBot, ICommand } from "../../interfaces/Bot";
+
+export default class Stop implements ICommand {
+  name: string = "stop";
+  description: string = "Remove all songs from the current queue";
+  information: string = "";
+  aliases: string[] = [];
+  args: boolean = false;
+  usage: string = "";
+  example: string = "";
+  cooldown: number = 0;
+  category: string = "music";
+  guildOnly: boolean = false;
+  execute: (message: Message, args: string[], client: IBot) => void =
+    _stop;
+}
 
 async function _stop(message, args, client) {
   // Check if we are in a voice channel

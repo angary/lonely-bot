@@ -1,27 +1,31 @@
+import { Message } from "discord.js";
 import fetch from "node-fetch";
-const Discord = require("discord.js");
-const { clientName, profilePicture, githubLink } = require("../../config.json");
-const gameModes = require("../../assets/gameModes");
-const lobbyTypes = require("../../assets/lobbyTypes");
+import { MessageEmbed } from "discord.js";
+import { gameModes } from "../../assets/gameModes";
+import { lobbyTypes } from "../../assets/lobbyTypes";
 import { UserModel } from "../../database/User";
+import { IBot, ICommand } from "../../interfaces/Bot";
+const { clientName, profilePicture, githubLink } = require("../../config.json");
 
-module.exports = {
-  name: "profile",
-  description: "Uses opendota API to collect general information on player",
-  information:
-    "Given a steamID, return general info about the player. If your steamID is saved with the id command, then the steamID argument is not required. \nThe steamID should consist of only numbers and be the number that you see as your steam friend id or in your steam URL, or the number at the end of your dotabuff/ opendota URL.",
-  aliases: [],
-  args: false,
-  usage: "[Steam32 ID]",
-  example: "193480093",
-  cooldown: 0,
-  category: "dota",
-  execute: profile,
-};
+export default class Profile implements ICommand {
+  name: string = "profile";
+  description: string =
+    "Uses opendota API to collect general information on player";
+  information: string =
+    "Given a steamID, return general info about the player. If your steamID is saved with the id command, then the steamID argument is not required. \nThe steamID should consist of only numbers and be the number that you see as your steam friend id or in your steam URL, or the number at the end of your dotabuff/ opendota URL.";
+  aliases: string[] = [];
+  args: boolean = false;
+  usage: string = "[Steam32 ID]";
+  example: string = "193480093";
+  cooldown: number = 0;
+  category: string = "dota";
+  guildOnly: boolean = false;
+  execute: (message: Message, args: string[], client: IBot) => Promise<void> =
+    profile;
+}
 
 // Database interaction has to be asynchronous, so making new async function
 async function profile(message, args, client) {
-
   message.channel.startTyping();
 
   // Checks for id
@@ -135,7 +139,8 @@ function formatData(data) {
   }
 
   // Check if they've won or lost
-  const won = p.recent.player_slot < 6 ? p.recent.radiant_win : !p.recent.radiant_win;
+  const won =
+    p.recent.player_slot < 6 ? p.recent.radiant_win : !p.recent.radiant_win;
   p.recent.outcome = won ? "Won" : "Lost";
 
   return p;
@@ -143,7 +148,7 @@ function formatData(data) {
 
 // Format data and send an embed to channel with details
 function sendEmbed(message, p, match) {
-  const profileEmbed = new Discord.MessageEmbed()
+  const profileEmbed = new MessageEmbed()
     .setColor("#0099ff")
     .setTitle(`${p.profile.personaname}`)
     .setURL(`https://www.opendota.com/players/${p.profile.account_id}`)
@@ -254,7 +259,8 @@ function secondsToHms(duration: number) {
   const min = Math.floor(duration / 60);
   duration = duration % 60;
   const sec = Math.floor(duration);
-  if (parseInt(hours.toString(), 10) > 0) return `${parseInt(hours.toString(), 10)}h ${min}m ${sec}s`;
+  if (parseInt(hours.toString(), 10) > 0)
+    return `${parseInt(hours.toString(), 10)}h ${min}m ${sec}s`;
   else if (min == 0) return `${sec}s`;
   return `${min}m ${sec}s`;
 }

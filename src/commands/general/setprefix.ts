@@ -1,18 +1,23 @@
+import { Message } from "discord.js";
 import { prefix } from "../../config.json";
 import { GuildModel } from "../../database/Guild";
+import { IBot, ICommand } from "../../interfaces/Bot";
 
-module.exports = {
-  name: "setprefix",
-  description: "Change the prefix of the bot for the current server",
-  information: `Change the prefix of the bot for the current server. If you would like to remove your server's prefix, you may set it back to \`${prefix}\`.`,
-  aliases: false,
-  args: true,
-  usage: "[new prefix]",
-  example: ">>",
-  cooldown: 0,
-  category: "general",
-  execute: setprefix,
-};
+
+export default class SetPrefix implements ICommand {
+  name: string = "setprefix";
+  description: string = "Change the prefix of the bot for the current server";
+  information: string = `Change the prefix of the bot for the current server. If you would like to remove your server's prefix, you may set it back to \`${prefix}\`.`;
+  aliases: string[] = [];
+  args: boolean = true;
+  usage: string = "[new prefix]";
+  example: string = ">>";
+  cooldown: number = 0;
+  category: string = "general";
+  guildOnly: boolean = false;
+  execute: (message: Message, args: string[], client: IBot) => void =
+    setprefix;
+}
 
 function setprefix(message, args, client) {
   const guildId = message.guild.id;
@@ -26,7 +31,7 @@ function setprefix(message, args, client) {
     GuildModel.deleteOne(query)
       .then(() => {
         delete client.prefixes[guildId];
-        message.channel.send(
+        return message.channel.send(
           `Successfully reset server prefix to be **${prefix}**!`
         );
       })
@@ -35,7 +40,6 @@ function setprefix(message, args, client) {
           `${message.author} Failed to find and reset prefix ${err}`
         )
       );
-    return;
   }
 
   GuildModel.findOneAndUpdate(query, update)

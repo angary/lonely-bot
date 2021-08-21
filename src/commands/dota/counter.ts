@@ -1,11 +1,25 @@
 import axios from "axios";
 import cheerio from "cheerio";
-import { MessageEmbed } from "discord.js";
+import { Message, MessageEmbed } from "discord.js";
 import { clientName, profilePicture, githubLink } from "../../config.json";
 import { heroNames as aliasToHeroName } from "../../assets/heroNames";
-import { IHero } from "../../interfaces/Bot";
+import { IBot, ICommand, IHero } from "../../interfaces/Bot";
 
-// Information for the command
+export default class Counter implements ICommand {
+  name: string = "counter";
+  description: string = "Returns a list of top counters to given heroes";
+  information: string = information;
+  aliases: string[] = [];
+  args: boolean = true;
+  usage: string = "[enemy_1], [enemy_2] ...";
+  example: string = "am, venge, lone druid";
+  cooldown: number = 0;
+  category: string = "dota";
+  guildOnly: boolean = false;
+  execute: (message: Message, args: string[], client: IBot) => Promise<void> =
+    counter;
+}
+
 const information = `
 Given the enemy hero names separated by commas, return the top counters by winrate and advantage.
 
@@ -20,25 +34,16 @@ Explanation of data:
 - Sorting by disadvantage suggests heroes that generally counter the heros based on their abilities, but may not be the best in the current meta
 `;
 
-module.exports = {
-  name: "counter",
-  description: "Returns a list of top counters to given heroes",
-  information: information,
-  aliases: false,
-  args: true,
-  usage: "[enemy_1], [enemy_2] ...",
-  example: "am, venge, lone druid",
-  cooldown: 0,
-  category: "dota",
-  execute: counter,
-};
-
 // Some constants for webscraping
 const tableSelector =
   "body > div.container-outer.seemsgood > div.skin-container > div.container-inner.container-inner-content > div.content-inner > section:nth-child(4) > article > table > tbody > tr";
 
 // Database interaction has to be asynchronous, so making new async function
-async function counter(message, args) {
+async function counter(
+  message: Message,
+  args: string[],
+  client: IBot
+): Promise<void> {
   // Trigger bot to start typing and record time message was received
   message.channel.startTyping();
 

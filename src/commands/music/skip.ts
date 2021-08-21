@@ -1,14 +1,20 @@
-module.exports = {
-  name: "skip",
-  description: "Skip the current song in the queue",
-  information: "",
-  aliases: [],
-  args: false,
-  usage: "",
-  cooldown: 0,
-  category: "music",
-  execute: skip,
-};
+import { Message } from "discord.js";
+import { IBot, ICommand } from "../../interfaces/Bot";
+
+export default class Skip implements ICommand {
+  name: string = "skip";
+  description: string = "Skip the current song in the queue";
+  information: string = "Add a song from url to the queue. Currently only supports youtube URLs.";
+  aliases: string[] = ["q"];
+  args: boolean = false;
+  usage: string = "";
+  example: string = "";
+  cooldown: number = 0;
+  category: string = "music";
+  guildOnly: boolean = false;
+  execute: (message: Message, args: string[], client: IBot) => void =
+    skip;
+}
 
 async function skip(message, args, client) {
   // Check if we are in a voice channel

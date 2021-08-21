@@ -1,18 +1,23 @@
+import { Message } from "discord.js";
+import { IBot, ICommand } from "../../interfaces/Bot";
+
 const ytdl = require("ytdl-core");
 const ytsr = require("ytsr");
 
-module.exports = {
-  name: "play",
-  description: "Add a song from url to the queue",
-  information:
-    "Add a song from url to the queue. Currently only supports youtube URLs.",
-  aliases: ["p"],
-  args: true,
-  usage: "",
-  cooldown: 0,
-  category: "music",
-  execute: play,
-};
+export default class Play implements ICommand {
+  name: string = "play";
+  description: string = "Add a song from url to the queue";
+  information: string = "Add a song from url to the queue. Currently only supports youtube URLs.";
+  aliases: string[] = ["p"];
+  args: boolean = true;
+  usage: string = "";
+  example: string = "193480093";
+  cooldown: number = 0;
+  category: string = "music";
+  guildOnly: boolean = false;
+  execute: (message: Message, args: string[], client: IBot) => void =
+    play;
+}
 
 async function play(message, args, client) {
   // Check if we are in a voice channel

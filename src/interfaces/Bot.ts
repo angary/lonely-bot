@@ -1,8 +1,8 @@
 import { Client, Collection, Message } from "discord.js";
 
 export interface IBot extends Client {
-  commands;
-  prefixes;
+  commands: Collection<string, ICommand>;
+  prefixes: { [key: number]: string };
   musicQueue;
 }
 
@@ -10,13 +10,23 @@ export interface ICommand {
   name: string;
   description: string;
   information: string;
-  aliases: boolean;
+  aliases: string[];
   args: boolean;
   usage: string;
   example: string;
   cooldown: number;
   category: string;
-  execute: (message: Message, args: string[], client: IBot) => Promise<void>;
+  guildOnly: boolean;
+  execute: (
+    message: Message,
+    args: string[],
+    client: IBot
+  ) => Promise<void> | void;
+}
+
+export interface IEvent {
+  client: IBot;
+  run: (args?: any[]) => void;
 }
 
 export type Cooldown = Collection<string, number>;

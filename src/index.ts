@@ -1,18 +1,13 @@
 require("dotenv").config();
-import { Collection } from "discord.js";
 import { readdirSync } from "fs";
 import { Client } from "./Client";
 import { GuildModel } from "./database/Guild";
+import { ICommand, IEvent } from "./interfaces/Bot";
 const mongoose = require("mongoose");
 
 // Set up the bot user and commands
 //------------------------------------------------------------------------------
 const client = new Client();
-client.commands = new Collection();
-client.prefixes = {};
-client.musicQueue = new Map();
-
-console.log(__dirname);
 
 // Load all the commands
 //------------------------------------------------------------------------------
@@ -21,7 +16,9 @@ readdirSync("./dist/commands").forEach((dir) => {
     f.endsWith(".js")
   );
   for (const file of commands) {
-    const command = require(`./commands/${dir}/${file}`);
+    const Command: any = require(`./commands/${dir}/${file}`).default;
+    const command: ICommand = new Command();
+
     console.log(`Loaded command ${dir}/${file}`);
     client.commands.set(command.name, command);
   }
@@ -29,11 +26,18 @@ readdirSync("./dist/commands").forEach((dir) => {
 
 // Load all the events
 //------------------------------------------------------------------------------
-const eventFiles = readdirSync("./dist/events/").filter((f) => f.endsWith(".js"));
+const eventFiles = readdirSync("./dist/events/").filter((f) =>
+  f.endsWith(".js")
+);
 for (const file of eventFiles) {
-  const event = require(`./events/${file}`);
+  const Event: any = require(`./events/${file}`);
+  const event: IEvent = new Event(client);
   const eventName = file.split(".")[0];
-  client.on(eventName, event.bind(null, client));
+
+  client.on(
+    eventName.charAt(0).toLowerCase() + eventName.slice(1),
+    (...args: string[]) => event.run(args)
+  );
 }
 
 // Connect to mongoose database
