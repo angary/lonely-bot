@@ -1,5 +1,5 @@
 import { Collection } from "discord.js";
-import * as config from "../config.json";
+import * as config from "../../config.json";
 import { Cooldown } from "../interfaces/Bot";
 
 import { IBot, IEvent } from "../interfaces/Bot";

@@ -1,4 +1,4 @@
-import { prefix, activity } from "../config.json";
+import { prefix, activity } from "../../config.json";
 
 import { IBot, IEvent } from "../interfaces/Bot";
 

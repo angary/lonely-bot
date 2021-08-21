@@ -1,5 +1,5 @@
 import { Message } from "discord.js";
-import { prefix } from "../../config.json";
+import { prefix } from "../../../config.json";
 import { GuildModel } from "../../database/Guild";
 import { IBot, ICommand } from "../../interfaces/Bot";
 

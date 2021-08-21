@@ -1,7 +1,7 @@
 import axios from "axios";
 import cheerio from "cheerio";
 import { Message, MessageEmbed } from "discord.js";
-import { clientName, profilePicture, githubLink } from "../../config.json";
+import { clientName, profilePicture, githubLink } from "../../../config.json";
 import { heroNames as aliasToHeroName } from "../../assets/heroNames";
 import { IBot, ICommand, IHero } from "../../interfaces/Bot";
 

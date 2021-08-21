@@ -3,7 +3,7 @@ import {
   clientName,
   profilePicture,
   githubLink,
-} from "../../config.json";
+} from "../../../config.json";
 
 import { Message, MessageEmbed } from "discord.js";
 import { IBot, ICommand } from "../../interfaces/Bot";
