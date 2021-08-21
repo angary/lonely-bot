@@ -1,4 +1,4 @@
-const { prefix, activity } = require("../config.json");
+import { prefix, activity } from "../config.json";
 
 module.exports = async (client) => {
   try {

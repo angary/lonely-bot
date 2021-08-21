@@ -1,5 +1,5 @@
-const Guild = require("../../database/guild");
-const { prefix } = require("../../config.json");
+import { prefix } from "../../config.json";
+import { GuildModel } from "../../database/Guild";
 
 module.exports = {
   name: "setprefix",
@@ -23,7 +23,7 @@ function setprefix(message, args, client) {
   const options = { returnNewDocument: true };
 
   if (prefix === newPrefix) {
-    Guild.deleteOne(query)
+    GuildModel.deleteOne(query)
       .then(() => {
         delete client.prefixes[guildId];
         message.channel.send(
@@ -38,7 +38,7 @@ function setprefix(message, args, client) {
     return;
   }
 
-  Guild.findOneAndUpdate(query, update, options)
+  GuildModel.findOneAndUpdate(query, update)
     .then((updatedDocument) => {
       if (updatedDocument) {
         message.channel.send(
@@ -46,7 +46,7 @@ function setprefix(message, args, client) {
           );
         client.prefixes[guildId] = newPrefix;
       } else {
-        const newGuild = new Guild({ guildId, prefix: newPrefix });
+        const newGuild = new GuildModel({ guildId, prefix: newPrefix });
         newGuild
           .save()
           .then(() => {

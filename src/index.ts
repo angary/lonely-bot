@@ -1,22 +1,25 @@
 require("dotenv").config();
-const Discord = require("discord.js");
-const fs = require("fs");
+import { Collection } from "discord.js";
+import { readdirSync } from "fs";
+import { Client } from "./Client";
+import { GuildModel } from "./database/Guild";
 const mongoose = require("mongoose");
-const Guild = require("./database/guild");
-
 
 // Set up the bot user and commands
 //------------------------------------------------------------------------------
-const client = new Discord.Client();
-client.commands = new Discord.Collection();
+const client = new Client();
+client.commands = new Collection();
 client.prefixes = {};
 client.musicQueue = new Map();
 
+console.log(__dirname);
 
 // Load all the commands
 //------------------------------------------------------------------------------
-fs.readdirSync("./commands").forEach(dir => {
-  const commands = fs.readdirSync(`./commands/${dir}`).filter(f => f.endsWith(".js"));
+readdirSync("./dist/commands").forEach((dir) => {
+  const commands = readdirSync(`./dist/commands/${dir}`).filter((f) =>
+    f.endsWith(".js")
+  );
   for (const file of commands) {
     const command = require(`./commands/${dir}/${file}`);
     console.log(`Loaded command ${dir}/${file}`);
@@ -24,16 +27,14 @@ fs.readdirSync("./commands").forEach(dir => {
   }
 });
 
-
 // Load all the events
 //------------------------------------------------------------------------------
-const eventFiles = fs.readdirSync("./events/").filter(f => f.endsWith(".js"));
+const eventFiles = readdirSync("./dist/events/").filter((f) => f.endsWith(".js"));
 for (const file of eventFiles) {
   const event = require(`./events/${file}`);
   const eventName = file.split(".")[0];
   client.on(eventName, event.bind(null, client));
 }
-
 
 // Connect to mongoose database
 //------------------------------------------------------------------------------
@@ -47,7 +48,7 @@ mongoose
     console.log("Connected to MongoDB");
   })
   .then(() => {
-    Guild.find()
+    GuildModel.find()
       .then((guilds) => {
         guilds.forEach((guild) => {
           client.prefixes[guild.guildId] = guild.prefix;
@@ -60,7 +61,6 @@ mongoose
   .catch((err) => {
     console.log("Was not able to connect to MongoDB", err);
   });
-
 
 // Login
 //------------------------------------------------------------------------------

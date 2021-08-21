@@ -24,23 +24,23 @@ function pentagon(message, args, client) {
   args.sort((a, b) => a - b);
   const sortedArgs = [args[1], args[3], args[4], args[2], args[0]];
   const max = [10, 10, 10, 10, 10];
-  const unsortedPercentage = (area(unsortedArgs) * 100) / area(max);
-  const sortedPercentage = (area(sortedArgs) * 100) / area(max);
+  const unsortedPercentage = (area(message, unsortedArgs) * 100) / area(message, max);
+  const sortedPercentage = (area(message, sortedArgs) * 100) / area(message, max);
 
   message.channel.send(
-    `The area of your pentagon is **${area(unsortedArgs).toFixed(
+    `The area of your pentagon is **${area(message, unsortedArgs).toFixed(
       2
     )}**, rating: **${unsortedPercentage.toFixed(2)}%**`
   );
   message.channel.send(
-    `Max area of your pentagon is **${area(sortedArgs).toFixed(
+    `Max area of your pentagon is **${area(message, sortedArgs).toFixed(
       2
     )}**, rating: **${sortedPercentage.toFixed(2)}%**.`
   );
 }
 
 // Given the five lengths from center to corners of pentagon, calculate area
-function area(lengths) {
+function area(message, lengths) {
   let sum = 0;
   for (let i = 0; i < 4; i++) {
     if (isNaN(lengths[i])) {

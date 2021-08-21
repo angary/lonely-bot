@@ -1,5 +1,5 @@
-const axios = require("axios");
-const Discord = require("discord.js");
+import axios from "axios";
+import { MessageEmbed } from "discord.js";
 
 module.exports = {
   name: "meme",
@@ -27,7 +27,7 @@ async function meme(message, args, client) {
       const month = date.getMonth() + 1;
       const year = date.getFullYear();
 
-      const memeEmbed = new Discord.MessageEmbed()
+      const memeEmbed = new MessageEmbed()
         .setColor("#0099ff")
         .setTitle(post.title)
         .setDescription(`**${post.author}**`)

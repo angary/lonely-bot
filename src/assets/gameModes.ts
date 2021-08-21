@@ -1,5 +1,5 @@
 // Constant for mapping game mode id to game mode name
-module.exports = [
+export const gameModes = [
   "unknown",
   "all_pick",
   "captains_mode",

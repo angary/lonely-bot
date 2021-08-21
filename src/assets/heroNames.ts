@@ -2,7 +2,7 @@
 // Mapping from lowercase to uppercase is left there as a flag for which heroes
 // exist incase they don't have aliases
 
-module.exports = {
+export const heroNames = {
   am: "Anti-Mage",
   antimage: "Anti-Mage",
   axe: "Axe",

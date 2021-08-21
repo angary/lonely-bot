@@ -1,5 +1,5 @@
 // Constant for mapping lobby mode id to lobby mode name
-module.exports = [
+export const lobbyTypes = [
   "normal",
   "practice",
   "tournament",

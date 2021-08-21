@@ -1,7 +1,8 @@
-const Discord = require("discord.js");
-const cooldowns = new Discord.Collection();
-const Guild = require("../database/guild");
-const config = require("../config.json");
+import { Collection } from "discord.js";
+import * as config from "../config.json";
+import { Cooldown } from "../interfaces/Bot";
+
+const cooldowns: Collection<string, Cooldown> = new Collection();
 
 module.exports = async (client, message) => {
   // Does nothing if sender is a bot
@@ -48,7 +49,7 @@ module.exports = async (client, message) => {
 
   // Cooldowns
   if (!cooldowns.has(command.name)) {
-    cooldowns.set(command.name, new Discord.Collection());
+    cooldowns.set(command.name, new Collection());
   }
   const now = Date.now();
   const timestamps = cooldowns.get(command.name);
@@ -82,6 +83,6 @@ module.exports = async (client, message) => {
 async function findPrefix(message, client) {
   if (client.prefixes.hasOwnProperty(message.guild.id)) {
     return client.prefixes[message.guild.id];
-  } 
+  }
   return config.prefix;
 }

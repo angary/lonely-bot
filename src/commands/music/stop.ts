@@ -7,10 +7,10 @@ module.exports = {
   usage: "",
   cooldown: 0,
   category: "music",
-  execute: stop,
+  execute: _stop,
 };
 
-async function stop(message, args, client) {
+async function _stop(message, args, client) {
   // Check if we are in a voice channel
   const voiceChannel = message.member.voice.channel;
   if (!voiceChannel) {

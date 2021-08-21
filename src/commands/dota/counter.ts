@@ -1,8 +1,9 @@
-const axios = require("axios");
-const cheerio = require("cheerio");
-const Discord = require("discord.js");
-const { clientName, profilePicture, githubLink } = require("../../config.json");
-const aliasToHeroName = require("../../assets/heroNames");
+import axios from "axios";
+import cheerio from "cheerio";
+import { MessageEmbed } from "discord.js";
+import { clientName, profilePicture, githubLink } from "../../config.json";
+import { heroNames as aliasToHeroName } from "../../assets/heroNames";
+import { IHero } from "../../interfaces/Bot";
 
 // Information for the command
 const information = `
@@ -80,7 +81,8 @@ function parseArgs(args) {
 
 // Collect all relevant data from webscraping
 async function aggregateData(responses, enemies) {
-  const heroes = {};
+  const heroes: Record<string, IHero> = {};
+
   // Extra data from each hero counter request
   for (const response of responses) {
     // Grab the data from the counters table
@@ -102,7 +104,7 @@ async function aggregateData(responses, enemies) {
         heroes[name].count += 1;
       } else {
         // Else if hero doesn't exist in object, initialise data
-        heroes[name] = {};
+        heroes[name];
         heroes[name].name = name;
         heroes[name].disadvantage = parseFloat(disadvantage.slice(0, -1));
         heroes[name].winrate = parseFloat(winrate.slice(0, -1));
@@ -125,7 +127,7 @@ async function aggregateData(responses, enemies) {
 // Format data and send an embed to channel with details
 function sendEmbed(message, enemies, counters) {
   // Boilerplate formatting
-  const heroesEmbed = new Discord.MessageEmbed()
+  const heroesEmbed = new MessageEmbed()
     .setColor("#0099ff")
     .setTitle("Team picker help")
     .setAuthor(clientName, profilePicture, githubLink)
@@ -144,13 +146,13 @@ function sendEmbed(message, enemies, counters) {
   const winCounters = counters
     .sort((a, b) => a.winrate - b.winrate)
     .slice(0, 5);
-  addHeroes(heroesEmbed, winCounters, "winrate", 5);
+  addHeroes(heroesEmbed, winCounters, "winrate");
 
   // Add heroes with good advantage against enemy
   const advCounters = counters
     .sort((a, b) => b.disadvantage - a.disadvantage)
     .slice(0, 5);
-  addHeroes(heroesEmbed, advCounters, "disadvantage", 5);
+  addHeroes(heroesEmbed, advCounters, "disadvantage");
 
   sendMessage(message.channel, heroesEmbed);
 }

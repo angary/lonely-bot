@@ -1,10 +1,11 @@
-const {
+import {
   prefix,
   clientName,
   profilePicture,
   githubLink,
-} = require("../../config.json");
-const Discord = require("discord.js");
+} from "../../config.json";
+
+import { MessageEmbed } from "discord.js";
 
 module.exports = {
   name: "help",
@@ -19,9 +20,8 @@ module.exports = {
 };
 
 function help(message, args, client) {
-
   const { commands } = message.client;
-  let helpEmbed = new Discord.MessageEmbed()
+  let helpEmbed = new MessageEmbed()
     .setColor("#0099ff")
     .setAuthor(clientName, profilePicture, githubLink);
 
@@ -60,7 +60,7 @@ function addCategory(category, helpEmbed, commands) {
   const dataCommands = commands;
   data.push(
     dataCommands
-      .map(command => {
+      .map((command) => {
         if (command.category == category) {
           return `**${command.name}**: ${command.description}\n`;
         } else {

@@ -1,4 +1,4 @@
-const User = require("../../database/user");
+import { User, UserModel } from "../../database/User";
 
 module.exports = {
   name: "steamid",
@@ -24,7 +24,7 @@ function steamid(message, args, client) {
 
   // Remove steamID from the database
   if (steamID === "0") {
-    User.remove(query)
+    UserModel.remove(query)
       .then(() => {
         message.channel.send("Successfully removed steamID from database!");
       })
@@ -45,14 +45,14 @@ function steamid(message, args, client) {
   }
 
   // Update the steamID in the database
-  User.findOneAndUpdate(query, update, options)
+  UserModel.findOneAndUpdate(query, update)
     .then((updatedDocument) => {
       if (updatedDocument) {
         message.channel.send(
           `${message.author} Successfully updated Steam ID to be **${steamID}**!`
         );
       } else {
-        const newUser = new User({ discordID, steamID });
+        const newUser = new UserModel({ discordID, steamID });
         newUser
           .save()
           .then(() => {

@@ -1,9 +1,9 @@
-const fetch = require("node-fetch");
+import fetch from "node-fetch";
 const Discord = require("discord.js");
 const { clientName, profilePicture, githubLink } = require("../../config.json");
 const gameModes = require("../../assets/gameModes");
 const lobbyTypes = require("../../assets/lobbyTypes");
-const User = require("../../database/user");
+import { UserModel } from "../../database/User";
 
 module.exports = {
   name: "profile",
@@ -219,7 +219,7 @@ function idToHeroRanking(rankings, heroId) {
 
 // Return a hero name given the hero id and list of hero details
 function idToHeroName(heroes, heroId) {
-  for (hero of heroes) {
+  for (const hero of heroes) {
     if (hero.id == heroId) {
       return hero.localized_name;
     }
@@ -248,13 +248,13 @@ function medal(player) {
 }
 
 // Convert from seconds into HH MM SS
-function secondsToHms(duration) {
+function secondsToHms(duration: number) {
   const hours = duration / 3600;
   duration = duration % 3600;
-  const min = parseInt(duration / 60);
+  const min = Math.floor(duration / 60);
   duration = duration % 60;
-  const sec = parseInt(duration);
-  if (parseInt(hours, 10) > 0) return `${parseInt(hours, 10)}h ${min}m ${sec}s`;
+  const sec = Math.floor(duration);
+  if (parseInt(hours.toString(), 10) > 0) return `${parseInt(hours.toString(), 10)}h ${min}m ${sec}s`;
   else if (min == 0) return `${sec}s`;
   return `${min}m ${sec}s`;
 }
@@ -262,5 +262,5 @@ function secondsToHms(duration) {
 // Find the steamID based off the discord ID
 function discordToSteamID(discordID) {
   const query = { discordID: discordID };
-  return User.findOne(query);
+  return UserModel.findOne(query);
 }
