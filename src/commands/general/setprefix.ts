@@ -1,19 +1,19 @@
-import { Message } from "discord.js";
 import { prefix } from "../../../config.json";
 import { GuildModel } from "../../database/Guild";
 import { Command } from "../Command";
+import { Message } from "discord.js";
 
 export default class SetPrefix extends Command {
-  name: string = "setprefix";
-  description: string = "Change the prefix of the bot for the current server";
-  information: string = `Change the prefix of the bot for the current server. If you would like to remove your server's prefix, you may set it back to \`${prefix}\`.`;
+  name = "setprefix";
+  description = "Change the prefix of the bot for the current server";
+  information = `Change the prefix of the bot for the current server. If you would like to remove your server's prefix, you may set it back to \`${prefix}\`.`;
   aliases: string[] = [];
-  args: boolean = true;
-  usage: string = "[new prefix]";
-  example: string = ">>";
-  cooldown: number = 0;
-  category: string = "general";
-  guildOnly: boolean = false;
+  args = true;
+  usage = "[new prefix]";
+  example = ">>";
+  cooldown = 0;
+  category = "general";
+  guildOnly = false;
   execute = (message: Message, args: string[]): void => {
     const guildId = message.guild.id;
     const newPrefix = args[0];

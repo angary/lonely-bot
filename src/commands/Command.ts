@@ -1,5 +1,5 @@
-import { Message } from "discord.js";
 import { IBot, ICommand } from "../interfaces/Bot";
+import { Message } from "discord.js";
 
 export abstract class Command implements ICommand {
   client: IBot;
@@ -13,10 +13,7 @@ export abstract class Command implements ICommand {
   cooldown: number;
   category: string;
   guildOnly: boolean;
-  execute: (
-    message: Message,
-    args: string[],
-  ) => void | Promise<any>;
+  execute: (message: Message, args: string[]) => void | Promise<any>;
 
   constructor(client: IBot) {
     this.client = client;

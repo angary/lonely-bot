@@ -1,5 +1,4 @@
 import { prefix, activity } from "../../config.json";
-
 import { IBot, IEvent } from "../interfaces/Bot";
 
 export default class Ready implements IEvent {

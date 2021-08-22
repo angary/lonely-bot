@@ -1,20 +1,21 @@
-import { Message } from "discord.js";
 import { Command } from "../Command";
+import { Message } from "discord.js";
 
 const ytdl = require("ytdl-core");
 const ytsr = require("ytsr");
 
 export default class Play extends Command {
-  name: string = "play";
-  description: string = "Add a song from url to the queue";
-  information: string = "Add a song from url to the queue. Currently only supports youtube URLs.";
+  name = "play";
+  description = "Add a song from url to the queue";
+  information =
+    "Add a song from url to the queue. Currently only supports youtube URLs.";
   aliases: string[] = ["p"];
-  args: boolean = true;
-  usage: string = "";
-  example: string = "193480093";
-  cooldown: number = 0;
-  category: string = "music";
-  guildOnly: boolean = false;
+  args = true;
+  usage = "";
+  example = "193480093";
+  cooldown = 0;
+  category = "music";
+  guildOnly = false;
   execute = async (message: Message, args: string[]): Promise<any> => {
     // Check if we are in a voice channel
     const voiceChannel = message.member.voice.channel;
@@ -22,12 +23,12 @@ export default class Play extends Command {
       message.channel.send("You need to be in a voice channel to play music!");
       return;
     }
-    
+
     // Check if teh bot has permissions to play music in that server
     if (!hasPermissions(voiceChannel, message)) {
       return;
     }
-    
+
     let songInfo = null;
     if (ytdl.validateURL(args[0])) {
       // Find the song details from URL
@@ -43,10 +44,12 @@ export default class Play extends Command {
         songInfo = await ytdl.getInfo(results.items[0].url);
       } catch (error) {
         console.log(error);
-        return message.channel.send("There was an error searching for that song");
+        return message.channel.send(
+          "There was an error searching for that song"
+        );
       }
     }
-    
+
     // Collect song details
     const song = {
       info: songInfo,
@@ -54,11 +57,11 @@ export default class Play extends Command {
       url: songInfo.videoDetails.video_url,
       duration: songInfo.videoDetails.lengthSeconds,
     };
-    
+
     // Check if there is a music queue
     const musicQueue = this.client.musicQueue;
     const serverQueue = musicQueue.get(message.guild.id);
-    
+
     if (!serverQueue) {
       // Create the new queue
       const queueConstruct = {
@@ -68,11 +71,11 @@ export default class Play extends Command {
         songs: [],
         playing: true,
       };
-    
+
       // Add the queue
       musicQueue.set(message.guild.id, queueConstruct);
       queueConstruct.songs.push(song);
-    
+
       // Play the song
       try {
         // Join the voice channel
@@ -87,11 +90,12 @@ export default class Play extends Command {
       // Add the new song to the queue
       serverQueue.songs.push(song);
       message.channel.send(
-        `Added **${song.title}** (${formatDuration(song.duration)}) to the queue`
+        `Added **${song.title}** (${formatDuration(
+          song.duration
+        )}) to the queue`
       );
     }
-
-  }
+  };
 }
 
 function hasPermissions(voiceChannel, message) {

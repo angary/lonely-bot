@@ -1,22 +1,22 @@
-import axios from "axios";
-import cheerio from "cheerio";
-import { Message, MessageEmbed } from "discord.js";
 import { clientName, profilePicture, githubLink } from "../../../config.json";
 import { heroNames as aliasToHeroName } from "../../assets/heroNames";
 import { IHero } from "../../interfaces/Bot";
 import { Command } from "../Command";
+import axios from "axios";
+import cheerio from "cheerio";
+import { Message, MessageEmbed } from "discord.js";
 
 export default class Counter extends Command {
-  name: string = "counter";
-  description: string = "Returns a list of top counters to given heroes";
+  name = "counter";
+  description = "Returns a list of top counters to given heroes";
   information: string = information;
   aliases: string[] = [];
-  args: boolean = true;
-  usage: string = "[enemy_1], [enemy_2] ...";
-  example: string = "am, venge, lone druid";
-  cooldown: number = 0;
-  category: string = "dota";
-  guildOnly: boolean = false;
+  args = true;
+  usage = "[enemy_1], [enemy_2] ...";
+  example = "am, venge, lone druid";
+  cooldown = 0;
+  category = "dota";
+  guildOnly = false;
   execute = async (message: Message, args: string[]): Promise<any> => {
     // Trigger bot to start typing and record time message was received
     message.channel.startTyping();
@@ -51,7 +51,7 @@ export default class Counter extends Command {
       .catch((error) => {
         sendMessage(message.channel, `There was an error: ${error}`);
       });
-  }
+  };
 }
 
 const information = `

@@ -1,25 +1,24 @@
-import fetch from "node-fetch";
-import { Message } from "discord.js";
-import { MessageEmbed } from "discord.js";
+import { clientName, profilePicture, githubLink } from "../../../config.json";
 import { gameModes } from "../../assets/gameModes";
 import { lobbyTypes } from "../../assets/lobbyTypes";
 import { UserModel } from "../../database/User";
 import { Command } from "../Command";
-import { clientName, profilePicture, githubLink } from "../../../config.json";
+import { Message } from "discord.js";
+import { MessageEmbed } from "discord.js";
+import fetch from "node-fetch";
 
 export default class Profile extends Command {
-  name: string = "profile";
-  description: string =
-    "Uses opendota API to collect general information on player";
-  information: string =
+  name = "profile";
+  description = "Uses opendota API to collect general information on player";
+  information =
     "Given a steamID, return general info about the player. If your steamID is saved with the id command, then the steamID argument is not required. \nThe steamID should consist of only numbers and be the number that you see as your steam friend id or in your steam URL, or the number at the end of your dotabuff/ opendota URL.";
   aliases: string[] = [];
-  args: boolean = false;
-  usage: string = "[Steam32 ID]";
-  example: string = "193480093";
-  cooldown: number = 0;
-  category: string = "dota";
-  guildOnly: boolean = false;
+  args = false;
+  usage = "[Steam32 ID]";
+  example = "193480093";
+  cooldown = 0;
+  category = "dota";
+  guildOnly = false;
   execute = async (message: Message, args: string[]): Promise<any> => {
     message.channel.startTyping();
 

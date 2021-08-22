@@ -1,10 +1,12 @@
-require("dotenv").config();
-import { readdirSync, statSync } from "fs";
-import { join } from "path";
 import { Client } from "./Client";
 import { Command } from "./commands/Command";
 import { GuildModel } from "./database/Guild";
 import { IEvent } from "./interfaces/Bot";
+import { readdirSync, statSync } from "fs";
+import { join } from "path";
+
+require("dotenv").config();
+
 const mongoose = require("mongoose");
 
 // Set up the bot user and commands
@@ -13,7 +15,7 @@ const client = new Client();
 
 // Load all the commands
 //------------------------------------------------------------------------------
-const commandPath: string = "./dist/src/commands";
+const commandPath = "./dist/src/commands";
 readdirSync(commandPath).forEach((dir) => {
   if (statSync(join(commandPath, dir)).isDirectory()) {
     const commands = readdirSync(`${commandPath}/${dir}`).filter((f) =>
@@ -22,7 +24,7 @@ readdirSync(commandPath).forEach((dir) => {
     for (const file of commands) {
       const foundCommand: any = require(`./commands/${dir}/${file}`).default;
       const command: Command = new foundCommand(client);
-  
+
       console.log(`Loaded command ${dir}/${file}`);
       client.commands.set(command.name, command);
     }

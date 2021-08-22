@@ -1,18 +1,18 @@
+import { Command } from "../Command";
 import axios from "axios";
 import { Message, MessageEmbed } from "discord.js";
-import { Command } from "../Command";
 
 export default class Meme extends Command {
-  name: string = "meme";
-  description: string = "Get a random meme from r/dankmemes";
-  information: string = "";
+  name = "meme";
+  description = "Get a random meme from r/dankmemes";
+  information = "";
   aliases: string[] = [];
-  args: boolean = false;
-  usage: string = "";
-  example: string = "";
-  cooldown: number = 0;
-  category: string = "general";
-  guildOnly: boolean = false;
+  args = false;
+  usage = "";
+  example = "";
+  cooldown = 0;
+  category = "general";
+  guildOnly = false;
   execute = (message: Message, args: string[]): Promise<any> | void => {
     message.channel.startTyping();
     axios

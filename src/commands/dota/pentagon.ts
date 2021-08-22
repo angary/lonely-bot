@@ -1,18 +1,18 @@
-import { Message } from "discord.js";
 import { Command } from "../Command";
+import { Message } from "discord.js";
 
 export default class Pentagon extends Command {
-  name: string = "pentagon";
-  description: string = "Returns a list of top counters to given heroes";
-  information: string =
+  name = "pentagon";
+  description = "Returns a list of top counters to given heroes";
+  information =
     "Given 5 values of the player's pentagon, it gives the area of the pentagon with those values, the maximum possible area by swapping value positions, and the ratio of area of the given area to the maximum area.";
   aliases: string[] = [];
-  args: boolean = true;
-  usage: string = "[Fighting] [Farming] [Supporting] [Pushing] [Versatility]";
-  example: string = "7.5 0.5 9.8 5.1 0.7";
-  cooldown: number = 0;
-  category: string = "dota";
-  guildOnly: boolean = false;
+  args = true;
+  usage = "[Fighting] [Farming] [Supporting] [Pushing] [Versatility]";
+  example = "7.5 0.5 9.8 5.1 0.7";
+  cooldown = 0;
+  category = "dota";
+  guildOnly = false;
   execute = (message: Message, args: string[]): Promise<any> => {
     if (args.length !== 5) {
       return message.channel.send("You didn't give 5 values");

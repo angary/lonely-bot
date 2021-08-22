@@ -1,18 +1,17 @@
-import { Message } from "discord.js";
-import { IBot } from "../../interfaces/Bot";
 import { Command } from "../Command";
+import { Message } from "discord.js";
 
 export default class Stop extends Command {
-  name: string = "stop";
-  description: string = "Remove all songs from the current queue";
-  information: string = "";
+  name = "stop";
+  description = "Remove all songs from the current queue";
+  information = "";
   aliases: string[] = [];
-  args: boolean = false;
-  usage: string = "";
-  example: string = "";
-  cooldown: number = 0;
-  category: string = "music";
-  guildOnly: boolean = false;
+  args = false;
+  usage = "";
+  example = "";
+  cooldown = 0;
+  category = "music";
+  guildOnly = false;
   execute = (message: Message, args: string[]): Promise<any> => {
     // Check if we are in a voice channel
     const voiceChannel = message.member.voice.channel;

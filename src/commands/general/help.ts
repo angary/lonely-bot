@@ -4,43 +4,41 @@ import {
   profilePicture,
   githubLink,
 } from "../../../config.json";
-
-import { Message, MessageEmbed } from "discord.js";
 import { Command } from "../Command";
+import { Message, MessageEmbed } from "discord.js";
 
 export default class Help extends Command {
-  name: string = "help";
-  description: string = "List all of my commands or info about a specific command.";
-  information: string = "";
+  name = "help";
+  description = "List all of my commands or info about a specific command.";
+  information = "";
   aliases: string[] = ["commands"];
-  args: boolean = false;
-  usage: string = "[command name]";
-  example: string = "help";
-  cooldown: number = 0;
-  category: string = "general";
-  guildOnly: boolean = false;
+  args = false;
+  usage = "[command name]";
+  example = "help";
+  cooldown = 0;
+  category = "general";
+  guildOnly = false;
   execute = (message: Message, args: string[]): Promise<any> => {
-      const commands = this.client.commands;
-      let helpEmbed = new MessageEmbed()
-        .setColor("#0099ff")
-        .setAuthor(clientName, profilePicture, githubLink);
-    
-      // If they didn't specify a specific command
-      if (!args.length) {
-        helpEmbed = generalInformation(helpEmbed, commands);
-      } else {
-        try {
-          helpEmbed = specificInformation(args, helpEmbed, commands);
-        } catch {
-          return message.channel.send(
-            `${message.author} Command **${args[0]}** was not valid!`
-          );
-        }
-      }
-      message.channel.send(helpEmbed);
-    }
-}
+    const commands = this.client.commands;
+    let helpEmbed = new MessageEmbed()
+      .setColor("#0099ff")
+      .setAuthor(clientName, profilePicture, githubLink);
 
+    // If they didn't specify a specific command
+    if (!args.length) {
+      helpEmbed = generalInformation(helpEmbed, commands);
+    } else {
+      try {
+        helpEmbed = specificInformation(args, helpEmbed, commands);
+      } catch {
+        return message.channel.send(
+          `${message.author} Command **${args[0]}** was not valid!`
+        );
+      }
+    }
+    message.channel.send(helpEmbed);
+  };
+}
 
 function generalInformation(helpEmbed, commands) {
   // Add all the details of the commands

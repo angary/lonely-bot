@@ -217,5 +217,5 @@ export const heroNames = {
   hw: "Hoodwink",
   dawnbreaker: "Dawnbreaker",
   dawn: "Dawnbreaker",
-  db: "Dawnbreaker"
+  db: "Dawnbreaker",
 };
