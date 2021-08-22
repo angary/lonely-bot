@@ -1,10 +1,11 @@
-import { IBot, IEvent } from "../interfaces/Bot";
+import { Client } from "../Client";
+import { IEvent } from "../interfaces/Bot";
 
 export abstract class Event implements IEvent {
-  client: IBot;
+  client: Client;
   run: (args?: any[]) => void;
 
-  constructor(client: IBot) {
+  constructor(client: Client) {
     this.client = client;
   }
 }

@@ -3,6 +3,7 @@ import { Message, MessageEmbed } from "discord.js";
 
 export default class Queue extends Command {
   name = "queue";
+  hidden = false;
   description = "Print out the current queue of songs";
   information =
     "Add a song from url to the queue. Currently only supports youtube URLs.";

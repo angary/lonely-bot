@@ -8,6 +8,7 @@ export interface IBot extends Client {
 
 export interface ICommand {
   name: string;
+  hidden: boolean;
   description: string;
   information: string;
   aliases: string[];
@@ -21,7 +22,7 @@ export interface ICommand {
 }
 
 export interface IEvent {
-  client: IBot;
+  client: Client;
   run: (args?: any[]) => void;
 }
 

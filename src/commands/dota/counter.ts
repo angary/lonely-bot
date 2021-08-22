@@ -8,6 +8,7 @@ import { Message, MessageEmbed } from "discord.js";
 
 export default class Counter extends Command {
   name = "counter";
+  hidden = false;
   description = "Returns a list of top counters to given heroes";
   information: string = information;
   aliases: string[] = [];
@@ -17,12 +18,12 @@ export default class Counter extends Command {
   cooldown = 0;
   category = "dota";
   guildOnly = false;
-  execute = async (message: Message, args: string[]): Promise<any> => {
+  execute = async (message: Message, args: string[]): Promise<Message> => {
     // Trigger bot to start typing and record time message was received
     message.channel.startTyping();
 
     // Convert argument names into official names
-    const enemies = [];
+    const enemies: string[] = [];
     for (const name of parseArgs(args)) {
       const officialName = aliasToHeroName[name.trim().toLowerCase()];
       if (officialName) {
@@ -73,12 +74,15 @@ const tableSelector =
   "body > div.container-outer.seemsgood > div.skin-container > div.container-inner.container-inner-content > div.content-inner > section:nth-child(4) > article > table > tbody > tr";
 
 // Find the number of allies and heroes in the argument
-function parseArgs(args) {
+function parseArgs(args: string[]): string[] {
   return args.join("").split(",");
 }
 
 // Collect all relevant data from webscraping
-async function aggregateData(responses, enemies) {
+async function aggregateData(
+  responses: any[],
+  enemies: string[]
+): Promise<IHero[]> {
   const heroes: Record<string, IHero> = {};
 
   // Extra data from each hero counter request
@@ -102,10 +106,12 @@ async function aggregateData(responses, enemies) {
         heroes[name].count += 1;
       } else {
         // Else if hero doesn't exist in object, initialise data
-        heroes[name].name = name;
-        heroes[name].disadvantage = parseFloat(disadvantage.slice(0, -1));
-        heroes[name].winrate = parseFloat(winrate.slice(0, -1));
-        heroes[name].count = 1;
+        heroes[name] = {
+          name: name,
+          disadvantage: parseFloat(disadvantage.slice(0, -1)),
+          winrate: parseFloat(winrate.slice(0, -1)),
+          count: 1,
+        };
       }
     });
   }
@@ -118,11 +124,17 @@ async function aggregateData(responses, enemies) {
   }
 
   // Convert object into array and remove heroes if they are in enemy team
-  return Object.values(heroes).filter((hero) => !enemies.includes(hero.name));
+  return Object.values(heroes).filter(
+    (hero: IHero) => !enemies.includes(hero.name)
+  );
 }
 
 // Format data and send an embed to channel with details
-function sendEmbed(message, enemies, counters) {
+function sendEmbed(
+  message: Message,
+  enemies: string[],
+  counters: IHero[]
+): Promise<Message> {
   // Boilerplate formatting
   const heroesEmbed = new MessageEmbed()
     .setColor("#0099ff")
@@ -151,11 +163,15 @@ function sendEmbed(message, enemies, counters) {
     .slice(0, 5);
   addHeroes(heroesEmbed, advCounters, "disadvantage");
 
-  sendMessage(message.channel, heroesEmbed);
+  return sendMessage(message.channel, heroesEmbed);
 }
 
 // Add fields to embed, given the hero details
-function addHeroes(heroesEmbed, counters, sortMethod) {
+function addHeroes(
+  heroesEmbed: MessageEmbed,
+  counters: IHero[],
+  sortMethod: string
+): void {
   // Add details to embed
   const details = [];
   let heroes = "";
@@ -179,7 +195,10 @@ function addHeroes(heroesEmbed, counters, sortMethod) {
 }
 
 // Stop typing message in chat and send the message
-function sendMessage(channel, message) {
+function sendMessage(
+  channel,
+  message: string | MessageEmbed
+): Promise<Message> {
   channel.stopTyping();
   return channel.send(message);
 }

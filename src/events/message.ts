@@ -1,13 +1,13 @@
 import * as config from "../../config.json";
+import { Client } from "../Client";
 import { Cooldown } from "../interfaces/Bot";
-import { IBot } from "../interfaces/Bot";
 import { Event } from "./Event";
 import { Collection } from "discord.js";
 
 export default class Message extends Event {
   cooldowns: Collection<string, Cooldown>;
 
-  constructor(client: IBot) {
+  constructor(client: Client) {
     super(client);
     this.cooldowns = new Collection();
   }

@@ -9,6 +9,7 @@ import { Message, MessageEmbed } from "discord.js";
 
 export default class Help extends Command {
   name = "help";
+  hidden = false;
   description = "List all of my commands or info about a specific command.";
   information = "";
   aliases: string[] = ["commands"];
@@ -61,7 +62,7 @@ function addCategory(category, helpEmbed, commands) {
   data.push(
     dataCommands
       .map((command) => {
-        if (command.category == category) {
+        if (command.category === category) {
           return `**${command.name}**: ${command.description}\n`;
         } else {
           return "";

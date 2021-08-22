@@ -4,6 +4,7 @@ import { Message, MessageEmbed } from "discord.js";
 
 export default class Meme extends Command {
   name = "meme";
+  hidden = false;
   description = "Get a random meme from r/dankmemes";
   information = "";
   aliases: string[] = [];

@@ -1,9 +1,11 @@
+import { Client } from "../Client";
 import { IBot, ICommand } from "../interfaces/Bot";
 import { Message } from "discord.js";
 
 export abstract class Command implements ICommand {
-  client: IBot;
+  client: Client;
   name: string;
+  hidden: boolean;
   description: string;
   information: string;
   aliases: string[];
@@ -13,6 +15,12 @@ export abstract class Command implements ICommand {
   cooldown: number;
   category: string;
   guildOnly: boolean;
+
+  /**
+   * @param message the message to respond to
+   * @param args the rest of the arguments given to the command
+   * @returns A promise to the message sent back or void if there is none
+   */
   execute: (message: Message, args: string[]) => void | Promise<any>;
 
   constructor(client: IBot) {

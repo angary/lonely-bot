@@ -3,6 +3,7 @@ import { Message } from "discord.js";
 
 export default class Stop extends Command {
   name = "stop";
+  hidden = false;
   description = "Remove all songs from the current queue";
   information = "";
   aliases: string[] = [];

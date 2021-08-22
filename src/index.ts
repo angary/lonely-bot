@@ -3,11 +3,11 @@ import { Command } from "./commands/Command";
 import { GuildModel } from "./database/Guild";
 import { Event } from "./events/Event";
 import { readdirSync, statSync } from "fs";
+import { connect as mongooseConnect } from "mongoose";
 import { join } from "path";
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 require("dotenv").config();
-
-const mongoose = require("mongoose");
 
 // Set up the bot user and commands
 //------------------------------------------------------------------------------
@@ -22,6 +22,7 @@ readdirSync(commandPath).forEach((dir) => {
       f.endsWith(".js")
     );
     for (const file of commandFiles) {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
       const FoundCommand: any = require(`./commands/${dir}/${file}`).default;
       const command: Command = new FoundCommand(client);
 
@@ -38,6 +39,7 @@ const eventFiles = readdirSync(eventPath).filter(
   (f) => f.endsWith(".js") && f !== "Event.js"
 );
 for (const file of eventFiles) {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const FoundEvent: any = require(`./events/${file}`).default;
   const event: Event = new FoundEvent(client);
   const eventName = file.split(".")[0];
@@ -50,12 +52,11 @@ for (const file of eventFiles) {
 
 // Connect to mongoose database
 //------------------------------------------------------------------------------
-mongoose
-  .connect(process.env.BOT_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    useFindAndModify: false,
-  })
+mongooseConnect(process.env.BOT_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  useFindAndModify: false,
+})
   .then(() => {
     console.log("Connected to MongoDB");
   })

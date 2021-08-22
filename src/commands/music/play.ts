@@ -1,11 +1,11 @@
 import { Command } from "../Command";
 import { Message } from "discord.js";
-
-const ytdl = require("ytdl-core");
-const ytsr = require("ytsr");
+import * as ytdl from "ytdl-core";
+import * as ytsr from "ytsr";
 
 export default class Play extends Command {
   name = "play";
+  hidden = false;
   description = "Add a song from url to the queue";
   information =
     "Add a song from url to the queue. Currently only supports youtube URLs.";
@@ -16,7 +16,7 @@ export default class Play extends Command {
   cooldown = 0;
   category = "music";
   guildOnly = false;
-  execute = async (message: Message, args: string[]): Promise<any> => {
+  execute = async (message: Message, args: string[]): Promise<Message> => {
     // Check if we are in a voice channel
     const voiceChannel = message.member.voice.channel;
     if (!voiceChannel) {
@@ -40,7 +40,9 @@ export default class Play extends Command {
       try {
         const searchString = await ytsr.getFilters(args.join(" "));
         const videoSearch = searchString.get("Type").get("Video");
-        const results = await ytsr(videoSearch.url, { limit: 1 });
+        const results: any = await ytsr(videoSearch.url, {
+          limit: 1,
+        });
         songInfo = await ytdl.getInfo(results.items[0].url);
       } catch (error) {
         console.log(error);
@@ -124,7 +126,7 @@ async function playSong(message, client) {
 
   const song = serverQueue.songs[0];
 
-  const dispatcher = serverQueue.connection
+  serverQueue.connection
     .play(
       await ytdl.downloadFromInfo(song.info, {
         highWaterMark: 1 << 25, // Increase memory for song to 32 mb

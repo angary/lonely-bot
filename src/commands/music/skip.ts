@@ -3,6 +3,7 @@ import { Message } from "discord.js";
 
 export default class Skip extends Command {
   name = "skip";
+  hidden = false;
   description = "Skip the current song in the queue";
   information =
     "Add a song from url to the queue. Currently only supports youtube URLs.";

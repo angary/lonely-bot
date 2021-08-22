@@ -5,6 +5,7 @@ import { Message } from "discord.js";
 
 export default class SetPrefix extends Command {
   name = "setprefix";
+  hidden = false;
   description = "Change the prefix of the bot for the current server";
   information = `Change the prefix of the bot for the current server. If you would like to remove your server's prefix, you may set it back to \`${prefix}\`.`;
   aliases: string[] = [];

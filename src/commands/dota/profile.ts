@@ -9,6 +9,7 @@ import fetch from "node-fetch";
 
 export default class Profile extends Command {
   name = "profile";
+  hidden = false;
   description = "Uses opendota API to collect general information on player";
   information =
     "Given a steamID, return general info about the player. If your steamID is saved with the id command, then the steamID argument is not required. \nThe steamID should consist of only numbers and be the number that you see as your steam friend id or in your steam URL, or the number at the end of your dotabuff/ opendota URL.";
@@ -74,7 +75,7 @@ export default class Profile extends Command {
 function checkAPIResponse(responses) {
   // Takes a long time to loop, can be optimised
   for (const response of responses) {
-    if (response.status != 200) {
+    if (response.status !== 200) {
       throw Error("Invalid API response, check that the id was correct!");
     }
   }
@@ -129,7 +130,7 @@ function formatData(data) {
   } catch {
     p.recent.lobby_type = "";
   }
-  if (p.recent.lobby_type == "" && p.recent.game_mode == "") {
+  if (p.recent.lobby_type === "" && p.recent.game_mode === "") {
     p.recent.lobby_type = "match";
   }
 
@@ -198,7 +199,7 @@ function sendEmbed(message, p, match) {
 }
 
 // Send message regarding invalid database response
-function invalidDatabaseResponse(message) {
+function invalidDatabaseResponse(message: Message) {
   let response = `${message.author} Invalid response from database. `;
   response +=
     "Either you haven't added your id, or there was a database error. ";
@@ -210,7 +211,8 @@ function invalidDatabaseResponse(message) {
 // Return a hero ranking given the hero id and list of ranking details
 function idToHeroRanking(rankings, heroId) {
   for (const ranking of rankings) {
-    if (ranking.hero_id == heroId) {
+    // console.log(ranking);
+    if (parseInt(ranking.hero_id) === parseInt(heroId)) {
       return `${+(100 * ranking.percent_rank).toFixed(2)}%`;
     }
   }
@@ -220,7 +222,7 @@ function idToHeroRanking(rankings, heroId) {
 // Return a hero name given the hero id and list of hero details
 function idToHeroName(heroes, heroId) {
   for (const hero of heroes) {
-    if (hero.id == heroId) {
+    if (hero.id === heroId) {
       return hero.localized_name;
     }
   }
@@ -229,10 +231,10 @@ function idToHeroName(heroes, heroId) {
 
 // Convert rank_tier to medal and leaderboard rank
 function medal(player) {
-  if (player.rank_tier == null) return "unranked";
+  if (player.rank_tier === null) return "unranked";
   if (player.leader_board)
     return `Immortal ** | rank **${player.leaderboard_rank}`;
-  if (player.rank_tier[0] == 8) return "Immortal";
+  if (player.rank_tier[0] === 8) return "Immortal";
   const medalTier = player.rank_tier.toString();
   const medals = [
     "Lower than Herald?",
@@ -256,7 +258,7 @@ function secondsToHms(duration: number) {
   const sec = Math.floor(duration);
   if (parseInt(hours.toString(), 10) > 0)
     return `${parseInt(hours.toString(), 10)}h ${min}m ${sec}s`;
-  else if (min == 0) return `${sec}s`;
+  else if (min === 0) return `${sec}s`;
   return `${min}m ${sec}s`;
 }
 
