@@ -3,9 +3,10 @@ import cheerio from "cheerio";
 import { Message, MessageEmbed } from "discord.js";
 import { clientName, profilePicture, githubLink } from "../../../config.json";
 import { heroNames as aliasToHeroName } from "../../assets/heroNames";
-import { IBot, ICommand, IHero } from "../../interfaces/Bot";
+import { IHero } from "../../interfaces/Bot";
+import { Command } from "../Command";
 
-export default class Counter implements ICommand {
+export default class Counter extends Command {
   name: string = "counter";
   description: string = "Returns a list of top counters to given heroes";
   information: string = information;
@@ -16,8 +17,41 @@ export default class Counter implements ICommand {
   cooldown: number = 0;
   category: string = "dota";
   guildOnly: boolean = false;
-  execute: (message: Message, args: string[], client: IBot) => Promise<void> =
-    counter;
+  execute = async (message: Message, args: string[]): Promise<any> => {
+    // Trigger bot to start typing and record time message was received
+    message.channel.startTyping();
+
+    // Convert argument names into official names
+    const enemies = [];
+    for (const name of parseArgs(args)) {
+      const officialName = aliasToHeroName[name.trim().toLowerCase()];
+      if (officialName) {
+        enemies.push(officialName);
+      } else {
+        return sendMessage(message.channel, `Invalid hero name **${name}**.`);
+      }
+    }
+
+    // Webscrape the data
+    const promises = enemies.map((hero) => {
+      const urlName = hero.replace("'", "").toLowerCase().replace(" ", "-");
+      return axios.get(`https://www.dotabuff.com/heroes/${urlName}/counters`);
+    });
+
+    axios
+      .all(promises)
+
+      // Collect via webscraping
+      .then(async (responses) => aggregateData(responses, enemies))
+
+      // Format data and send it
+      .then((counters) => sendEmbed(message, enemies, counters))
+
+      // Handle errors
+      .catch((error) => {
+        sendMessage(message.channel, `There was an error: ${error}`);
+      });
+  }
 }
 
 const information = `
@@ -37,47 +71,6 @@ Explanation of data:
 // Some constants for webscraping
 const tableSelector =
   "body > div.container-outer.seemsgood > div.skin-container > div.container-inner.container-inner-content > div.content-inner > section:nth-child(4) > article > table > tbody > tr";
-
-// Database interaction has to be asynchronous, so making new async function
-async function counter(
-  message: Message,
-  args: string[],
-  client: IBot
-): Promise<void> {
-  // Trigger bot to start typing and record time message was received
-  message.channel.startTyping();
-
-  // Convert argument names into official names
-  const enemies = [];
-  for (const name of parseArgs(args)) {
-    const officialName = aliasToHeroName[name.trim().toLowerCase()];
-    if (officialName) {
-      enemies.push(officialName);
-    } else {
-      return sendMessage(message.channel, `Invalid hero name **${name}**.`);
-    }
-  }
-
-  // Webscrape the data
-  const promises = enemies.map((hero) => {
-    const urlName = hero.replace("'", "").toLowerCase().replace(" ", "-");
-    return axios.get(`https://www.dotabuff.com/heroes/${urlName}/counters`);
-  });
-
-  axios
-    .all(promises)
-
-    // Collect via webscraping
-    .then(async (responses) => aggregateData(responses, enemies))
-
-    // Format data and send it
-    .then((counters) => sendEmbed(message, enemies, counters))
-
-    // Handle errors
-    .catch((error) => {
-      sendMessage(message.channel, `There was an error: ${error}`);
-    });
-}
 
 // Find the number of allies and heroes in the argument
 function parseArgs(args) {
@@ -109,7 +102,6 @@ async function aggregateData(responses, enemies) {
         heroes[name].count += 1;
       } else {
         // Else if hero doesn't exist in object, initialise data
-        heroes[name];
         heroes[name].name = name;
         heroes[name].disadvantage = parseFloat(disadvantage.slice(0, -1));
         heroes[name].winrate = parseFloat(winrate.slice(0, -1));

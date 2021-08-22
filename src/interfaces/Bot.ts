@@ -17,11 +17,7 @@ export interface ICommand {
   cooldown: number;
   category: string;
   guildOnly: boolean;
-  execute: (
-    message: Message,
-    args: string[],
-    client: IBot
-  ) => Promise<void> | void;
+  execute: (message: Message, args: string[]) => Promise<any> | void;
 }
 
 export interface IEvent {

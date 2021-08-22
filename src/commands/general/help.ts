@@ -6,9 +6,9 @@ import {
 } from "../../../config.json";
 
 import { Message, MessageEmbed } from "discord.js";
-import { IBot, ICommand } from "../../interfaces/Bot";
+import { Command } from "../Command";
 
-export default class Help implements ICommand {
+export default class Help extends Command {
   name: string = "help";
   description: string = "List all of my commands or info about a specific command.";
   information: string = "";
@@ -19,30 +19,28 @@ export default class Help implements ICommand {
   cooldown: number = 0;
   category: string = "general";
   guildOnly: boolean = false;
-  execute: (message: Message, args: string[], client: IBot) => Promise<void> =
-    help;
-}
-
-function help(message, args, client) {
-  const { commands } = message.client;
-  let helpEmbed = new MessageEmbed()
-    .setColor("#0099ff")
-    .setAuthor(clientName, profilePicture, githubLink);
-
-  // If they didn't specify a specific command
-  if (!args.length) {
-    helpEmbed = generalInformation(helpEmbed, commands);
-  } else {
-    try {
-      helpEmbed = specificInformation(args, helpEmbed, commands);
-    } catch {
-      return message.channel.send(
-        `${message.author} Command **${args[0]}** was not valid!`
-      );
+  execute = (message: Message, args: string[]): Promise<any> => {
+      const commands = this.client.commands;
+      let helpEmbed = new MessageEmbed()
+        .setColor("#0099ff")
+        .setAuthor(clientName, profilePicture, githubLink);
+    
+      // If they didn't specify a specific command
+      if (!args.length) {
+        helpEmbed = generalInformation(helpEmbed, commands);
+      } else {
+        try {
+          helpEmbed = specificInformation(args, helpEmbed, commands);
+        } catch {
+          return message.channel.send(
+            `${message.author} Command **${args[0]}** was not valid!`
+          );
+        }
+      }
+      message.channel.send(helpEmbed);
     }
-  }
-  message.channel.send(helpEmbed);
 }
+
 
 function generalInformation(helpEmbed, commands) {
   // Add all the details of the commands

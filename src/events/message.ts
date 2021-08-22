@@ -83,7 +83,7 @@ export default class Message implements IEvent {
     // Else executes the command
     //----------------------------------------------------------------------------
     try {
-      command.execute(message, args, this.client);
+      command.execute(message, args);
     } catch (error) {
       message.reply("there was an error trying to execute that command");
       console.log(error);

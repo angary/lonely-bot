@@ -1,11 +1,11 @@
 import { Message } from "discord.js";
-import { IBot, ICommand } from "../../interfaces/Bot";
+import { Command } from "../Command";
 
-export default class Pentagon implements ICommand {
+export default class Pentagon extends Command {
   name: string = "pentagon";
   description: string = "Returns a list of top counters to given heroes";
   information: string =
-  "Given 5 values of the player's pentagon, it gives the area of the pentagon with those values, the maximum possible area by swapping value positions, and the ratio of area of the given area to the maximum area.";
+    "Given 5 values of the player's pentagon, it gives the area of the pentagon with those values, the maximum possible area by swapping value positions, and the ratio of area of the given area to the maximum area.";
   aliases: string[] = [];
   args: boolean = true;
   usage: string = "[Fighting] [Farming] [Supporting] [Pushing] [Versatility]";
@@ -13,37 +13,33 @@ export default class Pentagon implements ICommand {
   cooldown: number = 0;
   category: string = "dota";
   guildOnly: boolean = false;
-  execute: (message: Message, args: string[], client: IBot) => Promise<void> =
-    pentagon;
-}
+  execute = (message: Message, args: string[]): Promise<any> => {
+    if (args.length !== 5) {
+      return message.channel.send("You didn't give 5 values");
+    }
+    // Strip commas and space from the numbers if there are any at the end
+    args.forEach((arg) => arg.replace(/[ ,]/g, ""));
 
-function pentagon(message, args, client) {
-  if (args.length !== 5) {
-    return message.channel.send("You didn't give 5 values");
-  }
+    const unsortedArgs = [...args];
+    args.sort((a, b) => parseFloat(a) - parseFloat(b));
+    const sortedArgs = [args[1], args[3], args[4], args[2], args[0]];
+    const max = [10, 10, 10, 10, 10];
+    const unsortedPercentage =
+      (area(message, unsortedArgs) * 100) / area(message, max);
+    const sortedPercentage =
+      (area(message, sortedArgs) * 100) / area(message, max);
 
-  // Strip commas and space from the numbers if there are any at the end
-  args.foreach((arg) => arg.replace(/[ ,]/g, ""));
-
-  const unsortedArgs = [...args];
-  args.sort((a, b) => a - b);
-  const sortedArgs = [args[1], args[3], args[4], args[2], args[0]];
-  const max = [10, 10, 10, 10, 10];
-  const unsortedPercentage =
-    (area(message, unsortedArgs) * 100) / area(message, max);
-  const sortedPercentage =
-    (area(message, sortedArgs) * 100) / area(message, max);
-
-  message.channel.send(
-    `The area of your pentagon is **${area(message, unsortedArgs).toFixed(
-      2
-    )}**, rating: **${unsortedPercentage.toFixed(2)}%**`
-  );
-  message.channel.send(
-    `Max area of your pentagon is **${area(message, sortedArgs).toFixed(
-      2
-    )}**, rating: **${sortedPercentage.toFixed(2)}%**.`
-  );
+    message.channel.send(
+      `The area of your pentagon is **${area(message, unsortedArgs).toFixed(
+        2
+      )}**, rating: **${unsortedPercentage.toFixed(2)}%**`
+    );
+    message.channel.send(
+      `Max area of your pentagon is **${area(message, sortedArgs).toFixed(
+        2
+      )}**, rating: **${sortedPercentage.toFixed(2)}%**.`
+    );
+  };
 }
 
 // Given the five lengths from center to corners of pentagon, calculate area

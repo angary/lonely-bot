@@ -1,13 +1,13 @@
-import { Message } from "discord.js";
 import fetch from "node-fetch";
+import { Message } from "discord.js";
 import { MessageEmbed } from "discord.js";
 import { gameModes } from "../../assets/gameModes";
 import { lobbyTypes } from "../../assets/lobbyTypes";
 import { UserModel } from "../../database/User";
-import { IBot, ICommand } from "../../interfaces/Bot";
+import { Command } from "../Command";
 const { clientName, profilePicture, githubLink } = require("../../config.json");
 
-export default class Profile implements ICommand {
+export default class Profile extends Command {
   name: string = "profile";
   description: string =
     "Uses opendota API to collect general information on player";
@@ -20,59 +20,55 @@ export default class Profile implements ICommand {
   cooldown: number = 0;
   category: string = "dota";
   guildOnly: boolean = false;
-  execute: (message: Message, args: string[], client: IBot) => Promise<void> =
-    profile;
-}
+  execute = async (message: Message, args: string[]): Promise<any> => {
+    message.channel.startTyping();
 
-// Database interaction has to be asynchronous, so making new async function
-async function profile(message, args, client) {
-  message.channel.startTyping();
-
-  // Checks for id
-  let id = args[0];
-  if (!id) {
-    const details = await discordToSteamID(message.author.id);
-    if (details) {
-      id = details.steamID;
-    } else {
-      return invalidDatabaseResponse(message);
+    // Checks for id
+    let id = args[0];
+    if (!id) {
+      const details = await discordToSteamID(message.author.id);
+      if (details) {
+        id = details.steamID;
+      } else {
+        return invalidDatabaseResponse(message);
+      }
     }
-  }
-  const url = "https://api.opendota.com/api/";
+    const url = "https://api.opendota.com/api/";
 
-  // 0: Basic information
-  // 1: Won and lost game totals
-  // 2: Top heroes
-  // 3: Hero names
-  // 4: Hero rankings
-  // 5: Most recent match data
-  Promise.all([
-    fetch(`${url}players/${id}`),
-    fetch(`${url}players/${id}/wl`),
-    fetch(`${url}players/${id}/heroes`),
-    fetch(`${url}heroes`),
-    fetch(`${url}players/${id}/rankings`),
-    fetch(`${url}players/${id}/recentMatches`),
-  ])
-    // Check for valid response
-    .then((responses) => checkAPIResponse(responses))
+    // 0: Basic information
+    // 1: Won and lost game totals
+    // 2: Top heroes
+    // 3: Hero names
+    // 4: Hero rankings
+    // 5: Most recent match data
+    Promise.all([
+      fetch(`${url}players/${id}`),
+      fetch(`${url}players/${id}/wl`),
+      fetch(`${url}players/${id}/heroes`),
+      fetch(`${url}heroes`),
+      fetch(`${url}players/${id}/rankings`),
+      fetch(`${url}players/${id}/recentMatches`),
+    ])
+      // Check for valid response
+      .then((responses) => checkAPIResponse(responses))
 
-    // Convert data to .json
-    .then((responses) =>
-      Promise.all(responses.map((response) => response.json()))
-    )
+      // Convert data to .json
+      .then((responses) =>
+        Promise.all(responses.map((response) => response.json()))
+      )
 
-    // Extract and format data
-    .then((data) => formatData(data))
+      // Extract and format data
+      .then((data) => formatData(data))
 
-    // Add data onto embed
-    .then((playerData) => sendEmbed(message, playerData, playerData.recent))
+      // Add data onto embed
+      .then((playerData) => sendEmbed(message, playerData, playerData.recent))
 
-    // Catch errors
-    .catch((error) => {
-      message.channel.stopTyping();
-      message.channel.send(`There was an ${error}`);
-    });
+      // Catch errors
+      .catch((error) => {
+        message.channel.stopTyping();
+        message.channel.send(`There was an ${error}`);
+      });
+  };
 }
 
 // Check the status code of the API response

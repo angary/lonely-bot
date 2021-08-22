@@ -1,10 +1,10 @@
 import { Message } from "discord.js";
-import { IBot, ICommand } from "../../interfaces/Bot";
+import { Command } from "../Command";
 
 const ytdl = require("ytdl-core");
 const ytsr = require("ytsr");
 
-export default class Play implements ICommand {
+export default class Play extends Command {
   name: string = "play";
   description: string = "Add a song from url to the queue";
   information: string = "Add a song from url to the queue. Currently only supports youtube URLs.";
@@ -15,84 +15,82 @@ export default class Play implements ICommand {
   cooldown: number = 0;
   category: string = "music";
   guildOnly: boolean = false;
-  execute: (message: Message, args: string[], client: IBot) => void =
-    play;
-}
-
-async function play(message, args, client) {
-  // Check if we are in a voice channel
-  const voiceChannel = message.member.voice.channel;
-  if (!voiceChannel) {
-    message.channel.send("You need to be in a voice channel to play music!");
-    return;
-  }
-
-  // Check if teh bot has permissions to play music in that server
-  if (!hasPermissions(voiceChannel, message)) {
-    return;
-  }
-
-  let songInfo = null;
-  if (ytdl.validateURL(args[0])) {
-    // Find the song details from URL
-    songInfo = await ytdl.getInfo(args[0]);
-    if (!songInfo) {
-      return message.channel.send("Could not find details from youtube");
+  execute = async (message: Message, args: string[]): Promise<any> => {
+    // Check if we are in a voice channel
+    const voiceChannel = message.member.voice.channel;
+    if (!voiceChannel) {
+      message.channel.send("You need to be in a voice channel to play music!");
+      return;
     }
-  } else {
-    try {
-      const searchString = await ytsr.getFilters(args.join(" "));
-      const videoSearch = searchString.get("Type").get("Video");
-      const results = await ytsr(videoSearch.url, { limit: 1 });
-      songInfo = await ytdl.getInfo(results.items[0].url);
-    } catch (error) {
-      console.log(error);
-      return message.channel.send("There was an error searching for that song");
+    
+    // Check if teh bot has permissions to play music in that server
+    if (!hasPermissions(voiceChannel, message)) {
+      return;
     }
-  }
-
-  // Collect song details
-  const song = {
-    info: songInfo,
-    title: songInfo.videoDetails.title,
-    url: songInfo.videoDetails.video_url,
-    duration: songInfo.videoDetails.lengthSeconds,
-  };
-
-  // Check if there is a music queue
-  const musicQueue = client.musicQueue;
-  const serverQueue = musicQueue.get(message.guild.id);
-
-  if (!serverQueue) {
-    // Create the new queue
-    const queueConstruct = {
-      voiceChannel: voiceChannel,
-      textChannel: message.channel,
-      connection: null,
-      songs: [],
-      playing: true,
+    
+    let songInfo = null;
+    if (ytdl.validateURL(args[0])) {
+      // Find the song details from URL
+      songInfo = await ytdl.getInfo(args[0]);
+      if (!songInfo) {
+        return message.channel.send("Could not find details from youtube");
+      }
+    } else {
+      try {
+        const searchString = await ytsr.getFilters(args.join(" "));
+        const videoSearch = searchString.get("Type").get("Video");
+        const results = await ytsr(videoSearch.url, { limit: 1 });
+        songInfo = await ytdl.getInfo(results.items[0].url);
+      } catch (error) {
+        console.log(error);
+        return message.channel.send("There was an error searching for that song");
+      }
+    }
+    
+    // Collect song details
+    const song = {
+      info: songInfo,
+      title: songInfo.videoDetails.title,
+      url: songInfo.videoDetails.video_url,
+      duration: songInfo.videoDetails.lengthSeconds,
     };
-
-    // Add the queue
-    musicQueue.set(message.guild.id, queueConstruct);
-    queueConstruct.songs.push(song);
-
-    // Play the song
-    try {
-      // Join the voice channel
-      queueConstruct.connection = await voiceChannel.join();
-      playSong(message, client);
-    } catch (error) {
-      // Catch error and remove the server's queue
-      console.log(error);
-      musicQueue.delete(message.guild.id);
+    
+    // Check if there is a music queue
+    const musicQueue = this.client.musicQueue;
+    const serverQueue = musicQueue.get(message.guild.id);
+    
+    if (!serverQueue) {
+      // Create the new queue
+      const queueConstruct = {
+        voiceChannel: voiceChannel,
+        textChannel: message.channel,
+        connection: null,
+        songs: [],
+        playing: true,
+      };
+    
+      // Add the queue
+      musicQueue.set(message.guild.id, queueConstruct);
+      queueConstruct.songs.push(song);
+    
+      // Play the song
+      try {
+        // Join the voice channel
+        queueConstruct.connection = await voiceChannel.join();
+        playSong(message, this.client);
+      } catch (error) {
+        // Catch error and remove the server's queue
+        console.log(error);
+        musicQueue.delete(message.guild.id);
+      }
+    } else {
+      // Add the new song to the queue
+      serverQueue.songs.push(song);
+      message.channel.send(
+        `Added **${song.title}** (${formatDuration(song.duration)}) to the queue`
+      );
     }
-  } else {
-    // Add the new song to the queue
-    serverQueue.songs.push(song);
-    message.channel.send(
-      `Added **${song.title}** (${formatDuration(song.duration)}) to the queue`
-    );
+
   }
 }
 

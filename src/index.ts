@@ -1,8 +1,9 @@
 require("dotenv").config();
 import { readdirSync } from "fs";
 import { Client } from "./Client";
+import { Command } from "./commands/Command";
 import { GuildModel } from "./database/Guild";
-import { ICommand, IEvent } from "./interfaces/Bot";
+import { IEvent } from "./interfaces/Bot";
 const mongoose = require("mongoose");
 
 // Set up the bot user and commands
@@ -16,8 +17,8 @@ readdirSync("./dist/commands").forEach((dir) => {
     f.endsWith(".js")
   );
   for (const file of commands) {
-    const Command: any = require(`./commands/${dir}/${file}`).default;
-    const command: ICommand = new Command();
+    const foundCommand: any = require(`./commands/${dir}/${file}`).default;
+    const command: Command = new foundCommand(client);
 
     console.log(`Loaded command ${dir}/${file}`);
     client.commands.set(command.name, command);
