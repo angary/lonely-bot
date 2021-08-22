@@ -82,7 +82,7 @@ export default class Message extends Event {
     // Else executes the command
     //----------------------------------------------------------------------------
     try {
-      command.execute(message, args);
+      command.execute(message, messageArgs);
     } catch (error) {
       message.reply("there was an error trying to execute that command");
       console.log(error);
