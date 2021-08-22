@@ -1,8 +1,8 @@
 import * as config from "../../config.json";
-import { Client } from "../Client";
-import { Cooldown } from "../interfaces/Bot";
-import { Event } from "./Event";
-import { Collection } from "discord.js";
+import { Client } from "../types/Client";
+import { Event } from "../types/Event";
+import { Cooldown } from "../types/interfaces/Bot";
+import { Collection, Message as DiscordMessage } from "discord.js";
 
 export default class Message extends Event {
   cooldowns: Collection<string, Cooldown>;
@@ -12,7 +12,7 @@ export default class Message extends Event {
     this.cooldowns = new Collection();
   }
 
-  run = async (args: any): Promise<void> => {
+  run = async (args: DiscordMessage[]): Promise<DiscordMessage> => {
     const [message] = args;
 
     // Does nothing if sender is a bot

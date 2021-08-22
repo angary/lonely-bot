@@ -1,5 +1,5 @@
-import { Client } from "../Client";
-import { IBot, ICommand } from "../interfaces/Bot";
+import { Client } from "./Client";
+import { IBot, ICommand } from "./interfaces/Bot";
 import { Message } from "discord.js";
 
 export abstract class Command implements ICommand {
@@ -23,7 +23,7 @@ export abstract class Command implements ICommand {
    */
   execute: (message: Message, args: string[]) => Promise<Message>;
 
-  constructor(client: IBot) {
+  public constructor(client: IBot) {
     this.client = client;
   }
 }

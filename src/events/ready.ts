@@ -1,5 +1,5 @@
 import { prefix, activity } from "../../config.json";
-import { Event } from "./Event";
+import { Event } from "../types/Event";
 
 export default class Ready extends Event {
   run = async (): Promise<void> => {

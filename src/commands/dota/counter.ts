@@ -1,7 +1,7 @@
 import { clientName, profilePicture, githubLink } from "../../../config.json";
 import { heroNames as aliasToHeroName } from "../../assets/heroNames";
-import { IHero } from "../../interfaces/Bot";
-import { Command } from "../Command";
+import { Command } from "../../types/Command";
+import { IHero } from "../../types/interfaces/Bot";
 import axios from "axios";
 import cheerio from "cheerio";
 import { Message, MessageEmbed } from "discord.js";

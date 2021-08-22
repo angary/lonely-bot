@@ -1,9 +1,9 @@
-import { Command } from "../Command";
+import { Command } from "../../types/Command";
 import { Message } from "discord.js";
 
 export default class Ping extends Command {
   name = "ping";
-  hidden = true;
+  visible = false;
   description = 'Sends back "Pong!" and the latency of user from bot server';
   information = "";
   aliases: string[] = [];

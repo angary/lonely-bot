@@ -1,7 +1,7 @@
 import { gameModes } from "../../assets/gameModes";
 import { lobbyTypes } from "../../assets/lobbyTypes";
 import { UserModel } from "../../database/User";
-import { Command } from "../Command";
+import { Command } from "../../types/Command";
 import { Message } from "discord.js";
 import { MessageEmbed } from "discord.js";
 import fetch from "node-fetch";

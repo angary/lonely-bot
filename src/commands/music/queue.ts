@@ -1,4 +1,4 @@
-import { Command } from "../Command";
+import { Command } from "../../types/Command";
 import { Message, MessageEmbed } from "discord.js";
 
 export default class Queue extends Command {

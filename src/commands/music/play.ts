@@ -1,4 +1,4 @@
-import { Command } from "../Command";
+import { Command } from "../../types/Command";
 import { Message } from "discord.js";
 import * as ytdl from "ytdl-core";
 import * as ytsr from "ytsr";

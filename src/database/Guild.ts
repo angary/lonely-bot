@@ -1,4 +1,4 @@
-import { IGuild } from "../interfaces/Mongoose";
+import { IGuild } from "../types/interfaces/Mongoose";
 import { Schema, Model, model, models } from "mongoose";
 
 export const Guild = new Schema({

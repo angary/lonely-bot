@@ -1,6 +1,6 @@
 import { prefix } from "../../../config.json";
 import { GuildModel } from "../../database/Guild";
-import { Command } from "../Command";
+import { Command } from "../../types/Command";
 import { Message } from "discord.js";
 
 export default class SetPrefix extends Command {

@@ -1,6 +1,6 @@
 import { prefix, githubLink, inviteLink } from "../../../config.json";
-import { ICommand } from "../../interfaces/Bot";
-import { Command } from "../Command";
+import { Command } from "../../types/Command";
+import { ICommand } from "../../types/interfaces/Bot";
 import { Collection, Message, MessageEmbed } from "discord.js";
 
 export default class Help extends Command {

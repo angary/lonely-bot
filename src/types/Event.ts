@@ -1,5 +1,5 @@
-import { Client } from "../Client";
-import { IEvent } from "../interfaces/Bot";
+import { Client } from "./Client";
+import { IEvent } from "./interfaces/Bot";
 
 export abstract class Event implements IEvent {
   client: Client;

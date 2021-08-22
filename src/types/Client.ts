@@ -6,7 +6,7 @@ export class Client extends DiscordClient implements IBot {
   prefixes: { [key: number]: string };
   musicQueue;
 
-  constructor() {
+  public constructor() {
     super();
     this.commands = new Collection();
     this.prefixes = {};

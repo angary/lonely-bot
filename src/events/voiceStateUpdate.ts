@@ -1,8 +1,9 @@
-import { Event } from "./Event";
+import { Event } from "../types/Event";
+import { GuildMember } from "discord.js";
 
 export default class VoiceStateUpdate extends Event {
-  run = async (args: any): Promise<void> => {
-    const [oldMember, newMember] = args;
+  run = async (args: GuildMember[]): Promise<void> => {
+    const oldMember = args[0];
     const guild = oldMember.guild;
 
     // If the guild has music playing

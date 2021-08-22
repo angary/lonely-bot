@@ -1,7 +1,7 @@
-import { Client } from "./Client";
-import { Command } from "./commands/Command";
 import { GuildModel } from "./database/Guild";
-import { Event } from "./events/Event";
+import { Client } from "./types/Client";
+import { Command } from "./types/Command";
+import { Event } from "./types/Event";
 import { readdirSync, statSync } from "fs";
 import { connect as mongooseConnect } from "mongoose";
 import { join } from "path";
@@ -23,7 +23,7 @@ readdirSync(commandPath).forEach((dir) => {
     );
     for (const file of commandFiles) {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const FoundCommand: any = require(`./commands/${dir}/${file}`).default;
+      const FoundCommand = require(`./commands/${dir}/${file}`).default;
       const command: Command = new FoundCommand(client);
 
       console.log(`Loaded command ${dir}/${file}`);
@@ -40,7 +40,8 @@ const eventFiles = readdirSync(eventPath).filter(
 );
 for (const file of eventFiles) {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const FoundEvent: any = require(`./events/${file}`).default;
+  const FoundEvent = require(`./events/${file}`).default;
+  console.log(FoundEvent);
   const event: Event = new FoundEvent(client);
   const eventName = file.split(".")[0];
 
