@@ -1,18 +1,18 @@
 import * as config from "../../config.json";
 import { Cooldown } from "../interfaces/Bot";
-import { IBot, IEvent } from "../interfaces/Bot";
+import { IBot } from "../interfaces/Bot";
+import { Event } from "./Event";
 import { Collection } from "discord.js";
 
-export default class Message implements IEvent {
-  client: IBot;
+export default class Message extends Event {
   cooldowns: Collection<string, Cooldown>;
 
   constructor(client: IBot) {
-    this.client = client;
+    super(client);
     this.cooldowns = new Collection();
   }
 
-  public async run(args: any): Promise<void> {
+  run = async (args: any): Promise<void> => {
     const [message] = args;
 
     // Does nothing if sender is a bot
@@ -87,7 +87,7 @@ export default class Message implements IEvent {
       message.reply("there was an error trying to execute that command");
       console.log(error);
     }
-  }
+  };
 
   private async findPrefix(message) {
     if (this.client.prefixes.hasOwnProperty(message.guild.id)) {

@@ -2,7 +2,7 @@ import { UserModel } from "../../database/User";
 import { Command } from "../Command";
 import { Message } from "discord.js";
 
-export default class SetPrefix extends Command {
+export default class SteamId extends Command {
   name = "steamid";
   description = "Change the prefix of the bot for the current server";
   information =

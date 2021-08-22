@@ -1,7 +1,7 @@
 import { Client } from "./Client";
 import { Command } from "./commands/Command";
 import { GuildModel } from "./database/Guild";
-import { IEvent } from "./interfaces/Bot";
+import { Event } from "./events/Event";
 import { readdirSync, statSync } from "fs";
 import { join } from "path";
 
@@ -18,12 +18,12 @@ const client = new Client();
 const commandPath = "./dist/src/commands";
 readdirSync(commandPath).forEach((dir) => {
   if (statSync(join(commandPath, dir)).isDirectory()) {
-    const commands = readdirSync(`${commandPath}/${dir}`).filter((f) =>
+    const commandFiles = readdirSync(`${commandPath}/${dir}`).filter((f) =>
       f.endsWith(".js")
     );
-    for (const file of commands) {
-      const foundCommand: any = require(`./commands/${dir}/${file}`).default;
-      const command: Command = new foundCommand(client);
+    for (const file of commandFiles) {
+      const FoundCommand: any = require(`./commands/${dir}/${file}`).default;
+      const command: Command = new FoundCommand(client);
 
       console.log(`Loaded command ${dir}/${file}`);
       client.commands.set(command.name, command);
@@ -33,12 +33,13 @@ readdirSync(commandPath).forEach((dir) => {
 
 // Load all the events
 //------------------------------------------------------------------------------
-const eventFiles = readdirSync("./dist/src/events/").filter((f) =>
-  f.endsWith(".js")
+const eventPath = "./dist/src/events";
+const eventFiles = readdirSync(eventPath).filter(
+  (f) => f.endsWith(".js") && f !== "Event.js"
 );
 for (const file of eventFiles) {
-  const Event: any = require(`./events/${file}`).default;
-  const event: IEvent = new Event(client);
+  const FoundEvent: any = require(`./events/${file}`).default;
+  const event: Event = new FoundEvent(client);
   const eventName = file.split(".")[0];
 
   client.on(

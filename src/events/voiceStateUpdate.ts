@@ -1,13 +1,7 @@
-import { IBot, IEvent } from "../interfaces/Bot";
+import { Event } from "./Event";
 
-export default class VoiceStateUpdate implements IEvent {
-  client: IBot;
-
-  constructor(client: IBot) {
-    this.client = client;
-  }
-
-  public async run(args: any): Promise<void> {
+export default class VoiceStateUpdate extends Event {
+  run = async (args: any): Promise<void> => {
     const [oldMember, newMember] = args;
     const guild = oldMember.guild;
 
@@ -22,12 +16,12 @@ export default class VoiceStateUpdate implements IEvent {
       serverQueue.songs = [];
 
       // If the bot is the last person connected
-      if (serverQueue.connection != null) {
+      if (serverQueue.connection !== null) {
         serverQueue.connection.dispatcher.end();
         return serverQueue.textChannel.send(
           "Stopping music as all members have left the voice channel"
         );
       }
     }
-  }
+  };
 }
