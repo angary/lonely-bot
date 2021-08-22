@@ -3,7 +3,7 @@ import { Message } from "discord.js";
 
 export default class Stop extends Command {
   name = "stop";
-  hidden = false;
+  visible = true;
   description = "Remove all songs from the current queue";
   information = "";
   aliases: string[] = [];
@@ -13,7 +13,7 @@ export default class Stop extends Command {
   cooldown = 0;
   category = "music";
   guildOnly = false;
-  execute = (message: Message, args: string[]): Promise<any> => {
+  execute = (message: Message): Promise<Message> => {
     // Check if we are in a voice channel
     const voiceChannel = message.member.voice.channel;
     if (!voiceChannel) {

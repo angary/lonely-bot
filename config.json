@@ -3,5 +3,6 @@
   "activity": "help",
   "clientName": "lonely",
   "profilePicture": "https://i.imgur.com/DruFG9t.png",
-  "githubLink": "https://github.com/angary/Lonely-Bot"
+  "githubLink": "https://github.com/angary/Lonely-Bot",
+  "inviteLink": "https://discord.com/oauth2/authorize?client_id=647044127313362980&scope=bot&permissions=0"
 }

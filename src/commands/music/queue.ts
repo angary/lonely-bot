@@ -3,7 +3,7 @@ import { Message, MessageEmbed } from "discord.js";
 
 export default class Queue extends Command {
   name = "queue";
-  hidden = false;
+  visible = true;
   description = "Print out the current queue of songs";
   information =
     "Add a song from url to the queue. Currently only supports youtube URLs.";
@@ -14,7 +14,7 @@ export default class Queue extends Command {
   cooldown = 0;
   category = "music";
   guildOnly = false;
-  execute = (message: Message, args: string[]): Promise<any> => {
+  execute = (message: Message): Promise<Message> => {
     // Check if there is a music queue
     const serverQueue = this.client.musicQueue.get(message.guild.id);
     if (!serverQueue) {

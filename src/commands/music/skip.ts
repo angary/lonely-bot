@@ -3,7 +3,7 @@ import { Message } from "discord.js";
 
 export default class Skip extends Command {
   name = "skip";
-  hidden = false;
+  visible = true;
   description = "Skip the current song in the queue";
   information =
     "Add a song from url to the queue. Currently only supports youtube URLs.";
@@ -14,14 +14,13 @@ export default class Skip extends Command {
   cooldown = 0;
   category = "music";
   guildOnly = false;
-  execute = (message: Message, args: string[]): Promise<any> => {
+  execute = (message: Message): Promise<Message> => {
     // Check if we are in a voice channel
     const voiceChannel = message.member.voice.channel;
     if (!voiceChannel) {
-      message.channel.send(
+      return message.channel.send(
         "You need to be in a voice channel to stop the queue!"
       );
-      return;
     }
 
     // Check if there is a music queue

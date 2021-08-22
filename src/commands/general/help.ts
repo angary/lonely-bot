@@ -1,15 +1,11 @@
-import {
-  prefix,
-  clientName,
-  profilePicture,
-  githubLink,
-} from "../../../config.json";
+import { prefix, githubLink, inviteLink } from "../../../config.json";
+import { ICommand } from "../../interfaces/Bot";
 import { Command } from "../Command";
-import { Message, MessageEmbed } from "discord.js";
+import { Collection, Message, MessageEmbed } from "discord.js";
 
 export default class Help extends Command {
   name = "help";
-  hidden = false;
+  visible = true;
   description = "List all of my commands or info about a specific command.";
   information = "";
   aliases: string[] = ["commands"];
@@ -19,18 +15,16 @@ export default class Help extends Command {
   cooldown = 0;
   category = "general";
   guildOnly = false;
-  execute = (message: Message, args: string[]): Promise<any> => {
+  execute = (message: Message, args: string[]): Promise<Message> => {
     const commands = this.client.commands;
-    let helpEmbed = new MessageEmbed()
-      .setColor("#0099ff")
-      .setAuthor(clientName, profilePicture, githubLink);
+    const helpEmbed = new MessageEmbed().setColor("#0099ff");
 
     // If they didn't specify a specific command
     if (!args.length) {
-      helpEmbed = generalInformation(helpEmbed, commands);
+      generalInformation(helpEmbed, commands);
     } else {
       try {
-        helpEmbed = specificInformation(args, helpEmbed, commands);
+        specificInformation(args, helpEmbed, commands);
       } catch {
         return message.channel.send(
           `${message.author} Command **${args[0]}** was not valid!`
@@ -41,28 +35,35 @@ export default class Help extends Command {
   };
 }
 
-function generalInformation(helpEmbed, commands) {
+function generalInformation(
+  helpEmbed: MessageEmbed,
+  commands: Collection<string, ICommand>
+): void {
   // Add all the details of the commands
   helpEmbed.setTitle("Available commands");
 
   addCategory("general", helpEmbed, commands);
   addCategory("dota", helpEmbed, commands);
   addCategory("music", helpEmbed, commands);
+  addHelpAndSupport(helpEmbed);
   helpEmbed.setFooter(
-    `You can send '${prefix}help [command name]' to get info on a specific command!`
+    `You can send "${prefix}help [command name]" to get info on a specific command!`
   );
-  return helpEmbed;
 }
 
 // Add relevant category to the embed
-function addCategory(category, helpEmbed, commands) {
+function addCategory(
+  category: string,
+  helpEmbed: MessageEmbed,
+  commands: Collection<string, ICommand>
+): void {
   // Format the relevant data, not sure how to use filter function
   const data = [];
   const dataCommands = commands;
   data.push(
     dataCommands
       .map((command) => {
-        if (command.category === category) {
+        if (command.category === category && command.visible) {
           return `**${command.name}**: ${command.description}\n`;
         } else {
           return "";
@@ -78,7 +79,11 @@ function addCategory(category, helpEmbed, commands) {
   });
 }
 
-function specificInformation(args, helpEmbed, commands) {
+function specificInformation(
+  args: string[],
+  helpEmbed: MessageEmbed,
+  commands: Collection<string, ICommand>
+): void {
   // Check if the command exists
   const name = args[0].toLowerCase();
   const command =
@@ -107,5 +112,14 @@ function specificInformation(args, helpEmbed, commands) {
     data.push(`**Cooldown:** ${command.cooldown} second(s)`);
   }
   helpEmbed.setDescription(data);
-  return helpEmbed;
+  addHelpAndSupport(helpEmbed);
+}
+
+function addHelpAndSupport(helpEmbed: MessageEmbed): void {
+  helpEmbed.addField(
+    "**Help and Support**",
+    `Add lonely to your server: **[Link](${inviteLink})**\n \
+    I'm open source! You can find my code here **[Link](${githubLink})**\n \
+    Feel free to add an issue or make a pull request!`
+  );
 }

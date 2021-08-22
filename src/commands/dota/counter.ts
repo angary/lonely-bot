@@ -8,7 +8,7 @@ import { Message, MessageEmbed } from "discord.js";
 
 export default class Counter extends Command {
   name = "counter";
-  hidden = false;
+  visible = true;
   description = "Returns a list of top counters to given heroes";
   information: string = information;
   aliases: string[] = [];
@@ -79,10 +79,7 @@ function parseArgs(args: string[]): string[] {
 }
 
 // Collect all relevant data from webscraping
-async function aggregateData(
-  responses: any[],
-  enemies: string[]
-): Promise<IHero[]> {
+async function aggregateData(responses, enemies: string[]): Promise<IHero[]> {
   const heroes: Record<string, IHero> = {};
 
   // Extra data from each hero counter request

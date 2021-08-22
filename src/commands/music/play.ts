@@ -5,7 +5,7 @@ import * as ytsr from "ytsr";
 
 export default class Play extends Command {
   name = "play";
-  hidden = false;
+  visible = true;
   description = "Add a song from url to the queue";
   information =
     "Add a song from url to the queue. Currently only supports youtube URLs.";
@@ -40,6 +40,7 @@ export default class Play extends Command {
       try {
         const searchString = await ytsr.getFilters(args.join(" "));
         const videoSearch = searchString.get("Type").get("Video");
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const results: any = await ytsr(videoSearch.url, {
           limit: 1,
         });

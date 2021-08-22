@@ -4,7 +4,7 @@ import { Message, MessageEmbed } from "discord.js";
 
 export default class Meme extends Command {
   name = "meme";
-  hidden = false;
+  visible = true;
   description = "Get a random meme from r/dankmemes";
   information = "";
   aliases: string[] = [];
@@ -14,7 +14,7 @@ export default class Meme extends Command {
   cooldown = 0;
   category = "general";
   guildOnly = false;
-  execute = (message: Message, args: string[]): Promise<any> | void => {
+  execute = (message: Message): Promise<Message> => {
     message.channel.startTyping();
     axios
       .get("https://www.reddit.com/r/dankmemes/random/.json")
@@ -24,9 +24,11 @@ export default class Meme extends Command {
         const memeUrl = `https://www.reddit.com${post.permalink}`;
 
         const date = new Date(post.created * 1000);
-        const day = date.getDate();
-        const month = date.getMonth() + 1;
-        const year = date.getFullYear();
+        const [day, month, year] = [
+          date.getDate(),
+          date.getMonth() + 1,
+          date.getFullYear(),
+        ];
 
         const memeEmbed = new MessageEmbed()
           .setColor("#0099ff")
@@ -37,20 +39,17 @@ export default class Meme extends Command {
           .setFooter(
             `⬆ ${post.ups} 💬 ${post.num_comments} 📅 ${day}/${month}/${year}`
           );
-
-        return sendMessage(message.channel, memeEmbed);
+        message.channel.stopTyping();
+        return message.channel.send(memeEmbed);
       })
       .then((message) => {
         message.react("👍");
         message.react("👎");
       })
       .catch((error) => {
-        sendMessage(message.channel, `There was an error: ${error}`);
+        message.channel.stopTyping();
+        return message.channel.send(`There was an error: ${error}`);
       });
+    return;
   };
-}
-
-function sendMessage(channel, message) {
-  channel.stopTyping();
-  return channel.send(message);
 }

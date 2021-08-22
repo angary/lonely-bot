@@ -13,7 +13,7 @@ export default class Ping extends Command {
   cooldown = 0;
   category = "general";
   guildOnly = false;
-  execute = (message: Message, args: string[]): Promise<any> => {
+  execute = (message: Message): Promise<Message> => {
     const ping = `${Date.now() - message.createdTimestamp} ms`;
     return message.channel.send(`Pong! Your ping is **${ping}**.`);
   };

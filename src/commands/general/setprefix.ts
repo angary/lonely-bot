@@ -5,7 +5,7 @@ import { Message } from "discord.js";
 
 export default class SetPrefix extends Command {
   name = "setprefix";
-  hidden = false;
+  visible = true;
   description = "Change the prefix of the bot for the current server";
   information = `Change the prefix of the bot for the current server. If you would like to remove your server's prefix, you may set it back to \`${prefix}\`.`;
   aliases: string[] = [];
@@ -15,7 +15,7 @@ export default class SetPrefix extends Command {
   cooldown = 0;
   category = "general";
   guildOnly = false;
-  execute = (message: Message, args: string[]): void => {
+  execute = (message: Message, args: string[]): Promise<Message> => {
     const guildId = message.guild.id;
     const newPrefix = args[0];
 
@@ -41,19 +41,19 @@ export default class SetPrefix extends Command {
     GuildModel.findOneAndUpdate(query, update)
       .then((updatedDocument) => {
         if (updatedDocument) {
-          message.channel.send(
+          this.client.prefixes[guildId] = newPrefix;
+          return message.channel.send(
             `Successfully updated server prefix to be **${newPrefix}**!`
           );
-          this.client.prefixes[guildId] = newPrefix;
         } else {
           const newGuild = new GuildModel({ guildId, prefix: newPrefix });
           newGuild
             .save()
             .then(() => {
-              message.channel.send(
+              this.client.prefixes[guildId] = newPrefix;
+              return message.channel.send(
                 `Added server prefix to be **${newPrefix}**`
               );
-              this.client.prefixes[guildId] = newPrefix;
             })
             .catch((err) => message.channel.send(`Error: ${err}`));
         }
@@ -63,5 +63,6 @@ export default class SetPrefix extends Command {
           `${message.author} Failed to find and add/update prefix ${err}`
         )
       );
+    return;
   };
 }

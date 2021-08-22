@@ -8,7 +8,7 @@ export interface IBot extends Client {
 
 export interface ICommand {
   name: string;
-  hidden: boolean;
+  visible: boolean;
   description: string;
   information: string;
   aliases: string[];
@@ -18,11 +18,12 @@ export interface ICommand {
   cooldown: number;
   category: string;
   guildOnly: boolean;
-  execute: (message: Message, args: string[]) => Promise<any> | void;
+  execute: (message: Message, args: string[]) => Promise<Message>;
 }
 
 export interface IEvent {
   client: Client;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   run: (args?: any[]) => void;
 }
 

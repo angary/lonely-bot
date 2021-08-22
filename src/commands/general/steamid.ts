@@ -4,7 +4,7 @@ import { Message } from "discord.js";
 
 export default class SteamId extends Command {
   name = "steamid";
-  hidden = false;
+  visible = true;
   description = "Change the prefix of the bot for the current server";
   information =
     "Stores or updates your steam ID (it should consist of only numbers and be the number that you see as your steam friend id or in your steam URL, or the number at the end of your dotabuff/ opendota URL). Once your steam ID is saved, you do not need to type your steamID the next time you use the opendota command. If you would like to remove your steamID info from the database, you can use `steamid 0`.";
@@ -15,7 +15,7 @@ export default class SteamId extends Command {
   cooldown = 0;
   category = "general";
   guildOnly = false;
-  execute = (message: Message, args: string[]): void => {
+  execute = (message: Message, args: string[]): Promise<Message> => {
     const discordID = message.author.id;
     const steamID = args[0];
 
@@ -39,10 +39,9 @@ export default class SteamId extends Command {
 
     // Basic check if the steamID is valid
     if (isNaN(parseInt(steamID))) {
-      message.channel.send(
+      return message.channel.send(
         `${message.author} Invalid steamID. It should only consist of numbers.`
       );
-      return;
     }
 
     // Update the steamID in the database

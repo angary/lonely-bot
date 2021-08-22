@@ -1,4 +1,3 @@
-import { clientName, profilePicture, githubLink } from "../../../config.json";
 import { gameModes } from "../../assets/gameModes";
 import { lobbyTypes } from "../../assets/lobbyTypes";
 import { UserModel } from "../../database/User";
@@ -9,7 +8,7 @@ import fetch from "node-fetch";
 
 export default class Profile extends Command {
   name = "profile";
-  hidden = false;
+  visible = true;
   description = "Uses opendota API to collect general information on player";
   information =
     "Given a steamID, return general info about the player. If your steamID is saved with the id command, then the steamID argument is not required. \nThe steamID should consist of only numbers and be the number that you see as your steam friend id or in your steam URL, or the number at the end of your dotabuff/ opendota URL.";
@@ -20,7 +19,7 @@ export default class Profile extends Command {
   cooldown = 0;
   category = "dota";
   guildOnly = false;
-  execute = async (message: Message, args: string[]): Promise<any> => {
+  execute = async (message: Message, args: string[]): Promise<Message> => {
     message.channel.startTyping();
 
     // Checks for id
@@ -148,7 +147,6 @@ function sendEmbed(message, p, match) {
     .setColor("#0099ff")
     .setTitle(`${p.profile.personaname}`)
     .setURL(`https://www.opendota.com/players/${p.profile.account_id}`)
-    .setAuthor(clientName, profilePicture, githubLink)
     .setDescription(
       `Medal: **${medal(p)}**
       MMR Estimate: **${p.mmr_estimate.estimate}**
@@ -199,17 +197,17 @@ function sendEmbed(message, p, match) {
 }
 
 // Send message regarding invalid database response
-function invalidDatabaseResponse(message: Message) {
+function invalidDatabaseResponse(message: Message): Promise<Message> {
   let response = `${message.author} Invalid response from database. `;
   response +=
     "Either you haven't added your id, or there was a database error. ";
   response += "You can add you id with the steamid command!";
   message.channel.stopTyping();
-  message.channel.send(response);
+  return message.channel.send(response);
 }
 
 // Return a hero ranking given the hero id and list of ranking details
-function idToHeroRanking(rankings, heroId) {
+function idToHeroRanking(rankings, heroId): string {
   for (const ranking of rankings) {
     // console.log(ranking);
     if (parseInt(ranking.hero_id) === parseInt(heroId)) {
@@ -220,9 +218,9 @@ function idToHeroRanking(rankings, heroId) {
 }
 
 // Return a hero name given the hero id and list of hero details
-function idToHeroName(heroes, heroId) {
+function idToHeroName(heroes, heroId): string {
   for (const hero of heroes) {
-    if (hero.id === heroId) {
+    if (parseInt(hero.id) === parseInt(heroId)) {
       return hero.localized_name;
     }
   }
@@ -230,7 +228,7 @@ function idToHeroName(heroes, heroId) {
 }
 
 // Convert rank_tier to medal and leaderboard rank
-function medal(player) {
+function medal(player): string {
   if (player.rank_tier === null) return "unranked";
   if (player.leader_board)
     return `Immortal ** | rank **${player.leaderboard_rank}`;
@@ -250,7 +248,7 @@ function medal(player) {
 }
 
 // Convert from seconds into HH MM SS
-function secondsToHms(duration: number) {
+function secondsToHms(duration: number): string {
   const hours = duration / 3600;
   duration = duration % 3600;
   const min = Math.floor(duration / 60);
@@ -263,7 +261,7 @@ function secondsToHms(duration: number) {
 }
 
 // Find the steamID based off the discord ID
-function discordToSteamID(discordID) {
+async function discordToSteamID(discordID) {
   const query = { discordID: discordID };
   return UserModel.findOne(query);
 }
