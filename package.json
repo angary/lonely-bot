@@ -13,14 +13,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/angary/Lonely-Bot.git"
+    "url": "git+https://github.com/angary/lonely-bot.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/angary/Lonely-Bot/issues"
+    "url": "https://github.com/angary/lonely-bot/issues"
   },
-  "homepage": "https://github.com/angary/Lonely-Bot#readme",
+  "homepage": "https://github.com/angary/lonely-bot#readme",
   "dependencies": {
     "@discordjs/opus": "^0.5.3",
     "axios": "^0.21.1",
