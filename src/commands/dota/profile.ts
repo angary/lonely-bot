@@ -5,7 +5,7 @@ import { gameModes } from "../../assets/gameModes";
 import { lobbyTypes } from "../../assets/lobbyTypes";
 import { UserModel } from "../../database/User";
 import { Command } from "../Command";
-const { clientName, profilePicture, githubLink } = require("../../config.json");
+import { clientName, profilePicture, githubLink } from "../../../config.json";
 
 export default class Profile extends Command {
   name: string = "profile";

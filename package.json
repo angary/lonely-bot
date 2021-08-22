@@ -9,7 +9,7 @@
   },
   "scripts": {
     "test": "eslint",
-    "start": "tsc && node dist/index.js"
+    "start": "tsc && node ./dist/src/index.js"
   },
   "repository": {
     "type": "git",
