@@ -1,6 +1,6 @@
 import { Command } from "../../types/Command";
 import { IServerMusicQueue, ISong } from "../../types/interfaces/Bot";
-import { Message, MessageEmbed, TextChannel, VoiceChannel } from "discord.js";
+import { Message, MessageEmbed, TextChannel } from "discord.js";
 import * as ytdl from "ytdl-core";
 import * as ytsr from "ytsr";
 
@@ -26,7 +26,7 @@ export default class Play extends Command {
     }
 
     // Check if teh bot has permissions to play music in that server
-    if (!hasPermissions(voiceChannel, message)) {
+    if (!this.hasPermissions(voiceChannel, message)) {
       return;
     }
 
@@ -61,7 +61,7 @@ export default class Play extends Command {
       title: songInfo.videoDetails.title,
       url: songInfo.videoDetails.video_url,
       duration: duration,
-      formattedDuration: formatDuration(duration),
+      formattedDuration: this.formatDuration(duration),
     };
 
     // Check if there is a music queue
@@ -76,6 +76,7 @@ export default class Play extends Command {
         textChannel: message.channel as TextChannel,
         connection: null,
         songs: [],
+        playingMessage: null,
         playing: true,
         isRepeating: false,
       };
@@ -109,28 +110,6 @@ export default class Play extends Command {
       }
     }
   };
-}
-
-/**
- * Check if the bot has permissions to join the voice channel. Also
- * sends a message to the channel if the bot cannot join
- *
- * @param voiceChannel the voice channel to join
- * @param message the message where the play command was sent
- * @returns if the bot has permission to join the voice channel or not
- */
-function hasPermissions(voiceChannel: VoiceChannel, message: Message): boolean {
-  const permissions = voiceChannel.permissionsFor(message.client.user);
-  if (!permissions.has("CONNECT")) {
-    message.channel.send("I need the permissions to join your voice channel!");
-    return false;
-  } else if (!permissions.has("SPEAK")) {
-    message.channel.send(
-      "I need the permissions to speak in your voice channel!"
-    );
-    return false;
-  }
-  return true;
 }
 
 /**
@@ -175,13 +154,20 @@ function playSong(
     .on("error", (error) => {
       console.log(error);
     });
-  serverQueue.textChannel.send(
-    new MessageEmbed()
-      .setColor("#0099ff")
-      .setDescription(
-        `Playing **[${song.title}](${song.url})** (**${song.formattedDuration}**)`
-      )
-  );
+  serverQueue.textChannel
+    .send(
+      new MessageEmbed()
+        .setColor("#0099ff")
+        .setDescription(
+          `Playing **[${song.title}](${song.url})** (**${song.formattedDuration}**)`
+        )
+    )
+    .then((message) => {
+      if (serverQueue.playingMessage !== null) {
+        serverQueue.playingMessage.delete();
+      }
+      serverQueue.playingMessage = message;
+    });
 }
 
 /**
@@ -215,22 +201,5 @@ function handleEmptyQueue(
         return;
       }
     }, timeoutDuration);
-  }
-}
-
-/**
- * Returns a duration formatted in (MM:HH:SS) or (MM:SS) if it is less than an
- * hour. If it is a livestream, then send the string "livestream"
- *
- * @param seconds the duration in seconds
- * @returns a formatted version of the duration
- */
-function formatDuration(seconds: number): string {
-  if (seconds === 0) {
-    return "livestream";
-  } else if (seconds < 3600) {
-    return new Date(seconds * 1000).toISOString().substr(14, 5);
-  } else {
-    return new Date(seconds * 1000).toISOString().substr(11, 8);
   }
 }

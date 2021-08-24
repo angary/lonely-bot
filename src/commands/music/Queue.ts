@@ -31,7 +31,7 @@ export default class Queue extends Command {
 
       // Only print out the first ten songs
       if (i < 10) {
-        const duration = formatDuration(songs[i].duration);
+        const duration = this.formatDuration(songs[i].duration);
         songsInQueue += `${i + 1}: **${songs[i].title}** (${duration})\n`;
       }
     }
@@ -39,28 +39,11 @@ export default class Queue extends Command {
     const queueEmbed = new MessageEmbed()
       .setColor("#0099ff")
       .setDescription(
-        `Song count: **${songs.length}** | Duration: **${formatDuration(
+        `Song count: **${songs.length}** | Duration: **${this.formatDuration(
           totalDuration
         )}** | Repeat: **${serverQueue.isRepeating ? "On" : "Off"}**`
       )
       .addField("Songs", songsInQueue, false);
     message.channel.send(queueEmbed);
   };
-}
-
-/**
- * Returns a duration formatted in (MM:HH:SS) or (MM:SS) if it is less than an
- * hour. If it is a livestream, then send the string "livestream"
- *
- * @param seconds the duration in seconds
- * @returns a formatted version of the duration
- */
-function formatDuration(seconds: number): string {
-  if (seconds === 0) {
-    return "livestream";
-  } else if (seconds < 3600) {
-    return new Date(seconds * 1000).toISOString().substr(14, 5);
-  } else {
-    return new Date(seconds * 1000).toISOString().substr(11, 8);
-  }
 }

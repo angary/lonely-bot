@@ -1,5 +1,5 @@
 import { Command } from "../../types/Command";
-import { Message, MessageEmbed, VoiceChannel } from "discord.js";
+import { Message, MessageEmbed } from "discord.js";
 
 export default class Repeat extends Command {
   name = "repeat";
@@ -22,7 +22,7 @@ export default class Repeat extends Command {
     }
 
     // Check if teh bot has permissions to play music in that server
-    if (!hasPermissions(voiceChannel, message)) {
+    if (!this.hasPermissions(voiceChannel, message)) {
       return;
     }
 
@@ -43,26 +43,4 @@ export default class Repeat extends Command {
       message.channel.send(repeatEmbed);
     }
   };
-}
-
-/**
- * Check if the bot has permissions to join the voice channel. Also
- * sends a message to the channel if the bot cannot join
- *
- * @param voiceChannel the voice channel to join
- * @param message the message where the play command was sent
- * @returns if the bot has permission to join the voice channel or not
- */
-function hasPermissions(voiceChannel: VoiceChannel, message: Message): boolean {
-  const permissions = voiceChannel.permissionsFor(message.client.user);
-  if (!permissions.has("CONNECT")) {
-    message.channel.send("I need the permissions to join your voice channel!");
-    return false;
-  } else if (!permissions.has("SPEAK")) {
-    message.channel.send(
-      "I need the permissions to speak in your voice channel!"
-    );
-    return false;
-  }
-  return true;
 }
