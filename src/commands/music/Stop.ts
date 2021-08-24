@@ -12,7 +12,7 @@ export default class Stop extends Command {
   example = "";
   cooldown = 0;
   category = "music";
-  guildOnly = false;
+  guildOnly = true;
   execute = (message: Message): Promise<Message> => {
     // Check if we are in a voice channel
     const voiceChannel = message.member.voice.channel;

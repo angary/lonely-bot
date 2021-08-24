@@ -56,4 +56,5 @@ export interface IServerMusicQueue {
   connection: VoiceConnection;
   songs: ISong[];
   playing: boolean;
+  isRepeating: boolean;
 }

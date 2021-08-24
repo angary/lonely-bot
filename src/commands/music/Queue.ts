@@ -13,11 +13,11 @@ export default class Queue extends Command {
   example = "";
   cooldown = 0;
   category = "music";
-  guildOnly = false;
+  guildOnly = true;
   execute = (message: Message): Promise<Message> => {
     // Check if there is a music queue
     const serverQueue = this.client.musicQueue.get(message.guild.id);
-    if (!serverQueue) {
+    if (!serverQueue || serverQueue.songs.length === 0) {
       return message.channel.send("There's no active queue");
     }
 
@@ -39,9 +39,9 @@ export default class Queue extends Command {
     const queueEmbed = new MessageEmbed()
       .setColor("#0099ff")
       .setDescription(
-        `**${songs.length}** song(s) in queue (${formatDuration(
+        `Song count: **${songs.length}** | Duration: **${formatDuration(
           totalDuration
-        )})`
+        )}** | Repeat: **${serverQueue.isRepeating ? "On" : "Off"}**`
       )
       .addField("Songs", songsInQueue, false);
     message.channel.send(queueEmbed);

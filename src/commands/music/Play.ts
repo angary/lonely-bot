@@ -10,13 +10,13 @@ export default class Play extends Command {
   description = "Add a song from url to the queue";
   information =
     "Add a song from url to the queue. Currently only supports youtube URLs.";
-  aliases: string[] = ["p"];
+  aliases = ["p"];
   args = true;
   usage = "";
   example = "193480093";
   cooldown = 0;
   category = "music";
-  guildOnly = false;
+  guildOnly = true;
   execute = async (message: Message, args: string[]): Promise<Message> => {
     // Check if we are in a voice channel
     const voiceChannel = message.member.voice.channel;
@@ -76,6 +76,7 @@ export default class Play extends Command {
         connection: null,
         songs: [],
         playing: true,
+        isRepeating: false,
       };
 
       // Add the queue
@@ -157,6 +158,9 @@ function playSong(
     )
     .on("finish", () => {
       if (serverQueue !== null) {
+        if (serverQueue.isRepeating) {
+          serverQueue.songs.push(song);
+        }
         serverQueue.songs.shift();
         playSong(guildId, musicQueue);
       }
@@ -173,7 +177,10 @@ function playSong(
  * Handles what to do when the queue is empty. If there are no more members,
  * then leave immediate, else wait for a specified duration, and then leave.
  *
- * @param musicQueue
+ * @param guildId the id of the relevant server
+ * @param musicQueue the mapping of server ids to their music queue
+ * @param serverQueue the relevant server's music queue
+ * @param timeoutDuration how long to stay in the voice channel before leaving
  */
 function handleEmptyQueue(
   guildId: string,
