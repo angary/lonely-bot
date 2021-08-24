@@ -109,7 +109,7 @@ export default class Play extends Command {
  *
  * @param voiceChannel the voice channel to join
  * @param message the message where the play command was sent
- * @return if the bot has permission to join the voice channel or not
+ * @returns if the bot has permission to join the voice channel or not
  */
 function hasPermissions(voiceChannel: VoiceChannel, message: Message): boolean {
   const permissions = voiceChannel.permissionsFor(message.client.user);
@@ -131,22 +131,23 @@ function hasPermissions(voiceChannel: VoiceChannel, message: Message): boolean {
  *
  * @param guildId the id of the server the bot is playing music in
  * @param musicQueue a map from a server's id to it's music queue
- * @return a message saying which song it is currently playing
+ * @returns a message saying which song it is currently playing
  */
-async function playSong(
+function playSong(
   guildId: string,
   musicQueue: Map<string, IServerMusicQueue>
-): Promise<Message> {
+): void {
   const serverQueue = musicQueue.get(guildId);
-
-  if (serverQueue.songs.length === 0) {
-    serverQueue.voiceChannel.leave();
-    musicQueue.delete(guildId);
+  if (!serverQueue) {
     return;
   }
 
-  const song = serverQueue.songs[0];
+  // Base case
+  if (serverQueue.songs.length === 0) {
+    return handleEmptyQueue(guildId, musicQueue, serverQueue, 60_000);
+  }
 
+  const song = serverQueue.songs[0];
   serverQueue.connection
     .play(
       ytdl.downloadFromInfo(song.info, {
@@ -155,11 +156,12 @@ async function playSong(
       })
     )
     .on("finish", () => {
-      serverQueue.songs.shift();
-      playSong(guildId, musicQueue);
+      if (serverQueue !== null) {
+        serverQueue.songs.shift();
+        playSong(guildId, musicQueue);
+      }
     })
     .on("error", (error) => {
-      console.log("Issue with ytdl playing");
       console.log(error);
     });
   serverQueue.textChannel.send(
@@ -168,11 +170,42 @@ async function playSong(
 }
 
 /**
+ * Handles what to do when the queue is empty. If there are no more members,
+ * then leave immediate, else wait for a specified duration, and then leave.
+ *
+ * @param musicQueue
+ */
+function handleEmptyQueue(
+  guildId: string,
+  musicQueue: Map<string, IServerMusicQueue>,
+  serverQueue: IServerMusicQueue,
+  timeoutDuration: number
+): void {
+  if (serverQueue.voiceChannel.members.size === 0) {
+    // If there are no more members
+    serverQueue.voiceChannel.leave();
+    serverQueue.textChannel.send(
+      "Stopping music as all members have left the voice channel"
+    );
+    musicQueue.delete(guildId);
+  } else {
+    // Wait for 1 minute and if there is no new songs, leave
+    setTimeout(() => {
+      if (serverQueue.songs.length === 0) {
+        serverQueue.voiceChannel.leave();
+        musicQueue.delete(guildId);
+        return;
+      }
+    }, timeoutDuration);
+  }
+}
+
+/**
  * Returns a duration formatted in (MM:HH:SS) or (MM:SS) if it is less than an
  * hour. If it is a livestream, then send the string "livestream"
  *
  * @param seconds the duration in seconds
- * @return a formatted version of the duration
+ * @returns a formatted version of the duration
  */
 function formatDuration(seconds: number): string {
   if (seconds === 0) {

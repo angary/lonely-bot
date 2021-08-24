@@ -1,7 +1,7 @@
 import * as config from "../../config.json";
 import { Client } from "../types/Client";
 import { Event } from "../types/Event";
-import { Collection, Message as DiscordMessage } from "discord.js";
+import { Collection, Guild, Message as DiscordMessage } from "discord.js";
 
 type Cooldown = Collection<string, number>;
 
@@ -20,7 +20,7 @@ export default class Message extends Event {
     if (message.author.bot) return;
 
     // Check if there was a custom prefix, else use default
-    const prefix = await this.findPrefix(message);
+    const prefix = this.findPrefix(message.guild);
 
     if (!message.content.startsWith(prefix)) return;
 
@@ -90,9 +90,15 @@ export default class Message extends Event {
     }
   };
 
-  private async findPrefix(message) {
-    if (this.client.prefixes.hasOwnProperty(message.guild.id)) {
-      return this.client.prefixes[message.guild.id];
+  /**
+   * Find the prefix for the corresponding server and return it
+   *
+   * @param guild the server
+   * @returns the prefix of the server
+   */
+  private findPrefix(guild: Guild): string {
+    if (this.client.prefixes.hasOwnProperty(guild.id)) {
+      return this.client.prefixes[guild.id];
     }
     return config.prefix;
   }

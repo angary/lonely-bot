@@ -53,7 +53,7 @@ export default class Queue extends Command {
  * hour. If it is a livestream, then send the string "livestream"
  *
  * @param seconds the duration in seconds
- * @return a formatted version of the duration
+ * @returns a formatted version of the duration
  */
 function formatDuration(seconds: number): string {
   if (seconds === 0) {
