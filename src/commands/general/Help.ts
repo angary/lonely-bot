@@ -1,6 +1,5 @@
 import { prefix, githubLink, inviteLink } from "../../../config.json";
 import { Command } from "../../types/Command";
-import { ICommand } from "../../types/interfaces/Bot";
 import { Collection, Message, MessageEmbed } from "discord.js";
 
 export default class Help extends Command {
@@ -37,7 +36,7 @@ export default class Help extends Command {
 
 function generalInformation(
   helpEmbed: MessageEmbed,
-  commands: Collection<string, ICommand>
+  commands: Collection<string, Command>
 ): void {
   // Add all the details of the commands
   helpEmbed.setTitle("Available commands");
@@ -55,7 +54,7 @@ function generalInformation(
 function addCategory(
   category: string,
   helpEmbed: MessageEmbed,
-  commands: Collection<string, ICommand>
+  commands: Collection<string, Command>
 ): void {
   // Format the relevant data, not sure how to use filter function
   const data = [];
@@ -82,7 +81,7 @@ function addCategory(
 function specificInformation(
   args: string[],
   helpEmbed: MessageEmbed,
-  commands: Collection<string, ICommand>
+  commands: Collection<string, Command>
 ): void {
   // Check if the command exists
   const name = args[0].toLowerCase();

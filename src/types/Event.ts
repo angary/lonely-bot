@@ -1,9 +1,8 @@
 import { Client } from "./Client";
-import { IEvent } from "./interfaces/Bot";
 
-export abstract class Event implements IEvent {
+export abstract class Event {
   client: Client;
-  run: (args?: unknown[]) => void;
+  abstract run: (args?: unknown[]) => void;
 
   constructor(client: Client) {
     this.client = client;
