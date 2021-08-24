@@ -9,7 +9,7 @@ export default class Play extends Command {
   visible = true;
   description = "Add a song from url to the queue";
   information =
-    "Add a song from url to the queue. Currently only supports youtube URLs.";
+    "Add a song from url to the queue. Once there are no more songs / all users have left the channel, the bot stays in the channel for 1 minute. If no further songs have been added, or there are still no members, then the bot leaves.";
   aliases = ["p"];
   args = true;
   usage = "";

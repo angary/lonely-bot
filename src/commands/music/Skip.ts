@@ -5,9 +5,8 @@ export default class Skip extends Command {
   name = "skip";
   visible = true;
   description = "Skip the current song in the queue";
-  information =
-    "Add a song from url to the queue. Currently only supports youtube URLs.";
-  aliases: string[] = ["q"];
+  information = "";
+  aliases: string[] = [];
   args = false;
   usage = "";
   example = "";

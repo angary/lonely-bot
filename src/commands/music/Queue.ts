@@ -5,8 +5,7 @@ export default class Queue extends Command {
   name = "queue";
   visible = true;
   description = "Print out the current queue of songs";
-  information =
-    "Add a song from url to the queue. Currently only supports youtube URLs.";
+  information = "Prints out the first 10 songs of the queue";
   aliases: string[] = ["q"];
   args = false;
   usage = "";
