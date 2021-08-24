@@ -1,6 +1,6 @@
 import { Command } from "../../types/Command";
 import { IServerMusicQueue, ISong } from "../../types/interfaces/Bot";
-import { Message, TextChannel, VoiceChannel } from "discord.js";
+import { Message, MessageEmbed, TextChannel, VoiceChannel } from "discord.js";
 import * as ytdl from "ytdl-core";
 import * as ytsr from "ytsr";
 
@@ -66,7 +66,8 @@ export default class Play extends Command {
 
     // Check if there is a music queue
     const musicQueue = this.client.musicQueue;
-    const serverQueue = musicQueue.get(message.guild.id);
+    const guildId = message.guild.id;
+    const serverQueue = musicQueue.get(guildId);
 
     if (!serverQueue) {
       // Create the new queue
@@ -80,7 +81,6 @@ export default class Play extends Command {
       };
 
       // Add the queue
-      const guildId = message.guild.id;
       musicQueue.set(guildId, queueConstruct);
       queueConstruct.songs.push(song);
 
@@ -97,9 +97,16 @@ export default class Play extends Command {
     } else {
       // Add the new song to the queue
       serverQueue.songs.push(song);
-      message.channel.send(
-        `Added **${song.title}** (${song.formattedDuration}) to the queue`
-      );
+      const playEmbed = new MessageEmbed()
+        .setColor("#0099ff")
+        .setDescription(
+          `Added **[${song.title}](${song.url})** (**${song.formattedDuration}**) to the queue`
+        );
+      message.channel.send(playEmbed);
+      // If it is the only song in the queue
+      if (serverQueue.songs.length === 1) {
+        playSong(guildId, musicQueue);
+      }
     }
   };
 }
@@ -169,7 +176,11 @@ function playSong(
       console.log(error);
     });
   serverQueue.textChannel.send(
-    `Playing **${song.title}** (${song.formattedDuration})`
+    new MessageEmbed()
+      .setColor("#0099ff")
+      .setDescription(
+        `Playing **[${song.title}](${song.url})** (**${song.formattedDuration}**)`
+      )
   );
 }
 
