@@ -27,7 +27,7 @@ export default class Queue extends Command {
 
     // Collect all song details
     for (let i = 0; i < songs.length; i++) {
-      totalDuration += parseInt(songs[i].duration);
+      totalDuration += songs[i].duration;
 
       // Only print out the first ten songs
       if (i < 10) {
@@ -48,8 +48,14 @@ export default class Queue extends Command {
   };
 }
 
-function formatDuration(seconds) {
-  seconds = parseInt(seconds);
+/**
+ * Returns a duration formatted in (MM:HH:SS) or (MM:SS) if it is less than an
+ * hour. If it is a livestream, then send the string "livestream"
+ *
+ * @param seconds the duration in seconds
+ * @return a formatted version of the duration
+ */
+function formatDuration(seconds: number): string {
   if (seconds === 0) {
     return "livestream";
   } else if (seconds < 3600) {

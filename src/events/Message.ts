@@ -1,8 +1,9 @@
 import * as config from "../../config.json";
 import { Client } from "../types/Client";
 import { Event } from "../types/Event";
-import { Cooldown } from "../types/interfaces/Bot";
 import { Collection, Message as DiscordMessage } from "discord.js";
+
+type Cooldown = Collection<string, number>;
 
 export default class Message extends Event {
   cooldowns: Collection<string, Cooldown>;

@@ -1,9 +1,18 @@
-import { Client, Collection, Message } from "discord.js";
+import {
+  Client,
+  Collection,
+  Message,
+  TextChannel,
+  VoiceChannel,
+  VoiceConnection,
+} from "discord.js";
+
+import ytdl = require("ytdl-core");
 
 export interface IBot extends Client {
   commands: Collection<string, ICommand>;
   prefixes: { [key: number]: string };
-  musicQueue;
+  musicQueue: Map<string, IServerMusicQueue>;
 }
 
 export interface ICommand {
@@ -23,15 +32,28 @@ export interface ICommand {
 
 export interface IEvent {
   client: Client;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  run: (args?: any[]) => void;
+  run: (args?: unknown[]) => void;
 }
-
-export type Cooldown = Collection<string, number>;
 
 export interface IHero {
   name: string;
   count: number;
   winrate: number;
   disadvantage: number;
+}
+
+export interface ISong {
+  info: ytdl.videoInfo;
+  title: string;
+  url: string;
+  duration: number;
+  formattedDuration: string;
+}
+
+export interface IServerMusicQueue {
+  voiceChannel: VoiceChannel;
+  textChannel: TextChannel;
+  connection: VoiceConnection;
+  songs: ISong[];
+  playing: boolean;
 }

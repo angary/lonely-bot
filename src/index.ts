@@ -47,7 +47,7 @@ for (const file of eventFiles) {
 
   client.on(
     eventName.charAt(0).toLowerCase() + eventName.slice(1),
-    (...args: string[]) => event.run(args)
+    (...args: unknown[]) => event.run(args)
   );
 }
 
