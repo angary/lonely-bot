@@ -1,6 +1,11 @@
 import { Command } from "../../types/Command";
 import { IServerMusicQueue, ISong } from "../../types/interfaces/Bot";
-import { Message, MessageEmbed, TextChannel } from "discord.js";
+import {
+  Message,
+  MessageEmbed,
+  StreamDispatcher,
+  TextChannel,
+} from "discord.js";
 import * as ytdl from "ytdl-core";
 import * as ytsr from "ytsr";
 
@@ -89,7 +94,7 @@ export default class Play extends Command {
       try {
         // Join the voice channel
         queueConstruct.connection = await voiceChannel.join();
-        playSong(guildId, musicQueue);
+        this.playSong(guildId, musicQueue);
       } catch (error) {
         // Catch error and remove the server's queue
         console.log(error);
@@ -101,98 +106,107 @@ export default class Play extends Command {
       const playEmbed = new MessageEmbed()
         .setColor("#0099ff")
         .setDescription(
-          `Queued **[${song.title}](${song.url})** (**${song.formattedDuration}**)`
+          `Queued **[${this.getFormattedLink(song)}** (${
+            song.formattedDuration
+          })`
         );
       message.channel.send(playEmbed);
       // If it is the only song in the queue
       if (serverQueue.songs.length === 1) {
-        playSong(guildId, musicQueue);
+        this.playSong(guildId, musicQueue);
       }
     }
   };
-}
 
-/**
- * Plays the next song in the queue. Once the song ends, pop it from the
- * queue and recursively call this function
- *
- * @param guildId the id of the server the bot is playing music in
- * @param musicQueue a map from a server's id to it's music queue
- * @returns a message saying which song it is currently playing
- */
-function playSong(
-  guildId: string,
-  musicQueue: Map<string, IServerMusicQueue>
-): void {
-  const serverQueue = musicQueue.get(guildId);
-  if (!serverQueue) {
-    return;
+  /**
+   * Plays the next song in the queue. Once the song ends, pop it from the
+   * queue and recursively call this function
+   *
+   * @param guildId the id of the server the bot is playing music in
+   * @param musicQueue a map from a server's id to it's music queue
+   * @returns a message saying which song it is currently playing
+   */
+  playSong(
+    guildId: string,
+    musicQueue: Map<string, IServerMusicQueue>
+  ): StreamDispatcher {
+    const serverQueue = musicQueue.get(guildId);
+    if (!serverQueue) {
+      return;
+    }
+
+    // Base case
+    if (serverQueue.songs.length === 0) {
+      return this.handleEmptyQueue(guildId, musicQueue, serverQueue, 60_000);
+    }
+
+    // Play the song
+    serverQueue.connection
+      .play(
+        ytdl.downloadFromInfo(serverQueue.songs[0].info, {
+          highWaterMark: 1 << 25, // Increase memory for song to 32 mb
+          filter: "audioonly",
+        })
+      )
+      .on("finish", () =>
+        this.handleSongFinish(guildId, musicQueue, serverQueue)
+      )
+      .on("error", (error) => {
+        console.log(error);
+      });
+
+    // Send to channel which song we are playing
+    this.sendPlayingEmbed(serverQueue);
   }
 
-  // Base case
-  if (serverQueue.songs.length === 0) {
-    return handleEmptyQueue(guildId, musicQueue, serverQueue, 60_000);
+  /**
+   * Handles what to do when the the current song finishes. If the server has
+   * repeat active, then add the new song. If the queue is not empty, plays the
+   * next song.
+   *
+   * @param guildId the id of the relevant server
+   * @param musicQueue the mapping of server ids to their music queue
+   * @param serverQueue the relevant server's music queue
+   */
+  handleSongFinish(
+    guildId: string,
+    musicQueue: Map<string, IServerMusicQueue>,
+    serverQueue: IServerMusicQueue
+  ): StreamDispatcher {
+    if (serverQueue !== null) {
+      const song = serverQueue.songs[0];
+      if (serverQueue.isRepeating) {
+        serverQueue.songs.push(song);
+      }
+      serverQueue.songs.shift();
+      return this.playSong(guildId, musicQueue);
+    }
   }
 
-  const song = serverQueue.songs[0];
-  serverQueue.connection
-    .play(
-      ytdl.downloadFromInfo(song.info, {
-        highWaterMark: 1 << 25, // Increase memory for song to 32 mb
-        filter: "audioonly",
-      })
-    )
-    .on("finish", () => {
-      if (serverQueue !== null) {
-        if (serverQueue.isRepeating) {
-          serverQueue.songs.push(song);
-        }
-        serverQueue.songs.shift();
-        playSong(guildId, musicQueue);
-      }
-    })
-    .on("error", (error) => {
-      console.log(error);
-    });
-  serverQueue.textChannel
-    .send(
-      new MessageEmbed()
-        .setColor("#0099ff")
-        .setDescription(
-          `Playing **[${song.title}](${song.url})** (**${song.formattedDuration}**)`
-        )
-    )
-    .then((message) => {
-      if (serverQueue.playingMessage !== null) {
-        serverQueue.playingMessage.delete();
-      }
-      serverQueue.playingMessage = message;
-    });
-}
-
-/**
- * Handles what to do when the queue is empty. If there are no more members,
- * then leave immediate, else wait for a specified duration, and then leave.
- *
- * @param guildId the id of the relevant server
- * @param musicQueue the mapping of server ids to their music queue
- * @param serverQueue the relevant server's music queue
- * @param timeoutDuration how long to stay in the voice channel before leaving
- */
-function handleEmptyQueue(
-  guildId: string,
-  musicQueue: Map<string, IServerMusicQueue>,
-  serverQueue: IServerMusicQueue,
-  timeoutDuration: number
-): void {
-  if (serverQueue.voiceChannel.members.size === 0) {
-    // If there are no more members
-    serverQueue.voiceChannel.leave();
-    serverQueue.textChannel.send(
-      "Stopping music as all members have left the voice channel"
-    );
-    musicQueue.delete(guildId);
-  } else {
+  /**
+   * Handles what to do when the queue is empty. If there are no more members,
+   * then leave immediate, else wait for a specified duration, and then leave.
+   *
+   * @param guildId the id of the relevant server
+   * @param musicQueue the mapping of server ids to their music queue
+   * @param serverQueue the relevant server's music queue
+   * @param timeoutDuration how long to stay in the voice channel before leaving
+   */
+  handleEmptyQueue(
+    guildId: string,
+    musicQueue: Map<string, IServerMusicQueue>,
+    serverQueue: IServerMusicQueue,
+    timeoutDuration: number
+  ): StreamDispatcher {
+    if (serverQueue.voiceChannel.members.size === 0) {
+      // If there are no more members
+      serverQueue.voiceChannel.leave();
+      serverQueue.textChannel.send(
+        "Stopping music as all members have left the voice channel"
+      );
+      musicQueue.delete(guildId);
+      return;
+    }
     // Wait for 1 minute and if there is no new songs, leave
     setTimeout(() => {
       if (serverQueue.songs.length === 0) {
@@ -201,5 +215,29 @@ function handleEmptyQueue(
         return;
       }
     }, timeoutDuration);
+  }
+
+  /**
+   * Sends a message about the current playing song. If the bot had sent a
+   * message like this for the previous song it played, delete that message
+   *
+   * @param serverQueue the queue for the relevant server
+   */
+  sendPlayingEmbed(serverQueue: IServerMusicQueue): void {
+    const song = serverQueue.songs[0];
+    const songLink = this.getFormattedLink(song);
+    serverQueue.textChannel
+      .send(
+        new MessageEmbed()
+          .setColor("#0099ff")
+          .setDescription(`Playing **${songLink}** (${song.formattedDuration})`)
+      )
+      .then((message) => {
+        if (serverQueue.playingMessage !== null) {
+          serverQueue.playingMessage.delete();
+        }
+        serverQueue.playingMessage = message;
+      });
+    return;
   }
 }

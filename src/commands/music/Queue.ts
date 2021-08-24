@@ -21,14 +21,26 @@ export default class Queue extends Command {
     }
 
     const songs = serverQueue.songs;
+    const song = songs[0];
     let songsInQueue = "";
-    let totalDuration = 0;
+
+    // Collect first song detail
+    const currStreamTime = serverQueue.connection.dispatcher.streamTime / 1000;
+    const currTimestamp = `${this.formatDuration(currStreamTime)}/${
+      song.formattedDuration
+    }`;
+
+    // Initialise as duration left in first song
+    let totalDuration = song.duration - currStreamTime;
 
     // Collect all song details
     for (let i = 0; i < songs.length; i++) {
-      totalDuration += songs[i].duration;
+      // Only add duration if it is not the first song as it is already added
+      if (i > 0) {
+        totalDuration += songs[i].duration;
+      }
 
-      // Only print out the first ten songs
+      // Only add details of first 10 songs
       if (i < 10) {
         const duration = this.formatDuration(songs[i].duration);
         songsInQueue += `${i + 1}: **${songs[i].title}** (${duration})\n`;
@@ -41,6 +53,11 @@ export default class Queue extends Command {
         `Song count: **${songs.length}** | Duration: **${this.formatDuration(
           totalDuration
         )}** | Repeat: **${serverQueue.isRepeating ? "On" : "Off"}**`
+      )
+      .addField(
+        "Now playing",
+        `**${this.getFormattedLink(song)}** (${currTimestamp})`,
+        false
       )
       .addField("Songs", songsInQueue, false);
     message.channel.send(queueEmbed);

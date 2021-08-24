@@ -1,5 +1,5 @@
 import { Client } from "./Client";
-import { IBot } from "./interfaces/Bot";
+import { IBot, ISong } from "./interfaces/Bot";
 import { Message, VoiceChannel } from "discord.js";
 
 export abstract class Command {
@@ -63,5 +63,16 @@ export abstract class Command {
     } else {
       return new Date(seconds * 1000).toISOString().substr(11, 8);
     }
+  }
+
+  /**
+   * Given a song, return the markdown formatted string to link to a song's URL
+   * where the text is the title of the song
+   *
+   * @param song the current song
+   * @returns a markdown formatted link
+   */
+  protected getFormattedLink(song: ISong): string {
+    return `[${song.title}](${song.url})`;
   }
 }
