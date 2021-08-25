@@ -10,8 +10,8 @@ export default class Remove extends Command {
     "Remove a song with the same name from the queue. Will not remove the currently playing song.";
   aliases = [];
   args = true;
-  usage: "";
-  example = "";
+  usage: "[song_name]";
+  example = "whitley nova";
   cooldown = 0;
   category = "music";
   guildOnly = true;

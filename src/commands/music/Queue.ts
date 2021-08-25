@@ -4,8 +4,8 @@ import { Message, MessageEmbed } from "discord.js";
 export default class Queue extends Command {
   name = "queue";
   visible = true;
-  description = "Print out the current queue of songs";
-  information = "Prints out the first 10 songs of the queue";
+  description = "Prints out the first 10 songs of the queue";
+  information = "";
   aliases: string[] = ["q"];
   args = false;
   usage = "";
