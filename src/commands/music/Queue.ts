@@ -43,12 +43,13 @@ export default class Queue extends Command {
       // Only add details of first 10 songs
       if (i < 10) {
         const duration = this.formatDuration(songs[i].duration);
-        songsInQueue += `${i + 1}: **${songs[i].title}** (${duration})\n`;
+        songsInQueue += `${i + 1}: ${songs[i].title} (${duration})\n`;
       }
     }
 
     const queueEmbed = new MessageEmbed()
       .setColor("#0099ff")
+      .setTitle("Queue")
       .setDescription(
         `Song count: **${songs.length}** | Duration: **${this.formatDuration(
           totalDuration
@@ -56,7 +57,7 @@ export default class Queue extends Command {
       )
       .addField(
         "Now playing",
-        `**${this.getFormattedLink(song)}** (${currTimestamp})`,
+        `${this.getFormattedLink(song)} (${currTimestamp})`,
         false
       )
       .addField("Songs", songsInQueue, false);

@@ -230,7 +230,7 @@ export default class Play extends Command {
       .send(
         new MessageEmbed()
           .setColor("#0099ff")
-          .setDescription(`Playing **${songLink}** (${song.formattedDuration})`)
+          .setDescription(`Now playing ${songLink} (${song.formattedDuration})`)
       )
       .then((message) => {
         if (serverQueue.playingMessage !== null) {
