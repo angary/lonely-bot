@@ -6,7 +6,7 @@ export default class Stop extends Command {
   visible = true;
   description = "Remove all songs from the current queue";
   information = "";
-  aliases: string[] = [];
+  aliases = [];
   args = false;
   usage = "";
   example = "";

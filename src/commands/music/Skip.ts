@@ -6,7 +6,7 @@ export default class Skip extends Command {
   visible = true;
   description = "Skip the current song in the queue";
   information = "";
-  aliases: string[] = [];
+  aliases = [];
   args = false;
   usage = "";
   example = "";

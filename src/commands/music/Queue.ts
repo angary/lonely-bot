@@ -43,7 +43,9 @@ export default class Queue extends Command {
       // Only add details of first 10 songs
       if (i < 10) {
         const duration = this.formatDuration(songs[i].duration);
-        songsInQueue += `${i + 1}: ${songs[i].title} (${duration})\n`;
+        songsInQueue += `${i + 1}: ${this.getFormattedLink(
+          songs[i]
+        )} (${duration})\n`;
       }
     }
 

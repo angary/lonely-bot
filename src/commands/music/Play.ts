@@ -106,9 +106,7 @@ export default class Play extends Command {
       const playEmbed = new MessageEmbed()
         .setColor("#0099ff")
         .setDescription(
-          `Queued **[${this.getFormattedLink(song)}** (${
-            song.formattedDuration
-          })`
+          `Queued ${this.getFormattedLink(song)} (${song.formattedDuration})`
         );
       message.channel.send(playEmbed);
       // If it is the only song in the queue
