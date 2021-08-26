@@ -1,55 +1,13 @@
 import { GuildModel } from "./database/Guild";
 import { Client } from "./types/Client";
-import { Command } from "./types/Command";
-import { Event } from "./types/Event";
-import { readdirSync, statSync } from "fs";
 import { connect as mongooseConnect } from "mongoose";
-import { join } from "path";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 require("dotenv").config();
 
 // Set up the bot user and commands
 //------------------------------------------------------------------------------
-const client = new Client();
-
-// Load all the commands
-//------------------------------------------------------------------------------
-const commandPath = "./dist/src/commands";
-readdirSync(commandPath).forEach((dir) => {
-  if (statSync(join(commandPath, dir)).isDirectory()) {
-    const commandFiles = readdirSync(`${commandPath}/${dir}`).filter((f) =>
-      f.endsWith(".js")
-    );
-    for (const file of commandFiles) {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const FoundCommand = require(`./commands/${dir}/${file}`).default;
-      const command: Command = new FoundCommand(client);
-
-      console.log(`Loaded command ${dir}/${file}`);
-      client.commands.set(command.name, command);
-    }
-  }
-});
-
-// Load all the events
-//------------------------------------------------------------------------------
-const eventPath = "./dist/src/events";
-const eventFiles = readdirSync(eventPath).filter(
-  (f) => f.endsWith(".js") && f !== "Event.js"
-);
-for (const file of eventFiles) {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const FoundEvent = require(`./events/${file}`).default;
-  console.log(FoundEvent);
-  const event: Event = new FoundEvent(client);
-  const eventName = file.split(".")[0];
-
-  client.on(
-    eventName.charAt(0).toLowerCase() + eventName.slice(1),
-    (...args: unknown[]) => event.run(args)
-  );
-}
+const client = new Client("../", "dist/src/commands", "dist/src/events");
 
 // Connect to mongoose database
 //------------------------------------------------------------------------------

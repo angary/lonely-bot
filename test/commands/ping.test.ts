@@ -1,4 +1,3 @@
-import Ping from "../../src/commands/general/Ping";
 import { Client } from "../../src/types/Client";
 import { Message } from "discord.js";
 
@@ -9,7 +8,8 @@ describe("PingCommand", () => {
     },
   } as unknown as Message;
 
-  const ping = new Ping(new Client());
+  const client = new Client("../", "src/commands", "src/events");
+  const ping = client.commands.get("ping");
   it("ping should respond with 'Pong!'", () => {
     ping.execute(message);
     expect(message.channel.send).toHaveBeenCalledTimes(1);

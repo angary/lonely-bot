@@ -22,7 +22,7 @@ export abstract class Command {
   abstract cooldown: number;
   abstract category: string;
   abstract guildOnly: boolean;
-  abstract execute: (message: Message, args: string[]) => Promise<Message>;
+  abstract execute: (message: Message, args?: string[]) => Promise<Message>;
 
   public constructor(client: Client) {
     this.client = client;
