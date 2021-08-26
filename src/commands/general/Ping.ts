@@ -15,6 +15,6 @@ export default class Ping extends Command {
   guildOnly = false;
   execute = (message: Message): Promise<Message> => {
     const ping = `${Date.now() - message.createdTimestamp} ms`;
-    return message.channel.send(`Pong! Your ping is **${ping}**.`);
+    return message.channel.send(`Pong! Your ping is **${ping}**`);
   };
 }
