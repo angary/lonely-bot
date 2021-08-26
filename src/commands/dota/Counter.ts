@@ -20,10 +20,6 @@ Explanation of data:
 - Sorting by disadvantage suggests heroes that generally counter the heros based on their abilities, but may not be the best in the current meta
 `;
 
-// Some constants for webscraping
-const tableSelector =
-  "body > div.container-outer.seemsgood > div.skin-container > div.container-inner.container-inner-content > div.content-inner > section:nth-child(4) > article > table > tbody > tr";
-
 export default class Counter extends Command {
   name = "counter";
   visible = true;
@@ -92,8 +88,10 @@ export default class Counter extends Command {
     // Extra data from each hero counter request
     for (const response of responses) {
       // Grab the data from the counters table
-      const $ = await cheerio.load(response.data);
-      const counterTable = $(tableSelector);
+      const $ = cheerio.load(response.data);
+      const counterTable = $(
+        "body > div.container-outer.seemsgood > div.skin-container > div.container-inner.container-inner-content > div.content-inner > section:nth-child(4) > article > table > tbody > tr"
+      );
 
       // Extract data from each hero
       counterTable.each((index, element) => {
@@ -149,7 +147,7 @@ export default class Counter extends Command {
     // Boilerplate formatting
     const heroesEmbed = new MessageEmbed()
       .setColor("#0099ff")
-      .setTitle("Team picker help")
+      .setTitle("Team Picker Help")
       .setAuthor(clientName, profilePicture, githubLink)
       .setTimestamp()
       .setFooter(
@@ -195,11 +193,11 @@ export default class Counter extends Command {
     counters.forEach((element, index) => {
       heroes += `${index + 1}: **${element.name}**\n`;
     });
-    details[`**__Sorted by ${sortMethod}__\nHeroes**:`] = heroes;
-    details["**\nDisadvantage**:"] = `${counters
+    details[`**__Sorted by ${sortMethod}__\nHeroes**`] = heroes;
+    details["**\nDisadvantage**"] = `${counters
       .map((c) => c.disadvantage.toFixed(2))
       .join("%\n")}%`;
-    details["**\nWinrate**:"] = `${counters
+    details["**\nWin Rate**"] = `${counters
       .map((c) => c.winrate.toFixed(2))
       .join("%\n")}%`;
     for (const [key, value] of Object.entries(details)) {
