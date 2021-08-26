@@ -2,7 +2,7 @@ import { Command } from "../../types/Command";
 import { IMetaHeroData } from "../../types/interfaces/Bot";
 import axios from "axios";
 import cheerio from "cheerio";
-import { Message, MessageEmbed } from "discord.js";
+import { Message } from "discord.js";
 
 export default class Meta extends Command {
   name = "meta";
@@ -53,9 +53,13 @@ export default class Meta extends Command {
           .slice(0, 10);
 
         // Hero names
-        const metaEmbed = new MessageEmbed()
-          .setColor("0099ff")
+        const metaEmbed = this.createColouredEmbed()
           .setTitle("Meta")
+          .setDescription(
+            `Sorted by winrate in **${
+              rank.charAt(0).toUpperCase() + rank.slice(1)
+            }** games`
+          )
           .addFields(
             {
               name: "Hero",

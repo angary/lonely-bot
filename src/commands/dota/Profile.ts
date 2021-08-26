@@ -17,7 +17,6 @@ import {
   IOpenDotaWinLose,
 } from "../../types/interfaces/OpenDota";
 import { Message } from "discord.js";
-import { MessageEmbed } from "discord.js";
 import fetch, { Response } from "node-fetch";
 
 type OpenDotaResponse = [
@@ -94,7 +93,10 @@ export default class Profile extends Command {
 
       // Catch errors
       .catch((error) => {
-        this.stopTypingAndSend(message.channel, `There was an error: ${error}`);
+        this.stopTypingAndSend(
+          message.channel,
+          this.createColouredEmbed(`There was an error: ${error}`)
+        );
       });
   };
 
@@ -200,8 +202,7 @@ export default class Profile extends Command {
     heroes: IPlayerHeroData[],
     match: IPlayerRecentData
   ): Promise<Message> {
-    const profileEmbed = new MessageEmbed()
-      .setColor("#0099ff")
+    const profileEmbed = this.createColouredEmbed()
       .setTitle(`${player.name}`)
       .setURL(`https://www.opendota.com/players/${player.accountId}`)
       .setDescription(
@@ -261,7 +262,10 @@ export default class Profile extends Command {
     const response = `${message.author} Invalid response from database. 
       Either you haven't added your id, or there was a database error. 
       You can add you id with the steamid command!`;
-    return this.stopTypingAndSend(message.channel, response);
+    return this.stopTypingAndSend(
+      message.channel,
+      this.createColouredEmbed(response)
+    );
   }
 
   /**

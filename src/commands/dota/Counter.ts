@@ -145,8 +145,7 @@ export default class Counter extends Command {
     counters: IHero[]
   ): Promise<Message> {
     // Boilerplate formatting
-    const heroesEmbed = new MessageEmbed()
-      .setColor("#0099ff")
+    const heroesEmbed = this.createColouredEmbed()
       .setTitle("Team Picker Help")
       .setAuthor(clientName, profilePicture, githubLink)
       .setTimestamp()

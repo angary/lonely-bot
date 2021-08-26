@@ -29,6 +29,13 @@ export abstract class Command {
   }
 
   /**
+   * @returns a new MessageEmbed with the blue colouring
+   */
+  protected createColouredEmbed(description?: string): MessageEmbed {
+    return new MessageEmbed().setColor("#0099ff").setDescription(description);
+  }
+
+  /**
    * Stop typing and send message to the following channel
    *
    * @param channel the channel to send the message in
