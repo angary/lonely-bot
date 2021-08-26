@@ -2,11 +2,32 @@ import { gameModes } from "../../assets/gameModes";
 import { lobbyTypes } from "../../assets/lobbyTypes";
 import { UserModel } from "../../database/User";
 import { Command } from "../../types/Command";
+import {
+  IPlayerData,
+  IPlayerHeroData,
+  IPlayerRecentData,
+} from "../../types/interfaces/Bot";
 import { IUser } from "../../types/interfaces/Mongoose";
-import { IDotaProfile, IOpenDotaHero } from "../../types/interfaces/OpenDota";
+import {
+  IOpenDotaHeroes,
+  IOpenDotaPlayer,
+  IOpenDotaPlayerHeroes,
+  IOpenDotaPlayerRankings,
+  IOpenDotaPlayerRecentMatches,
+  IOpenDotaWinLose,
+} from "../../types/interfaces/OpenDota";
 import { Message } from "discord.js";
 import { MessageEmbed } from "discord.js";
-import fetch from "node-fetch";
+import fetch, { Response } from "node-fetch";
+
+type OpenDotaResponse = [
+  IOpenDotaPlayer,
+  IOpenDotaWinLose,
+  IOpenDotaPlayerHeroes,
+  IOpenDotaHeroes[],
+  IOpenDotaPlayerRankings[],
+  IOpenDotaPlayerRecentMatches
+];
 
 export default class Profile extends Command {
   name = "profile";
@@ -51,19 +72,24 @@ export default class Profile extends Command {
       fetch(`${url}players/${id}/recentMatches`),
     ])
       // Check for valid response
-      .then((responses) => this.checkAPIResponse(responses))
+      .then((responses: Response[]) => this.checkAPIResponse(responses))
 
       // Convert data to .json
-      .then((responses) =>
+      .then((responses: Response[]) =>
         Promise.all(responses.map((response) => response.json()))
       )
 
       // Extract and format data
-      .then((data) => this.formatData(data))
+      .then((data: OpenDotaResponse) => this.formatData(data))
 
       // Add data onto embed
       .then((playerData) =>
-        this.sendEmbed(message, playerData, playerData.recent)
+        this.sendEmbed(
+          message,
+          playerData,
+          playerData.heroes,
+          playerData.recent
+        )
       )
 
       // Catch errors
@@ -72,8 +98,14 @@ export default class Profile extends Command {
       });
   };
 
-  // Check the status code of the API response
-  private checkAPIResponse(responses) {
+  /**
+   * Checks that all the responses had a valid status code of 200
+   *
+   * @param responses the list of responses to check
+   * @returns the same list of responses given
+   */
+  private checkAPIResponse(responses: Response[]): Response[] {
+    console.log(typeof responses);
     // Takes a long time to loop, can be optimised
     for (const response of responses) {
       if (response.status !== 200) {
@@ -83,65 +115,72 @@ export default class Profile extends Command {
     return responses;
   }
 
-  // Collect data from opendota api and return object containing data
-  private formatData(data) {
+  /**
+   *  Collect data from opendota api and return object containing data
+   *
+   * @param data a list of the JSON returned from the open dota api
+   * @returns an object containing the formatted data
+   */
+  private formatData(data: OpenDotaResponse): IPlayerData {
     // Destructure data
-    const [profile, wl, playerHeroes, heroes, rankings, recentMatches] = data;
+    const [player, wl, playerHeroes, heroes, rankings, recentMatches] = data;
 
     // Check for missing profile data
-    if (!profile || !profile.profile) {
+    if (!player || !player.profile) {
       throw Error(
         "Unable to retrieve dota profile. Is your profile public and have you played matches?"
       );
     }
 
-    // Profile details
-    const p = profile;
-    p.w = wl.win;
-    p.l = wl.lose;
-    p.wr = ((100 * p.w) / (p.w + p.l)).toPrecision(4);
-    if (!p.profile.loccountrycode) p.profile.loccountrycode = "Unknown";
-
-    // Top 3 heroes
-    p.heroes = [];
+    // Extract hero data
+    const playerHeroData: IPlayerHeroData[] = [];
     for (let i = 0; i < 3; i++) {
-      p.heroes.push(playerHeroes[i]);
-      p.heroes[i].name = this.idToHeroName(heroes, playerHeroes[i].hero_id);
-      p.heroes[i].winAs = (
-        (100 * p.heroes[i].win) /
-        p.heroes[i].games
-      ).toPrecision(2);
-      p.heroes[i].percentile = this.idToHeroRanking(
-        rankings,
-        p.heroes[i].hero_id
-      );
+      playerHeroData.push({
+        name: this.idToHeroName(heroes, playerHeroes[i].hero_id),
+        games: playerHeroes[i].games,
+        winRate: (100 * playerHeroes[i].win) / playerHeroes[i].games,
+        percentile: this.idToHeroRanking(rankings, playerHeroes[i].hero_id),
+      });
     }
 
-    // Most recent match
-    p.recent = recentMatches[0];
-    p.recent.time = new Date(p.recent.start_time * 1000)
-      .toString()
-      .substr(0, 15);
-    p.recent.skill = ["invalid", "normal", "high", "very high"][p.recent.skill];
-    p.recent.hero = this.idToHeroName(heroes, p.recent.hero_id);
-    try {
-      p.recent.game_mode = gameModes[p.recent.game_mode].replace(/_/g, " ");
-    } catch {
-      p.recent.game_mode = "";
-    }
-    try {
-      p.recent.lobby_type = lobbyTypes[p.recent.lobby_type].replace(/_/g, " ");
-    } catch {
-      p.recent.lobby_type = "";
-    }
-    if (p.recent.lobby_type === "" && p.recent.game_mode === "") {
-      p.recent.lobby_type = "match";
-    }
+    // Extra recent match data
+    const recent = recentMatches[0];
 
-    // Check if they've won or lost
     const won =
-      p.recent.player_slot < 6 ? p.recent.radiant_win : !p.recent.radiant_win;
-    p.recent.outcome = won ? "Won" : "Lost";
+      recent.player_slot < 6 ? recent.radiant_win : !recent.radiant_win;
+
+    const playerRecentData: IPlayerRecentData = {
+      outcome: won ? "Win" : "Lost",
+      skill: ["invalid", "normal", "high", "very high"][recent.skill],
+      lobbyType: lobbyTypes[recent.lobby_type].replace(/_/g, " ") || "",
+      gameMode: gameModes[recent.game_mode].replace(/_/g, " ") || "",
+      hero: this.idToHeroName(heroes, recent.hero_id),
+      kills: recent.kills,
+      deaths: recent.deaths,
+      assists: recent.assists,
+      goldPerMin: recent.gold_per_min,
+      expPerMin: recent.xp_per_min,
+      date: new Date(recent.start_time * 1000).toString().substr(0, 15),
+      duration: this.formatDuration(recent.duration),
+    };
+
+    // Profile details
+    const profile = player.profile;
+
+    const p: IPlayerData = {
+      name: profile.personaname,
+      accountId: profile.account_id,
+      mmrEstimate: player.mmr_estimate.estimate,
+      country: profile.loccountrycode,
+      avatar: profile.avatarfull,
+      win: wl.win,
+      lose: wl.lose,
+      rankTier: player.rank_tier,
+      leaderboardRank: player.leaderboard_rank,
+      winRate: (100 * wl.win) / (wl.win + wl.lose),
+      heroes: playerHeroData,
+      recent: playerRecentData,
+    };
 
     return p;
   }
@@ -149,21 +188,28 @@ export default class Profile extends Command {
   /**
    * Sent the embed with the dota player's profile and most recent match stats
    *
-   * @param message
-   * @param player
-   * @param match
+   * @param message the original message that triggered the command
+   * @param player data containing details for the player
+   * @param heroes data containing details of the player's top 3 heroes
+   * @param match data for the most recent match
+   * @returns a promise to the message send
    */
-  private sendEmbed(message: Message, player, match): Promise<Message> {
+  private sendEmbed(
+    message: Message,
+    player: IPlayerData,
+    heroes: IPlayerHeroData[],
+    match: IPlayerRecentData
+  ): Promise<Message> {
     const profileEmbed = new MessageEmbed()
       .setColor("#0099ff")
-      .setTitle(`${player.profile.personaname}`)
-      .setURL(`https://www.opendota.com/players/${player.profile.account_id}`)
+      .setTitle(`${player.name}`)
+      .setURL(`https://www.opendota.com/players/${player.accountId}`)
       .setDescription(
         `Medal: **${this.medal(player)}**
-        MMR Estimate: **${player.mmr_estimate.estimate}**
-        Country: **${player.profile.loccountrycode}**`
+        MMR Estimate: **${player.mmrEstimate}**
+        Country: **${player.country}**`
       )
-      .setThumbnail(player.profile.avatarfull)
+      .setThumbnail(player.avatar)
       .setTimestamp()
       .setFooter(
         `Source: Opendota | Total Processing Time: ${
@@ -173,18 +219,21 @@ export default class Profile extends Command {
       )
       .addFields({
         name: "**General Match Data**",
-        value: `Total: **${player.w + player.l}** | Won: **${
-          player.w
-        }** | Lost: **${player.l}** | Winrate: **${player.wr}%**\n`,
+        value: `
+          Total: **${player.win + player.lose}** 
+          | Won: **${player.win}** 
+          | Lost: **${player.lose}** 
+          | Winrate: **${player.winRate.toPrecision(2)}%**\n`,
       });
 
     // Add player's top three heroes
-    for (const hero of player.heroes) {
+    for (const hero of heroes) {
+      console.log(hero);
       profileEmbed.addFields({
         name: `**${hero.name}**`,
         value: `
           Games: **${hero.games}**
-          Win as: **${hero.winAs}%**
+          Win as: **${hero.winRate.toPrecision(2)}%**
           Percentile: **${hero.percentile}**`,
         inline: true,
       });
@@ -194,15 +243,9 @@ export default class Profile extends Command {
     profileEmbed.addFields({
       name: "**Most Recent Match**",
       value: `
-      **${match.outcome}** playing a **${match.skill}** skill **${
-        match.lobby_type
-      } ${match.game_mode}** as **${match.hero}**
-      KDA: **${match.kills}/${match.deaths}/${match.assists}** | GPM: **${
-        match.gold_per_min
-      }** | XPM: **${match.xp_per_min}**
-      Date: **${match.time}** | Duration: **${this.formatDuration(
-        match.duration
-      )}**`,
+      **${match.outcome}** playing a **${match.skill}** skill **${match.lobbyType} ${match.gameMode}** as **${match.hero}**
+      KDA: **${match.kills}/${match.deaths}/${match.assists}** | GPM: **${match.goldPerMin}** | XPM: **${match.expPerMin}**
+      Date: **${match.date}** | Duration: **${match.duration}**`,
     });
 
     return this.stopTypingAndSend(message.channel, profileEmbed);
@@ -215,17 +258,24 @@ export default class Profile extends Command {
    * @returns a promise to the new message sent
    */
   private invalidDatabaseResponse(message: Message): Promise<Message> {
-    let response = `${message.author} Invalid response from database. `;
-    response +=
-      "Either you haven't added your id, or there was a database error. ";
-    response += "You can add you id with the steamid command!";
+    const response = `${message.author} Invalid response from database. 
+      Either you haven't added your id, or there was a database error. 
+      You can add you id with the steamid command!`;
     return this.stopTypingAndSend(message.channel, response);
   }
 
-  // Return a hero ranking given the hero id and list of ranking details
-  private idToHeroRanking(rankings, heroId: string): string {
+  /**
+   * Return a hero ranking given the hero id and list of ranking details
+   *
+   * @param rankings a list of the player's rankings for each hero
+   * @param heroId the relevant hero's id
+   * @returns a string of the player's hero ranking if found, else unknown
+   */
+  private idToHeroRanking(
+    rankings: IOpenDotaPlayerRankings[],
+    heroId: string
+  ): string {
     for (const ranking of rankings) {
-      // console.log(ranking);
       if (parseInt(ranking.hero_id) === parseInt(heroId)) {
         return `${+(100 * ranking.percent_rank).toFixed(2)}%`;
       }
@@ -240,7 +290,7 @@ export default class Profile extends Command {
    * @param heroId the id of the relevant hero
    * @returns the hero
    */
-  private idToHeroName(heroes: IOpenDotaHero[], heroId: string): string {
+  private idToHeroName(heroes: IOpenDotaHeroes[], heroId: string): string {
     for (const hero of heroes) {
       if (hero.id === parseInt(heroId)) {
         return hero.localized_name;
@@ -255,12 +305,12 @@ export default class Profile extends Command {
    * @param player the player to get data for
    * @returns the name of the medal of their rank
    */
-  private medal(player: IDotaProfile): string {
-    if (player.rank_tier === null) return "unranked";
-    if (player.leaderboard_rank)
-      return `Immortal ** | rank **${player.leaderboard_rank}`;
-    if (player.rank_tier[0] === 8) return "Immortal";
-    const medalTier = player.rank_tier.toString();
+  private medal(player: IPlayerData): string {
+    if (player.rankTier === null) return "unranked";
+    if (player.leaderboardRank)
+      return `Immortal ** | rank **${player.leaderboardRank}`;
+    if (player.rankTier[0] === 8) return "Immortal";
+    const medalTier = player.rankTier.toString();
     const medals = [
       "Lower than Herald?",
       "Herald",

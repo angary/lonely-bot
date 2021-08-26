@@ -40,3 +40,40 @@ export interface IServerMusicQueue {
   playing: boolean;
   isRepeating: boolean;
 }
+
+export interface IPlayerData {
+  name: string;
+  accountId: number;
+  mmrEstimate: number;
+  country: string;
+  avatar: string;
+  win: number;
+  lose: number;
+  winRate: number;
+  rankTier: number;
+  leaderboardRank: number;
+  heroes: IPlayerHeroData[];
+  recent: IPlayerRecentData;
+}
+
+export interface IPlayerHeroData {
+  name: string;
+  games: number;
+  winRate: number;
+  percentile: string;
+}
+
+export interface IPlayerRecentData {
+  outcome: string;
+  skill: string;
+  lobbyType: string;
+  gameMode: string;
+  hero: string;
+  kills: number;
+  deaths: number;
+  assists: number;
+  goldPerMin: number;
+  expPerMin: number;
+  date: string;
+  duration: string;
+}
