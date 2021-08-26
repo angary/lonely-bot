@@ -41,6 +41,9 @@ export interface IServerMusicQueue {
   isRepeating: boolean;
 }
 
+/**
+ * Contains data for the player profile in profile command
+ */
 export interface IPlayerData {
   name: string;
   accountId: number;
@@ -56,6 +59,9 @@ export interface IPlayerData {
   recent: IPlayerRecentData;
 }
 
+/**
+ * Contains data for one hero in the profile command
+ */
 export interface IPlayerHeroData {
   name: string;
   games: number;
@@ -63,6 +69,9 @@ export interface IPlayerHeroData {
   percentile: string;
 }
 
+/**
+ * Contains data about the player's recent match in the profile command
+ */
 export interface IPlayerRecentData {
   outcome: string;
   skill: string;
@@ -76,4 +85,13 @@ export interface IPlayerRecentData {
   expPerMin: number;
   date: string;
   duration: string;
+}
+
+/**
+ * Contains data for a hero in the meta command
+ */
+export interface IMetaHeroData {
+  name: string;
+  pickRate: string;
+  winRate: string;
 }

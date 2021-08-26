@@ -1,4 +1,5 @@
 import { Command } from "../../types/Command";
+import { IMetaHeroData } from "../../types/interfaces/Bot";
 import axios from "axios";
 import cheerio from "cheerio";
 import { Message, MessageEmbed } from "discord.js";
@@ -24,7 +25,7 @@ export default class Meta extends Command {
       return this.stopTypingAndSend(message.channel, "Invalid rank");
     }
 
-    const results = [];
+    const results: IMetaHeroData[] = [];
     axios
       .get(
         "https://www.dotabuff.com/heroes/meta?view=played&metric=rating_bracket"
@@ -79,6 +80,13 @@ export default class Meta extends Command {
       });
   };
 
+  /**
+   * Given a rank, give the rank's corresponding column in the table of the
+   * scrapped dotabuff webpage
+   *
+   * @param rank the dota 2 rank tier
+   * @returns the corresponding column
+   */
   private getRankCol(rank: string): number {
     switch (rank) {
       case "herald":
