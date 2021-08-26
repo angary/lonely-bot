@@ -29,6 +29,24 @@ export abstract class Command {
   }
 
   /**
+   * Creates a new embed with that message and sends it to the channel, and
+   * stop typing in the channel
+   *
+   * @param channel the channel to send the message in
+   * @param message the message to send
+   * @returns a promise for the sent message
+   */
+  protected createAndSendEmbed(
+    channel: TextChannel | DMChannel | NewsChannel,
+    description?: string
+  ): Promise<Message> {
+    return this.stopTypingAndSend(
+      channel,
+      this.createColouredEmbed(description)
+    );
+  }
+
+  /**
    * @returns a new MessageEmbed with the blue colouring
    */
   protected createColouredEmbed(description?: string): MessageEmbed {

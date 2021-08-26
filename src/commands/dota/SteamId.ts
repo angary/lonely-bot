@@ -7,30 +7,51 @@ export default class SteamId extends Command {
   visible = true;
   description = "Stores or update your Steam ID";
   information =
-    "Stores or updates your steam ID (it should consist of only numbers and be the number that you see as your steam friend id or in your steam URL, or the number at the end of your dotabuff/ opendota URL). Once your steam ID is saved, you do not need to type your steamID the next time you use the opendota command. If you would like to remove your steamID info from the database, you can use `steamid 0`.";
+    "Stores or updates your steam ID (it should consist of only numbers and be the number that you see as your steam friend id or in your steam URL, or the number at the end of your dotabuff/ opendota URL). Once your steam ID is saved, you do not need to type your steamID the next time you use the opendota command. If you would like to remove your steamID info from the database, you can use `steamid 0`. IF no argument is provided, then it returns your Steam ID if you've stored it in the database";
   aliases: string[] = [];
-  args = true;
+  args = false;
   usage = "[Steam32 ID]";
   example = "193480093";
   cooldown = 0;
   category = "dota";
   guildOnly = false;
   execute = (message: Message, args: string[]): Promise<Message> => {
-    const discordID = message.author.id;
-    const steamID = args[0];
+    message.channel.startTyping();
 
+    const discordID = message.author.id;
     const query = { discordID: discordID };
+    if (args.length === 0) {
+      UserModel.findOne(query).then((result) => {
+        if (result) {
+          this.createAndSendEmbed(
+            message.channel,
+            `${message.author} Your saved Steam ID is **${result.steamID}**`
+          );
+        } else {
+          this.createAndSendEmbed(
+            message.channel,
+            `${message.author} You do not have a Steam ID stored in the database`
+          );
+        }
+      });
+      return;
+    }
+
+    const steamID = args[0];
     const update = { steamID: steamID };
-    // const options = { returnNewDocument: true };
 
     // Remove steamID from the database
     if (steamID === "0") {
-      UserModel.remove(query)
+      UserModel.deleteMany(query)
         .then(() => {
-          message.channel.send("Successfully removed steamID from database!");
+          this.createAndSendEmbed(
+            message.channel,
+            `${message.author} Successfully removed steamID from database!`
+          );
         })
         .catch((err) =>
-          message.channel.send(
+          this.createAndSendEmbed(
+            message.channel,
             `${message.author} Failed to find and remove steamID ${err}`
           )
         );
@@ -38,8 +59,9 @@ export default class SteamId extends Command {
     }
 
     // Basic check if the steamID is valid
-    if (isNaN(parseInt(steamID))) {
-      return message.channel.send(
+    if (args.length !== 0 && isNaN(parseInt(steamID))) {
+      return this.createAndSendEmbed(
+        message.channel,
         `${message.author} Invalid steamID. It should only consist of numbers.`
       );
     }
@@ -48,7 +70,8 @@ export default class SteamId extends Command {
     UserModel.findOneAndUpdate(query, update)
       .then((updatedDocument) => {
         if (updatedDocument) {
-          message.channel.send(
+          this.createAndSendEmbed(
+            message.channel,
             `${message.author} Successfully updated Steam ID to be **${steamID}**!`
           );
         } else {
@@ -56,7 +79,8 @@ export default class SteamId extends Command {
           newUser
             .save()
             .then(() => {
-              message.channel.send(
+              this.createAndSendEmbed(
+                message.channel,
                 `${message.author} Added Steam ID to be **${steamID}**.`
               );
             })
@@ -64,7 +88,8 @@ export default class SteamId extends Command {
         }
       })
       .catch((err) =>
-        message.channel.send(
+        this.createAndSendEmbed(
+          message.channel,
           `${message.author} Failed to find and add/ update ID. ${err}`
         )
       );
