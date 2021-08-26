@@ -1,6 +1,13 @@
 import { Client } from "./Client";
-import { IBot, ISong } from "./interfaces/Bot";
-import { Message, VoiceChannel } from "discord.js";
+import { ISong } from "./interfaces/Bot";
+import {
+  DMChannel,
+  Message,
+  MessageEmbed,
+  NewsChannel,
+  TextChannel,
+  VoiceChannel,
+} from "discord.js";
 
 export abstract class Command {
   client: Client;
@@ -17,8 +24,23 @@ export abstract class Command {
   abstract guildOnly: boolean;
   abstract execute: (message: Message, args: string[]) => Promise<Message>;
 
-  public constructor(client: IBot) {
+  public constructor(client: Client) {
     this.client = client;
+  }
+
+  /**
+   * Stop typing and send message to the following channel
+   *
+   * @param channel the channel to send the message in
+   * @param message the message to send
+   * @returns a promise for the sent message
+   */
+  protected stopTypingAndSend(
+    channel: TextChannel | DMChannel | NewsChannel,
+    message: MessageEmbed | string
+  ): Promise<Message> {
+    channel.stopTyping();
+    return channel.send(message);
   }
 
   /**

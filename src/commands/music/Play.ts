@@ -26,11 +26,12 @@ export default class Play extends Command {
     // Check if we are in a voice channel
     const voiceChannel = message.member.voice.channel;
     if (!voiceChannel) {
-      message.channel.send("You need to be in a voice channel to play music!");
-      return;
+      return message.channel.send(
+        "You need to be in a voice channel to play music!"
+      );
     }
 
-    // Check if teh bot has permissions to play music in that server
+    // Check if the bot has permissions to play music in that server
     if (!this.hasPermissions(voiceChannel, message)) {
       return;
     }

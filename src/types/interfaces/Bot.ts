@@ -1,7 +1,4 @@
-import { Command } from "../Command";
 import {
-  Client,
-  Collection,
   Message,
   TextChannel,
   VoiceChannel,
@@ -10,12 +7,9 @@ import {
 
 import ytdl = require("ytdl-core");
 
-export interface IBot extends Client {
-  commands: Collection<string, Command>;
-  prefixes: { [key: number]: string };
-  musicQueue: Map<string, IServerMusicQueue>;
-}
-
+/**
+ * Contains data for a hero in the counter command
+ */
 export interface IHero {
   name: string;
   count: number;
@@ -23,6 +17,9 @@ export interface IHero {
   disadvantage: number;
 }
 
+/**
+ * Contains all the data for each song in the play song command
+ */
 export interface ISong {
   info: ytdl.videoInfo;
   title: string;
@@ -31,6 +28,9 @@ export interface ISong {
   formattedDuration: string;
 }
 
+/**
+ * Contains data for the music queue of a server
+ */
 export interface IServerMusicQueue {
   voiceChannel: VoiceChannel;
   textChannel: TextChannel;

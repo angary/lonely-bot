@@ -1,8 +1,8 @@
 import { Command } from "./Command";
-import { IBot, IServerMusicQueue } from "./interfaces/Bot";
+import { IServerMusicQueue } from "./interfaces/Bot";
 import { Collection, Client as DiscordClient } from "discord.js";
 
-export class Client extends DiscordClient implements IBot {
+export class Client extends DiscordClient {
   commands: Collection<string, Command>;
   prefixes: { [key: number]: string };
   musicQueue: Map<string, IServerMusicQueue>;
