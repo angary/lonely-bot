@@ -14,6 +14,7 @@ export default class Message extends Event {
   }
 
   run = async (args: DiscordMessage[]): Promise<DiscordMessage> => {
+    console.log("Message was called");
     const [message] = args;
 
     // Does nothing if sender is a bot

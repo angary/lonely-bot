@@ -1,7 +1,7 @@
 import { Client } from "../../src/types/Client";
 import { Message } from "discord.js";
 
-describe("PingCommand", () => {
+describe("ping command", () => {
   const message = {
     channel: {
       send: jest.fn(),

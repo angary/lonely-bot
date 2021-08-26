@@ -58,8 +58,8 @@ TypeScript is used for the bot for better code checking, and documentation. You 
 | `build`   | Compiles the code into `dist` folder                            |
 | `format`  | Automatically formats the code using prettier                   |
 | `lint`    | Runs eslint on all TypeScript files, and fixes them if possible |
-| `start`   | Compiles the code and starts the bot                            |
 | `prepare` | Installs husky scripts for git hooks                            |
+| `start`   | Compiles the code and starts the bot                            |
 | `test`    | Run tests inside test folder                                    |
 
 ### Cool Facts
