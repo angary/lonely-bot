@@ -7,7 +7,7 @@ import {
   joinVoiceChannel,
   StreamType,
 } from "@discordjs/voice";
-import { Message, MessageEmbed, TextChannel } from "discord.js";
+import { Message, TextChannel } from "discord.js";
 
 import ytdl = require("ytdl-core");
 import ytsr = require("ytsr");
@@ -26,6 +26,8 @@ export default class Play extends Command {
   category = "music";
   guildOnly = true;
   execute = async (message: Message, args: string[]): Promise<Message> => {
+    message.channel.sendTyping();
+
     // Check if we are in a voice channel
     const voiceChannel = message.member.voice.channel;
     if (!voiceChannel) {
@@ -44,7 +46,10 @@ export default class Play extends Command {
       // Find the song details from URL
       songInfo = await ytdl.getInfo(args[0]);
       if (!songInfo) {
-        return message.channel.send("Could not find details from youtube");
+        return this.createAndSendEmbed(
+          message.channel,
+          "Could not find details from youtube"
+        );
       }
     } else {
       try {
@@ -57,7 +62,8 @@ export default class Play extends Command {
         songInfo = await ytdl.getInfo(results.items[0].url);
       } catch (error) {
         console.log(error);
-        return message.channel.send(
+        return this.createAndSendEmbed(
+          message.channel,
           "There was an error searching for that song"
         );
       }
@@ -112,12 +118,10 @@ export default class Play extends Command {
     } else {
       // Add the new song to the queue
       serverQueue.songs.push(song);
-      const playEmbed = new MessageEmbed()
-        .setColor("#0099ff")
-        .setDescription(
-          `Queued ${this.getFormattedLink(song)} (${song.formattedDuration})`
-        );
-      message.channel.send({ embeds: [playEmbed] });
+      this.createAndSendEmbed(
+        message.channel,
+        `Queued ${this.getFormattedLink(song)} (${song.formattedDuration})`
+      );
       // If it is the only song in the queue
       if (serverQueue.songs.length === 1) {
         this.playSong(guildId, musicQueue);
@@ -144,7 +148,7 @@ export default class Play extends Command {
       return this.handleEmptyQueue(guildId, musicQueue, serverQueue, 60_000);
     }
 
-    const stream = ytdl(serverQueue.songs[0].url, {
+    const stream = ytdl.downloadFromInfo(serverQueue.songs[0].info, {
       highWaterMark: 1 << 25,
       filter: "audioonly",
     });
@@ -154,6 +158,7 @@ export default class Play extends Command {
     const player = createAudioPlayer();
 
     player.play(resource);
+    serverQueue.connection.subscribe(player);
 
     player.on(AudioPlayerStatus.Idle, () =>
       this.handleSongFinish(guildId, musicQueue, serverQueue)
