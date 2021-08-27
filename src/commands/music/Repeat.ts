@@ -40,7 +40,7 @@ export default class Repeat extends Command {
             serverQueue.isRepeating ? "repeating" : "not repeating"
           }**`
         );
-      message.channel.send(repeatEmbed);
+      message.channel.send({ embeds: [repeatEmbed] });
     }
   };
 }

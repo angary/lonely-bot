@@ -1,9 +1,5 @@
-import {
-  Message,
-  TextChannel,
-  VoiceChannel,
-  VoiceConnection,
-} from "discord.js";
+import { VoiceConnection } from "@discordjs/voice";
+import { Message, StageChannel, TextChannel, VoiceChannel } from "discord.js";
 
 import ytdl = require("ytdl-core");
 
@@ -32,7 +28,7 @@ export interface ISong {
  * Contains data for the music queue of a server
  */
 export interface IServerMusicQueue {
-  voiceChannel: VoiceChannel;
+  voiceChannel: VoiceChannel | StageChannel;
   textChannel: TextChannel;
   connection: VoiceConnection;
   songs: ISong[];
@@ -94,4 +90,5 @@ export interface IMetaHeroData {
   name: string;
   pickRate: string;
   winRate: string;
+  index: number;
 }

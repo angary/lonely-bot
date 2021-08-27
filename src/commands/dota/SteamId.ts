@@ -16,7 +16,7 @@ export default class SteamId extends Command {
   category = "dota";
   guildOnly = false;
   execute = (message: Message, args: string[]): Promise<Message> => {
-    message.channel.startTyping();
+    message.channel.sendTyping();
 
     const discordID = message.author.id;
     const query = { discordID: discordID };

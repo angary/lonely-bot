@@ -34,7 +34,7 @@ export default class Counter extends Command {
   guildOnly = false;
   execute = async (message: Message, args: string[]): Promise<Message> => {
     // Trigger bot to start typing and record time message was received
-    message.channel.startTyping();
+    message.channel.sendTyping();
 
     // Convert argument names into official names
     const enemies: string[] = [];
@@ -44,7 +44,7 @@ export default class Counter extends Command {
       if (officialName) {
         enemies.push(officialName);
       } else {
-        return this.stopTypingAndSend(
+        return this.createAndSendEmbed(
           message.channel,
           `Invalid hero name **${name}**.`
         );
@@ -68,7 +68,10 @@ export default class Counter extends Command {
 
       // Handle errors
       .catch((error) => {
-        this.stopTypingAndSend(message.channel, `There was an error: ${error}`);
+        this.createAndSendEmbed(
+          message.channel,
+          `There was an error: ${error}`
+        );
       });
   };
 
@@ -171,7 +174,7 @@ export default class Counter extends Command {
       .slice(0, 5);
     this.addHeroes(heroesEmbed, advCounters, "disadvantage");
 
-    return this.stopTypingAndSend(message.channel, heroesEmbed);
+    return message.channel.send({ embeds: [heroesEmbed] });
   }
 
   /**

@@ -1,11 +1,10 @@
 import { Client } from "./Client";
 import { ISong } from "./interfaces/Bot";
 import {
-  DMChannel,
   Message,
   MessageEmbed,
-  NewsChannel,
-  TextChannel,
+  StageChannel,
+  TextBasedChannels,
   VoiceChannel,
 } from "discord.js";
 
@@ -37,35 +36,24 @@ export abstract class Command {
    * @returns a promise for the sent message
    */
   protected createAndSendEmbed(
-    channel: TextChannel | DMChannel | NewsChannel,
+    channel: TextBasedChannels,
     description?: string
   ): Promise<Message> {
-    return this.stopTypingAndSend(
-      channel,
-      this.createColouredEmbed(description)
-    );
+    return channel.send({
+      embeds: [this.createColouredEmbed(description)],
+    });
   }
 
   /**
+   * @param description (optional) the description for the embed
    * @returns a new MessageEmbed with the blue colouring
    */
   protected createColouredEmbed(description?: string): MessageEmbed {
-    return new MessageEmbed().setColor("#0099ff").setDescription(description);
-  }
-
-  /**
-   * Stop typing and send message to the following channel
-   *
-   * @param channel the channel to send the message in
-   * @param message the message to send
-   * @returns a promise for the sent message
-   */
-  protected stopTypingAndSend(
-    channel: TextChannel | DMChannel | NewsChannel,
-    message: MessageEmbed | string
-  ): Promise<Message> {
-    channel.stopTyping();
-    return channel.send(message);
+    const embed = new MessageEmbed().setColor("#0099ff");
+    if (description) {
+      embed.setDescription(description);
+    }
+    return embed;
   }
 
   /**
@@ -77,7 +65,7 @@ export abstract class Command {
    * @returns if the bot has permission to join the voice channel or not
    */
   protected hasPermissions(
-    voiceChannel: VoiceChannel,
+    voiceChannel: VoiceChannel | StageChannel,
     message: Message
   ): boolean {
     const permissions = voiceChannel.permissionsFor(message.client.user);

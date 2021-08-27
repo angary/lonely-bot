@@ -30,7 +30,7 @@ export default class Help extends Command {
         );
       }
     }
-    message.channel.send(helpEmbed);
+    message.channel.send({ embeds: [helpEmbed] });
   };
 
   /**
@@ -83,10 +83,11 @@ export default class Help extends Command {
     );
 
     // Add it to the embed
-    helpEmbed.addFields({
-      name: `**${category.charAt(0).toUpperCase() + category.slice(1)}**`,
-      value: data,
-    });
+    helpEmbed.addField(
+      `**${category.charAt(0).toUpperCase() + category.slice(1)}**`,
+      data.join("\n"),
+      false
+    );
   }
 
   /**
@@ -128,7 +129,7 @@ export default class Help extends Command {
     if (command.cooldown) {
       data.push(`**Cooldown:** ${command.cooldown} second(s)`);
     }
-    helpEmbed.setDescription(data);
+    helpEmbed.setDescription(data.join("\n"));
   }
 
   /**

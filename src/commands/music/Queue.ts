@@ -1,5 +1,5 @@
 import { Command } from "../../types/Command";
-import { Message, MessageEmbed } from "discord.js";
+import { Message } from "discord.js";
 
 export default class Queue extends Command {
   name = "queue";
@@ -25,7 +25,8 @@ export default class Queue extends Command {
     let songsInQueue = "";
 
     // Collect first song detail
-    const currStreamTime = serverQueue.connection.dispatcher.streamTime / 1000;
+    // const currStreamTime = serverQueue.connection. / 1000;
+    const currStreamTime = 1000;
     const currTimestamp = `${this.formatDuration(currStreamTime)}/${
       song.formattedDuration
     }`;
@@ -49,8 +50,7 @@ export default class Queue extends Command {
       }
     }
 
-    const queueEmbed = new MessageEmbed()
-      .setColor("#0099ff")
+    const queueEmbed = this.createColouredEmbed()
       .setTitle("Queue")
       .setDescription(
         `Song count: **${songs.length}** | Duration: **${this.formatDuration(
@@ -63,6 +63,6 @@ export default class Queue extends Command {
         false
       )
       .addField("Songs", songsInQueue, false);
-    message.channel.send(queueEmbed);
+    message.channel.send({ embeds: [queueEmbed] });
   };
 }

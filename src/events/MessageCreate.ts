@@ -5,7 +5,7 @@ import { Collection, Guild, Message as DiscordMessage } from "discord.js";
 
 type Cooldown = Collection<string, number>;
 
-export default class Message extends Event {
+export default class MessageCreate extends Event {
   cooldowns: Collection<string, Cooldown>;
 
   constructor(client: Client) {
@@ -42,7 +42,7 @@ export default class Message extends Event {
     //----------------------------------------------------------------------------
 
     // DMs
-    if (command.guildOnly && message.channel.type !== "text") {
+    if (command.guildOnly && message.channel.type === "DM") {
       return message.reply("I can't execute that command inside DMs!");
     }
 

@@ -1,6 +1,6 @@
 import { Command } from "../../types/Command";
 import { ISong } from "../../types/interfaces/Bot";
-import { Message, MessageEmbed } from "discord.js";
+import { Message } from "discord.js";
 
 export default class Remove extends Command {
   name = "remove";
@@ -36,20 +36,10 @@ export default class Remove extends Command {
       }
     }
 
-    if (removedSong === null) {
-      message.channel.send(
-        new MessageEmbed()
-          .setColor("#0099ff")
-          .setDescription(`Could not find song ${removeSongName} in the queue`)
-      );
-    } else {
-      message.channel.send(
-        new MessageEmbed()
-          .setColor("#0099ff")
-          .setDescription(
-            `Removed ${this.getFormattedLink(removedSong)} from the queue`
-          )
-      );
-    }
+    const description =
+      removedSong === null
+        ? `Could not find ${removeSongName} in the queue`
+        : `Removed ${this.getFormattedLink(removedSong)} from the queue`;
+    this.createAndSendEmbed(message.channel, description);
   };
 }

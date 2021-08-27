@@ -45,7 +45,7 @@ export default class VoiceStateUpdate extends Event {
   ): void {
     const serverQueue = musicQueue.get(guildId);
     if (serverQueue !== null && this.shouldLeave(serverQueue)) {
-      serverQueue.connection.dispatcher.end();
+      serverQueue.connection.destroy();
       serverQueue.songs = [];
     }
   }

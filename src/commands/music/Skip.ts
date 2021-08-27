@@ -34,7 +34,7 @@ export default class Skip extends Command {
     }
 
     try {
-      serverQueue.connection.dispatcher.end();
+      serverQueue.connection.destroy();
     } catch (error) {
       serverQueue.songs = [];
       console.log(error);

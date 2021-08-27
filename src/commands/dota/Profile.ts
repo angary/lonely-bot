@@ -42,7 +42,7 @@ export default class Profile extends Command {
   category = "dota";
   guildOnly = false;
   execute = async (message: Message, args: string[]): Promise<Message> => {
-    message.channel.startTyping();
+    message.channel.sendTyping();
 
     // Checks for id
     let id = args[0];
@@ -93,10 +93,10 @@ export default class Profile extends Command {
 
       // Catch errors
       .catch((error) => {
-        this.stopTypingAndSend(
-          message.channel,
-          this.createColouredEmbed(`There was an error: ${error}`)
+        const errorEmbed = this.createColouredEmbed(
+          `There was an error: ${error}`
         );
+        message.channel.send({ embeds: [errorEmbed] });
       });
   };
 
@@ -249,7 +249,7 @@ export default class Profile extends Command {
       Date: **${match.date}** | Duration: **${match.duration}**`,
     });
 
-    return this.stopTypingAndSend(message.channel, profileEmbed);
+    return message.channel.send({ embeds: [profileEmbed] });
   }
 
   /**
@@ -262,10 +262,9 @@ export default class Profile extends Command {
     const response = `${message.author} Invalid response from database. 
       Either you haven't added your id, or there was a database error. 
       You can add you id with the steamid command!`;
-    return this.stopTypingAndSend(
-      message.channel,
-      this.createColouredEmbed(response)
-    );
+    return message.channel.send({
+      embeds: [this.createColouredEmbed(response)],
+    });
   }
 
   /**

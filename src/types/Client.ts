@@ -1,7 +1,7 @@
 import { Command } from "./Command";
 import { Event } from "./Event";
 import { IServerMusicQueue } from "./interfaces/Bot";
-import { Collection, Client as DiscordClient } from "discord.js";
+import { Collection, Client as DiscordClient, Intents } from "discord.js";
 import { readdirSync, statSync } from "fs";
 import { join } from "path";
 
@@ -20,7 +20,7 @@ export class Client extends DiscordClient {
     commandsPath: string,
     eventsPath: string
   ) {
-    super();
+    super({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
     this.commands = new Collection();
     this.prefixes = {};
     this.musicQueue = new Map();

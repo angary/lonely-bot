@@ -28,7 +28,7 @@ export default class SetPrefix extends Command {
         .then(() => {
           delete this.client.prefixes[guildId];
           return message.channel.send(
-            `Successfully reset server prefix to be **${prefix}**!`
+            `Successfully reset server prefix to be **${prefix}**`
           );
         })
         .catch((err) =>
@@ -36,6 +36,7 @@ export default class SetPrefix extends Command {
             `${message.author} Failed to find and reset prefix ${err}`
           )
         );
+      return;
     }
 
     GuildModel.findOneAndUpdate(query, update)
@@ -43,7 +44,7 @@ export default class SetPrefix extends Command {
         if (updatedDocument) {
           this.client.prefixes[guildId] = newPrefix;
           return message.channel.send(
-            `Successfully updated server prefix to be **${newPrefix}**!`
+            `Successfully updated server prefix to be **${newPrefix}**`
           );
         } else {
           const newGuild = new GuildModel({ guildId, prefix: newPrefix });

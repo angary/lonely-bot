@@ -15,7 +15,7 @@ export default class Meme extends Command {
   category = "general";
   guildOnly = false;
   execute = (message: Message): Promise<Message> => {
-    message.channel.startTyping();
+    message.channel.sendTyping();
     axios
       .get("https://www.reddit.com/r/dankmemes/random/.json")
       .then((response) => {
@@ -39,15 +39,13 @@ export default class Meme extends Command {
           .setFooter(
             `⬆ ${post.ups} 💬 ${post.num_comments} 📅 ${day}/${month}/${year}`
           );
-        message.channel.stopTyping();
-        return message.channel.send(memeEmbed);
+        return message.channel.send({ embeds: [memeEmbed] });
       })
       .then((message) => {
         message.react("👍");
         message.react("👎");
       })
       .catch((error) => {
-        message.channel.stopTyping();
         return message.channel.send(`There was an error: ${error}`);
       });
     return;

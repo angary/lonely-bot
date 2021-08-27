@@ -11,11 +11,7 @@ const client = new Client("../", "dist/src/commands", "dist/src/events");
 
 // Connect to mongoose database
 //------------------------------------------------------------------------------
-mongooseConnect(process.env.BOT_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  useFindAndModify: false,
-})
+mongooseConnect(process.env.BOT_URI)
   .then(() => {
     console.log("Connected to MongoDB");
   })

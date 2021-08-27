@@ -1,13 +1,16 @@
 import { Command } from "../../types/Command";
 import { IServerMusicQueue, ISong } from "../../types/interfaces/Bot";
 import {
-  Message,
-  MessageEmbed,
-  StreamDispatcher,
-  TextChannel,
-} from "discord.js";
-import * as ytdl from "ytdl-core";
-import * as ytsr from "ytsr";
+  AudioPlayerStatus,
+  createAudioPlayer,
+  createAudioResource,
+  joinVoiceChannel,
+  StreamType,
+} from "@discordjs/voice";
+import { Message, MessageEmbed, TextChannel } from "discord.js";
+
+import ytdl = require("ytdl-core");
+import ytsr = require("ytsr");
 
 export default class Play extends Command {
   name = "play";
@@ -72,7 +75,8 @@ export default class Play extends Command {
 
     // Check if there is a music queue
     const musicQueue = this.client.musicQueue;
-    const guildId = message.guild.id;
+    const guild = message.guild;
+    const guildId = guild.id;
     const serverQueue = musicQueue.get(guildId);
 
     if (!serverQueue) {
@@ -94,7 +98,11 @@ export default class Play extends Command {
       // Play the song
       try {
         // Join the voice channel
-        queueConstruct.connection = await voiceChannel.join();
+        queueConstruct.connection = joinVoiceChannel({
+          channelId: voiceChannel.id,
+          guildId: guildId,
+          adapterCreator: guild.voiceAdapterCreator,
+        });
         this.playSong(guildId, musicQueue);
       } catch (error) {
         // Catch error and remove the server's queue
@@ -109,7 +117,7 @@ export default class Play extends Command {
         .setDescription(
           `Queued ${this.getFormattedLink(song)} (${song.formattedDuration})`
         );
-      message.channel.send(playEmbed);
+      message.channel.send({ embeds: [playEmbed] });
       // If it is the only song in the queue
       if (serverQueue.songs.length === 1) {
         this.playSong(guildId, musicQueue);
@@ -125,10 +133,7 @@ export default class Play extends Command {
    * @param musicQueue a map from a server's id to it's music queue
    * @returns a message saying which song it is currently playing
    */
-  playSong(
-    guildId: string,
-    musicQueue: Map<string, IServerMusicQueue>
-  ): StreamDispatcher {
+  playSong(guildId: string, musicQueue: Map<string, IServerMusicQueue>): void {
     const serverQueue = musicQueue.get(guildId);
     if (!serverQueue) {
       return;
@@ -139,20 +144,20 @@ export default class Play extends Command {
       return this.handleEmptyQueue(guildId, musicQueue, serverQueue, 60_000);
     }
 
-    // Play the song
-    serverQueue.connection
-      .play(
-        ytdl.downloadFromInfo(serverQueue.songs[0].info, {
-          highWaterMark: 1 << 25, // Increase memory for song to 32 mb
-          filter: "audioonly",
-        })
-      )
-      .on("finish", () =>
-        this.handleSongFinish(guildId, musicQueue, serverQueue)
-      )
-      .on("error", (error) => {
-        console.log(error);
-      });
+    const stream = ytdl(serverQueue.songs[0].url, {
+      highWaterMark: 1 << 25,
+      filter: "audioonly",
+    });
+    const resource = createAudioResource(stream, {
+      inputType: StreamType.Arbitrary,
+    });
+    const player = createAudioPlayer();
+
+    player.play(resource);
+
+    player.on(AudioPlayerStatus.Idle, () =>
+      this.handleSongFinish(guildId, musicQueue, serverQueue)
+    );
 
     // Send to channel which song we are playing
     this.sendPlayingEmbed(serverQueue);
@@ -171,7 +176,7 @@ export default class Play extends Command {
     guildId: string,
     musicQueue: Map<string, IServerMusicQueue>,
     serverQueue: IServerMusicQueue
-  ): StreamDispatcher {
+  ): void {
     if (serverQueue !== null) {
       const song = serverQueue.songs[0];
       if (serverQueue.isRepeating) {
@@ -196,10 +201,10 @@ export default class Play extends Command {
     musicQueue: Map<string, IServerMusicQueue>,
     serverQueue: IServerMusicQueue,
     timeoutDuration: number
-  ): StreamDispatcher {
+  ): void {
     if (serverQueue.voiceChannel.members.size === 0) {
       // If there are no more members
-      serverQueue.voiceChannel.leave();
+      serverQueue.connection.destroy();
       serverQueue.textChannel.send(
         "Stopping music as all members have left the voice channel"
       );
@@ -209,7 +214,7 @@ export default class Play extends Command {
     // Wait for 1 minute and if there is no new songs, leave
     setTimeout(() => {
       if (serverQueue.songs.length === 0) {
-        serverQueue.voiceChannel.leave();
+        serverQueue.connection.destroy();
         musicQueue.delete(guildId);
         return;
       }
@@ -225,18 +230,15 @@ export default class Play extends Command {
   sendPlayingEmbed(serverQueue: IServerMusicQueue): void {
     const song = serverQueue.songs[0];
     const songLink = this.getFormattedLink(song);
-    serverQueue.textChannel
-      .send(
-        new MessageEmbed()
-          .setColor("#0099ff")
-          .setDescription(`Now playing ${songLink} (${song.formattedDuration})`)
-      )
-      .then((message) => {
-        if (serverQueue.playingMessage !== null) {
-          serverQueue.playingMessage.delete();
-        }
-        serverQueue.playingMessage = message;
-      });
+    this.createAndSendEmbed(
+      serverQueue.textChannel,
+      `Now playing ${songLink} (${song.formattedDuration})`
+    ).then((message) => {
+      if (serverQueue.playingMessage !== null) {
+        serverQueue.playingMessage.delete();
+      }
+      serverQueue.playingMessage = message;
+    });
     return;
   }
 }

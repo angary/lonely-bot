@@ -37,7 +37,7 @@ describe("client", () => {
 
   it("should be triggered by commands with its prefix", () => {
     message.content = `${config.prefix}ping`;
-    client.emit("message", message);
+    client.emit("messageCreate", message);
     expect(message.channel.send).toHaveBeenCalledTimes(1);
     expect(message.channel.send).toBeCalledWith(
       "Pong! Your ping is **NaN ms**"
@@ -46,7 +46,7 @@ describe("client", () => {
 
   it("should not be triggered by commands without its prefix", () => {
     message.content = "ping";
-    client.emit("message", message);
+    client.emit("messageCreate", message);
     expect(message.channel.send).toHaveBeenCalledTimes(0);
   });
 });

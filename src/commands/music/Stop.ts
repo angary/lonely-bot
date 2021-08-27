@@ -30,7 +30,7 @@ export default class Stop extends Command {
     }
 
     serverQueue.songs = [];
-    serverQueue.connection.dispatcher.end();
+    serverQueue.connection.destroy();
     return message.channel.send("Removed all songs from the queue");
   };
 }
