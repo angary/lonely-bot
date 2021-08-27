@@ -41,15 +41,43 @@ export default class Play extends Command {
       return;
     }
 
-    let songInfo: ytdl.videoInfo = null;
+    const songInfo: ytdl.videoInfo = await this.getSongInfo(message, args);
+    const url = songInfo.videoDetails.video_url;
+    const guild = message.guild;
+
+    const connection = joinVoiceChannel({
+      channelId: voiceChannel.id,
+      guildId: guild.id,
+      adapterCreator: guild.voiceAdapterCreator,
+    });
+
+    const stream = ytdl(url, { filter: "audioonly" });
+    const resource = createAudioResource(stream, {
+      inputType: StreamType.Arbitrary,
+    });
+    const player = createAudioPlayer();
+
+    player.play(resource);
+    connection.subscribe(player);
+
+    player.on(AudioPlayerStatus.Idle, () => connection.destroy());
+  };
+
+  private async getSongInfo(
+    message: Message,
+    args: string[]
+  ): Promise<ytdl.videoInfo> {
+    let songInfo = null;
     if (ytdl.validateURL(args[0])) {
       // Find the song details from URL
       songInfo = await ytdl.getInfo(args[0]);
       if (!songInfo) {
-        return this.createAndSendEmbed(
+        this.createAndSendEmbed(
           message.channel,
           "Could not find details from youtube"
         );
+      } else {
+        return songInfo;
       }
     } else {
       try {
@@ -62,188 +90,234 @@ export default class Play extends Command {
         songInfo = await ytdl.getInfo(results.items[0].url);
       } catch (error) {
         console.log(error);
-        return this.createAndSendEmbed(
+        this.createAndSendEmbed(
           message.channel,
           "There was an error searching for that song"
         );
       }
     }
-
-    // Collect song details
-    const duration = parseInt(songInfo.videoDetails.lengthSeconds);
-    const song: ISong = {
-      info: songInfo,
-      title: songInfo.videoDetails.title,
-      url: songInfo.videoDetails.video_url,
-      duration: duration,
-      formattedDuration: this.formatDuration(duration),
-    };
-
-    // Check if there is a music queue
-    const musicQueue = this.client.musicQueue;
-    const guild = message.guild;
-    const guildId = guild.id;
-    const serverQueue = musicQueue.get(guildId);
-
-    if (!serverQueue) {
-      // Create the new queue
-      const queueConstruct: IServerMusicQueue = {
-        voiceChannel: voiceChannel,
-        textChannel: message.channel as TextChannel,
-        connection: null,
-        songs: [],
-        playingMessage: null,
-        playing: true,
-        isRepeating: false,
-      };
-
-      // Add the queue
-      musicQueue.set(guildId, queueConstruct);
-      queueConstruct.songs.push(song);
-
-      // Play the song
-      try {
-        // Join the voice channel
-        queueConstruct.connection = joinVoiceChannel({
-          channelId: voiceChannel.id,
-          guildId: guildId,
-          adapterCreator: guild.voiceAdapterCreator,
-        });
-        this.playSong(guildId, musicQueue);
-      } catch (error) {
-        // Catch error and remove the server's queue
-        console.log(error);
-        musicQueue.delete(message.guild.id);
-      }
-    } else {
-      // Add the new song to the queue
-      serverQueue.songs.push(song);
-      this.createAndSendEmbed(
-        message.channel,
-        `Queued ${this.getFormattedLink(song)} (${song.formattedDuration})`
-      );
-      // If it is the only song in the queue
-      if (serverQueue.songs.length === 1) {
-        this.playSong(guildId, musicQueue);
-      }
-    }
-  };
-
-  /**
-   * Plays the next song in the queue. Once the song ends, pop it from the
-   * queue and recursively call this function
-   *
-   * @param guildId the id of the server the bot is playing music in
-   * @param musicQueue a map from a server's id to it's music queue
-   * @returns a message saying which song it is currently playing
-   */
-  playSong(guildId: string, musicQueue: Map<string, IServerMusicQueue>): void {
-    const serverQueue = musicQueue.get(guildId);
-    if (!serverQueue) {
-      return;
-    }
-
-    // Base case
-    if (serverQueue.songs.length === 0) {
-      return this.handleEmptyQueue(guildId, musicQueue, serverQueue, 60_000);
-    }
-
-    const stream = ytdl.downloadFromInfo(serverQueue.songs[0].info, {
-      highWaterMark: 1 << 25,
-      filter: "audioonly",
-    });
-    const resource = createAudioResource(stream, {
-      inputType: StreamType.Arbitrary,
-    });
-    const player = createAudioPlayer();
-
-    player.play(resource);
-    serverQueue.connection.subscribe(player);
-
-    player.on(AudioPlayerStatus.Idle, () =>
-      this.handleSongFinish(guildId, musicQueue, serverQueue)
-    );
-
-    // Send to channel which song we are playing
-    this.sendPlayingEmbed(serverQueue);
+    return songInfo;
   }
 
-  /**
-   * Handles what to do when the the current song finishes. If the server has
-   * repeat active, then add the new song. If the queue is not empty, plays the
-   * next song.
-   *
-   * @param guildId the id of the relevant server
-   * @param musicQueue the mapping of server ids to their music queue
-   * @param serverQueue the relevant server's music queue
-   */
-  handleSongFinish(
-    guildId: string,
-    musicQueue: Map<string, IServerMusicQueue>,
-    serverQueue: IServerMusicQueue
-  ): void {
-    if (serverQueue !== null) {
-      const song = serverQueue.songs[0];
-      if (serverQueue.isRepeating) {
-        serverQueue.songs.push(song);
-      }
-      serverQueue.songs.shift();
-      return this.playSong(guildId, musicQueue);
-    }
-  }
+  // execute = async (message: Message, args: string[]): Promise<Message> => {
+  //   message.channel.sendTyping();
 
-  /**
-   * Handles what to do when the queue is empty. If there are no more members,
-   * then leave immediate, else wait for a specified duration, and then leave.
-   *
-   * @param guildId the id of the relevant server
-   * @param musicQueue the mapping of server ids to their music queue
-   * @param serverQueue the relevant server's music queue
-   * @param timeoutDuration how long to stay in the voice channel before leaving
-   */
-  handleEmptyQueue(
-    guildId: string,
-    musicQueue: Map<string, IServerMusicQueue>,
-    serverQueue: IServerMusicQueue,
-    timeoutDuration: number
-  ): void {
-    if (serverQueue.voiceChannel.members.size === 0) {
-      // If there are no more members
-      serverQueue.connection.destroy();
-      serverQueue.textChannel.send(
-        "Stopping music as all members have left the voice channel"
-      );
-      musicQueue.delete(guildId);
-      return;
-    }
-    // Wait for 1 minute and if there is no new songs, leave
-    setTimeout(() => {
-      if (serverQueue.songs.length === 0) {
-        serverQueue.connection.destroy();
-        musicQueue.delete(guildId);
-        return;
-      }
-    }, timeoutDuration);
-  }
+  //   // Check if we are in a voice channel
+  //   const voiceChannel = message.member.voice.channel;
+  //   if (!voiceChannel) {
+  //     return message.channel.send(
+  //       "You need to be in a voice channel to play music!"
+  //     );
+  //   }
 
-  /**
-   * Sends a message about the current playing song. If the bot had sent a
-   * message like this for the previous song it played, delete that message
-   *
-   * @param serverQueue the queue for the relevant server
-   */
-  sendPlayingEmbed(serverQueue: IServerMusicQueue): void {
-    const song = serverQueue.songs[0];
-    const songLink = this.getFormattedLink(song);
-    this.createAndSendEmbed(
-      serverQueue.textChannel,
-      `Now playing ${songLink} (${song.formattedDuration})`
-    ).then((message) => {
-      if (serverQueue.playingMessage !== null) {
-        serverQueue.playingMessage.delete();
-      }
-      serverQueue.playingMessage = message;
-    });
-    return;
-  }
+  //   // Check if the bot has permissions to play music in that server
+  //   if (!this.hasPermissions(voiceChannel, message)) {
+  //     return;
+  //   }
+
+  //   let songInfo: ytdl.videoInfo = null;
+  //   if (ytdl.validateURL(args[0])) {
+  //     // Find the song details from URL
+  //     songInfo = await ytdl.getInfo(args[0]);
+  //     if (!songInfo) {
+  //       return this.createAndSendEmbed(
+  //         message.channel,
+  //         "Could not find details from youtube"
+  //       );
+  //     }
+  //   } else {
+  //     try {
+  //       const searchString = await ytsr.getFilters(args.join(" "));
+  //       const videoSearch = searchString.get("Type").get("Video");
+  //       // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  //       const results: any = await ytsr(videoSearch.url, {
+  //         limit: 1,
+  //       });
+  //       songInfo = await ytdl.getInfo(results.items[0].url);
+  //     } catch (error) {
+  //       console.log(error);
+  //       return this.createAndSendEmbed(
+  //         message.channel,
+  //         "There was an error searching for that song"
+  //       );
+  //     }
+  //   }
+
+  //   // Collect song details
+  //   const duration = parseInt(songInfo.videoDetails.lengthSeconds);
+  //   const song: ISong = {
+  //     info: songInfo,
+  //     title: songInfo.videoDetails.title,
+  //     url: songInfo.videoDetails.video_url,
+  //     duration: duration,
+  //     formattedDuration: this.formatDuration(duration),
+  //   };
+
+  //   // Check if there is a music queue
+  //   const musicQueue = this.client.musicQueue;
+  //   const guild = message.guild;
+  //   const guildId = guild.id;
+  //   const serverQueue = musicQueue.get(guildId);
+
+  //   if (!serverQueue) {
+  //     // Create the new queue
+  //     const queueConstruct: IServerMusicQueue = {
+  //       voiceChannel: voiceChannel,
+  //       textChannel: message.channel as TextChannel,
+  //       connection: null,
+  //       songs: [],
+  //       playingMessage: null,
+  //       playing: true,
+  //       isRepeating: false,
+  //     };
+
+  //     // Add the queue
+  //     musicQueue.set(guildId, queueConstruct);
+  //     queueConstruct.songs.push(song);
+
+  //     // Play the song
+  //     try {
+  //       // Join the voice channel
+  //       queueConstruct.connection = joinVoiceChannel({
+  //         channelId: voiceChannel.id,
+  //         guildId: guildId,
+  //         adapterCreator: guild.voiceAdapterCreator,
+  //       });
+  //       this.playSong(guildId, musicQueue);
+  //     } catch (error) {
+  //       // Catch error and remove the server's queue
+  //       console.log(error);
+  //       musicQueue.delete(message.guild.id);
+  //     }
+  //   } else {
+  //     // Add the new song to the queue
+  //     serverQueue.songs.push(song);
+  //     this.createAndSendEmbed(
+  //       message.channel,
+  //       `Queued ${this.getFormattedLink(song)} (${song.formattedDuration})`
+  //     );
+  //     // If it is the only song in the queue
+  //     if (serverQueue.songs.length === 1) {
+  //       this.playSong(guildId, musicQueue);
+  //     }
+  //   }
+  // };
+
+  // /**
+  //  * Plays the next song in the queue. Once the song ends, pop it from the
+  //  * queue and recursively call this function
+  //  *
+  //  * @param guildId the id of the server the bot is playing music in
+  //  * @param musicQueue a map from a server's id to it's music queue
+  //  * @returns a message saying which song it is currently playing
+  //  */
+  // playSong(guildId: string, musicQueue: Map<string, IServerMusicQueue>): void {
+  //   const serverQueue = musicQueue.get(guildId);
+  //   if (!serverQueue) {
+  //     return;
+  //   }
+
+  //   // Base case
+  //   if (serverQueue.songs.length === 0) {
+  //     return this.handleEmptyQueue(guildId, musicQueue, serverQueue, 60_000);
+  //   }
+
+  //   const stream = ytdl.downloadFromInfo(serverQueue.songs[0].info, {
+  //     highWaterMark: 1 << 25,
+  //     filter: "audioonly",
+  //   });
+  //   const resource = createAudioResource(stream, {
+  //     inputType: StreamType.Arbitrary,
+  //   });
+  //   const player = createAudioPlayer();
+
+  //   player.play(resource);
+  //   serverQueue.connection.subscribe(player);
+
+  //   player.on(AudioPlayerStatus.Idle, () =>
+  //     this.handleSongFinish(guildId, musicQueue, serverQueue)
+  //   );
+
+  //   // Send to channel which song we are playing
+  //   this.sendPlayingEmbed(serverQueue);
+  // }
+
+  // /**
+  //  * Handles what to do when the the current song finishes. If the server has
+  //  * repeat active, then add the new song. If the queue is not empty, plays the
+  //  * next song.
+  //  *
+  //  * @param guildId the id of the relevant server
+  //  * @param musicQueue the mapping of server ids to their music queue
+  //  * @param serverQueue the relevant server's music queue
+  //  */
+  // handleSongFinish(
+  //   guildId: string,
+  //   musicQueue: Map<string, IServerMusicQueue>,
+  //   serverQueue: IServerMusicQueue
+  // ): void {
+  //   if (serverQueue !== null) {
+  //     const song = serverQueue.songs[0];
+  //     if (serverQueue.isRepeating) {
+  //       serverQueue.songs.push(song);
+  //     }
+  //     serverQueue.songs.shift();
+  //     return this.playSong(guildId, musicQueue);
+  //   }
+  // }
+
+  // /**
+  //  * Handles what to do when the queue is empty. If there are no more members,
+  //  * then leave immediate, else wait for a specified duration, and then leave.
+  //  *
+  //  * @param guildId the id of the relevant server
+  //  * @param musicQueue the mapping of server ids to their music queue
+  //  * @param serverQueue the relevant server's music queue
+  //  * @param timeoutDuration how long to stay in the voice channel before leaving
+  //  */
+  // handleEmptyQueue(
+  //   guildId: string,
+  //   musicQueue: Map<string, IServerMusicQueue>,
+  //   serverQueue: IServerMusicQueue,
+  //   timeoutDuration: number
+  // ): void {
+  //   if (serverQueue.voiceChannel.members.size === 0) {
+  //     // If there are no more members
+  //     serverQueue.connection.destroy();
+  //     serverQueue.textChannel.send(
+  //       "Stopping music as all members have left the voice channel"
+  //     );
+  //     musicQueue.delete(guildId);
+  //     return;
+  //   }
+  //   // Wait for 1 minute and if there is no new songs, leave
+  //   setTimeout(() => {
+  //     if (serverQueue.songs.length === 0) {
+  //       serverQueue.connection.destroy();
+  //       musicQueue.delete(guildId);
+  //       return;
+  //     }
+  //   }, timeoutDuration);
+  // }
+
+  // /**
+  //  * Sends a message about the current playing song. If the bot had sent a
+  //  * message like this for the previous song it played, delete that message
+  //  *
+  //  * @param serverQueue the queue for the relevant server
+  //  */
+  // sendPlayingEmbed(serverQueue: IServerMusicQueue): void {
+  //   const song = serverQueue.songs[0];
+  //   const songLink = this.getFormattedLink(song);
+  //   this.createAndSendEmbed(
+  //     serverQueue.textChannel,
+  //     `Now playing ${songLink} (${song.formattedDuration})`
+  //   ).then((message) => {
+  //     if (serverQueue.playingMessage !== null) {
+  //       serverQueue.playingMessage.delete();
+  //     }
+  //     serverQueue.playingMessage = message;
+  //   });
+  //   return;
+  // }
 }
