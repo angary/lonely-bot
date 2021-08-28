@@ -1,13 +1,17 @@
 import { Command } from "../../types/Command";
 import { IServerMusicQueue, ISong } from "../../types/interfaces/Bot";
 import {
+  AudioPlayer,
   AudioPlayerStatus,
   createAudioPlayer,
   createAudioResource,
+  entersState,
   joinVoiceChannel,
   StreamType,
+  VoiceConnection,
+  VoiceConnectionStatus,
 } from "@discordjs/voice";
-import { Message, TextChannel } from "discord.js";
+import { Message, StageChannel, TextChannel, VoiceChannel } from "discord.js";
 
 import ytdl = require("ytdl-core");
 import ytsr = require("ytsr");
@@ -28,7 +32,7 @@ export default class Play extends Command {
   execute = async (message: Message, args: string[]): Promise<Message> => {
     message.channel.sendTyping();
 
-    // Check if we are in a voice channel
+    // Check if they are in a voice channel
     const voiceChannel = message.member.voice.channel;
     if (!voiceChannel) {
       return message.channel.send(
@@ -41,28 +45,27 @@ export default class Play extends Command {
       return;
     }
 
+    // Get the song info
     const songInfo: ytdl.videoInfo = await this.getSongInfo(message, args);
-    const url = songInfo.videoDetails.video_url;
-    const guild = message.guild;
 
-    const connection = joinVoiceChannel({
-      channelId: voiceChannel.id,
-      guildId: guild.id,
-      adapterCreator: guild.voiceAdapterCreator,
-    });
+    const connection = await this.connectToChannel(voiceChannel);
+    console.log("Connected to channel");
 
-    const stream = ytdl(url, { filter: "audioonly" });
-    const resource = createAudioResource(stream, {
-      inputType: StreamType.Arbitrary,
-    });
-    const player = createAudioPlayer();
+    const player = await this.playSong(songInfo);
+    console.log("Player is ready");
 
-    player.play(resource);
     connection.subscribe(player);
-
-    player.on(AudioPlayerStatus.Idle, () => connection.destroy());
+    console.log("Connection has subscribed to player");
+    // player.on(AudioPlayerStatus.Idle, () => connection.destroy());
   };
 
+  /**
+   * Read the user's arguments and get the song from youtube
+   *
+   * @param message the message that triggered this command
+   * @param args the arguments of the user
+   * @returns the song info of their desired song
+   */
   private async getSongInfo(
     message: Message,
     args: string[]
@@ -76,8 +79,6 @@ export default class Play extends Command {
           message.channel,
           "Could not find details from youtube"
         );
-      } else {
-        return songInfo;
       }
     } else {
       try {
@@ -97,6 +98,49 @@ export default class Play extends Command {
       }
     }
     return songInfo;
+  }
+
+  /**
+   * Given the song details, create an audio player for the song, or throw an
+   * error if it does not start playing in 5 seconds
+   *
+   * @param songInfo the details of the song
+   * @returns a promise to the created audio player
+   */
+  private async playSong(songInfo: ytdl.videoInfo): Promise<AudioPlayer> {
+    const player = createAudioPlayer();
+    const stream = ytdl(songInfo.videoDetails.video_url, {
+      filter: "audioonly",
+    });
+    const resource = createAudioResource(stream, {
+      inputType: StreamType.Arbitrary,
+    });
+    player.play(resource);
+    return entersState(player, AudioPlayerStatus.Playing, 5_000);
+  }
+
+  /**
+   * Connect to a voice channel and returns the VoiceConnection. If we
+   * cannot connect within 30 seconds, throw an error
+   *
+   * @param channel the voice channel to connect to
+   * @returns the VoiceConnection after we connect
+   */
+  private async connectToChannel(
+    channel: VoiceChannel | StageChannel
+  ): Promise<VoiceConnection> {
+    const connection = joinVoiceChannel({
+      channelId: channel.id,
+      guildId: channel.guild.id,
+      adapterCreator: channel.guild.voiceAdapterCreator,
+    });
+    try {
+      await entersState(connection, VoiceConnectionStatus.Ready, 30_000);
+      return connection;
+    } catch (error) {
+      connection.destroy();
+      throw error;
+    }
   }
 
   // execute = async (message: Message, args: string[]): Promise<Message> => {

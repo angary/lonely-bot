@@ -20,7 +20,13 @@ export class Client extends DiscordClient {
     commandsPath: string,
     eventsPath: string
   ) {
-    super({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
+    super({
+      intents: [
+        Intents.FLAGS.GUILDS,
+        Intents.FLAGS.GUILD_MESSAGES,
+        Intents.FLAGS.GUILD_VOICE_STATES,
+      ],
+    });
     this.commands = new Collection();
     this.prefixes = {};
     this.musicQueue = new Map();
