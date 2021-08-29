@@ -93,10 +93,10 @@ export default class Profile extends Command {
 
       // Catch errors
       .catch((error) => {
-        const errorEmbed = this.createColouredEmbed(
+        this.createAndSendEmbed(
+          message.channel,
           `There was an error: ${error}`
         );
-        message.channel.send({ embeds: [errorEmbed] });
       });
   };
 
@@ -221,10 +221,11 @@ export default class Profile extends Command {
       .addFields({
         name: "**General Match Data**",
         value: `
-          Total: **${player.win + player.lose}** 
-          | Won: **${player.win}** 
-          | Lost: **${player.lose}** 
-          | Winrate: **${player.winRate.toPrecision(2)}%**\n`,
+          Total: **${player.win + player.lose}** | Won: **${
+          player.win
+        }** | Lost: **${
+          player.lose
+        }** | Winrate: **${player.winRate.toPrecision(2)}%**\n`,
       });
 
     // Add player's top three heroes
@@ -261,9 +262,7 @@ export default class Profile extends Command {
     const response = `${message.author} Invalid response from database. 
       Either you haven't added your id, or there was a database error. 
       You can add you id with the steamid command!`;
-    return message.channel.send({
-      embeds: [this.createColouredEmbed(response)],
-    });
+    return this.createAndSendEmbed(message.channel, response);
   }
 
   /**

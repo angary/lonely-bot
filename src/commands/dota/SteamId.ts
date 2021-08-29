@@ -49,10 +49,10 @@ export default class SteamId extends Command {
             `${message.author} Successfully removed steamID from database!`
           );
         })
-        .catch((err) =>
+        .catch((error) =>
           this.createAndSendEmbed(
             message.channel,
-            `${message.author} Failed to find and remove steamID ${err}`
+            `${message.author} Failed to find and remove steamID ${error}`
           )
         );
       return;
@@ -84,13 +84,15 @@ export default class SteamId extends Command {
                 `${message.author} Added Steam ID to be **${steamID}**.`
               );
             })
-            .catch((err) => message.channel.send("Error: " + err));
+            .catch((error) =>
+              this.createAndSendEmbed(message.channel, `Error: ${error}`)
+            );
         }
       })
-      .catch((err) =>
+      .catch((error) =>
         this.createAndSendEmbed(
           message.channel,
-          `${message.author} Failed to find and add/ update ID. ${err}`
+          `${message.author} Failed to find and add/ update ID. ${error}`
         )
       );
   };

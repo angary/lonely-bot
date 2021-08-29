@@ -54,8 +54,40 @@ export default class Meta extends Command {
           .sort((a, b) => parseFloat(b.winRate) - parseFloat(a.winRate))
           .forEach((result, index) => (result.index = index));
         const metaEmbed = this.createEmbedWithData(rank, results, 0);
-        // const row = new MessageAction();
-        message.channel.send({ embeds: [metaEmbed] });
+        return message.channel.send({ embeds: [metaEmbed] });
+      })
+      .then(async (sentEmbed) => {
+        if (!message.guild.me.permissions.has("MANAGE_MESSAGES")) {
+          return;
+        }
+        let page = 0;
+        await sentEmbed.react("⬅️");
+        await sentEmbed.react("➡️");
+
+        // Create collector
+        const filter = (reaction, user) =>
+          ["⬅️", "➡️"].includes(reaction.emoji.name) && !user.bot;
+        const collector = sentEmbed.createReactionCollector({
+          filter,
+          time: 60_000,
+        });
+
+        // Handle reaction logic
+        collector.on("collect", (reaction, user) => {
+          page =
+            reaction.emoji.name === "⬅️"
+              ? Math.max(0, page - 1)
+              : Math.min(Math.ceil(results.length / 10), page + 1);
+          sentEmbed.edit({
+            embeds: [this.createEmbedWithData(rank, results, page)],
+          });
+
+          // Remove the user reactions
+          reaction.users.remove(user.id);
+        });
+        collector.on("end", () => {
+          sentEmbed.reactions.removeAll();
+        });
       });
   };
 
@@ -131,6 +163,7 @@ export default class Meta extends Command {
             .join("\n") as string,
           inline: true,
         }
-      );
+      )
+      .setFooter(`Page ${page + 1}`);
   }
 }
