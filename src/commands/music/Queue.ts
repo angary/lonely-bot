@@ -1,4 +1,5 @@
 import { Command } from "../../types/Command";
+import { AudioPlayerPlayingState, AudioPlayerStatus } from "@discordjs/voice";
 import { Message } from "discord.js";
 
 export default class Queue extends Command {
@@ -17,7 +18,10 @@ export default class Queue extends Command {
     // Check if there is a music queue
     const serverQueue = this.client.musicQueue.get(message.guild.id);
     if (!serverQueue || serverQueue.songs.length === 0) {
-      return message.channel.send("There's no active queue");
+      return this.createAndSendEmbed(
+        message.channel,
+        "There's no active queue"
+      );
     }
 
     const songs = serverQueue.songs;
@@ -25,8 +29,13 @@ export default class Queue extends Command {
     let songsInQueue = "";
 
     // Collect first song detail
-    // const currStreamTime = serverQueue.connection. / 1000;
-    const currStreamTime = 1000;
+    let currStreamTime = 0;
+    const audioPlayerState = serverQueue.audioPlayer.state;
+    if (audioPlayerState.status === AudioPlayerStatus.Playing) {
+      // Type cast so that we can extract .playbackDuration
+      currStreamTime =
+        (audioPlayerState as AudioPlayerPlayingState).playbackDuration / 1000;
+    }
     const currTimestamp = `${this.formatDuration(currStreamTime)}/${
       song.formattedDuration
     }`;

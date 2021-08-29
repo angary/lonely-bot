@@ -36,7 +36,8 @@ export default class Play extends Command {
     // Check if they are in a voice channel
     const voiceChannel = message.member.voice.channel;
     if (!voiceChannel) {
-      return message.channel.send(
+      return this.createAndSendEmbed(
+        message.channel,
         "You need to be in a voice channel to play music!"
       );
     }
@@ -173,6 +174,7 @@ export default class Play extends Command {
         voiceChannel: message.member.voice.channel,
         textChannel: message.channel as TextChannel,
         songs: [],
+        audioPlayer: null,
         playingMessage: null,
         isPlaying: false,
         isRepeating: false,
@@ -206,17 +208,12 @@ export default class Play extends Command {
     }
     const song = serverQueue.songs[0];
     const connection = await this.connectToChannel(serverQueue.voiceChannel);
-    const player = await this.getSongPlayer(song);
-    connection.subscribe(player);
+    serverQueue.audioPlayer = await this.getSongPlayer(song);
+    connection.subscribe(serverQueue.audioPlayer);
     serverQueue.isPlaying = true;
 
-    player.on(AudioPlayerStatus.Idle, () => {
+    serverQueue.audioPlayer.on(AudioPlayerStatus.Idle, () => {
       serverQueue.isPlaying = false;
-      console.log("Finished song");
-      this.createAndSendEmbed(
-        serverQueue.textChannel,
-        `Finished current song `
-      );
       this.handleSongFinish(guildId, musicQueue, serverQueue);
     });
 

@@ -1,5 +1,4 @@
 import { Command } from "../../types/Command";
-import { getVoiceConnection } from "@discordjs/voice";
 import { Message } from "discord.js";
 
 export default class Skip extends Command {
@@ -42,8 +41,10 @@ export default class Skip extends Command {
     }
 
     try {
-      const connection = getVoiceConnection(message.guild.id);
-      connection.destroy();
+      // Calling .stop() on AudioPlayer causes transition into the Idle state.
+      // Because of a state transition listener defined in Play.ts
+      // transitions into the Idle state mean the next song is played
+      serverQueue.audioPlayer.stop();
     } catch (error) {
       serverQueue.songs = [];
       console.log(error);

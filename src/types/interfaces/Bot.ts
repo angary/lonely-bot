@@ -1,4 +1,4 @@
-import { VoiceConnection } from "@discordjs/voice";
+import { AudioPlayer } from "@discordjs/voice";
 import { Message, StageChannel, TextChannel, VoiceChannel } from "discord.js";
 
 import ytdl = require("ytdl-core");
@@ -31,6 +31,7 @@ export interface IServerMusicQueue {
   voiceChannel: VoiceChannel | StageChannel;
   textChannel: TextChannel;
   songs: ISong[];
+  audioPlayer: AudioPlayer;
   playingMessage: Message;
   isPlaying: boolean;
   isRepeating: boolean;

@@ -1,5 +1,5 @@
 import { Command } from "../../types/Command";
-import { Message, MessageEmbed } from "discord.js";
+import { Message } from "discord.js";
 
 export default class Repeat extends Command {
   name = "repeat";
@@ -17,7 +17,10 @@ export default class Repeat extends Command {
   execute = (message: Message): Promise<Message> => {
     const voiceChannel = message.member.voice.channel;
     if (!voiceChannel) {
-      message.channel.send("You need to be in a voice channel to play music!");
+      this.createAndSendEmbed(
+        message.channel,
+        "You need to be in a voice channel to play music!"
+      );
       return;
     }
 
@@ -30,17 +33,18 @@ export default class Repeat extends Command {
     const serverQueue = musicQueue.get(message.guild.id);
 
     if (!serverQueue) {
-      message.channel.send("There is no active queue in this server!");
+      this.createAndSendEmbed(
+        message.channel,
+        "There is no active queue in the server!"
+      );
     } else {
       serverQueue.isRepeating = !serverQueue.isRepeating;
-      const repeatEmbed = new MessageEmbed()
-        .setColor("#0099ff")
-        .setDescription(
-          `Queue is now **${
-            serverQueue.isRepeating ? "repeating" : "not repeating"
-          }**`
-        );
-      message.channel.send({ embeds: [repeatEmbed] });
+      this.createAndSendEmbed(
+        message.channel,
+        `Queue is now **${
+          serverQueue.isRepeating ? "repeating" : "not repeating"
+        }**`
+      );
     }
   };
 }

@@ -229,7 +229,6 @@ export default class Profile extends Command {
 
     // Add player's top three heroes
     for (const hero of heroes) {
-      console.log(hero);
       profileEmbed.addFields({
         name: `**${hero.name}**`,
         value: `

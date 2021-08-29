@@ -18,7 +18,8 @@ export default class Stop extends Command {
     // Check if we are in a voice channel
     const voiceChannel = message.member.voice.channel;
     if (!voiceChannel) {
-      message.channel.send(
+      this.createAndSendEmbed(
+        message.channel,
         "You need to be in a voice channel to stop the queue!"
       );
       return;
@@ -28,12 +29,18 @@ export default class Stop extends Command {
     const guildId = message.guild.id;
     const serverQueue = this.client.musicQueue.get(guildId);
     if (!serverQueue) {
-      return message.channel.send("There's no active queue");
+      return this.createAndSendEmbed(
+        message.channel,
+        "There's no active queue"
+      );
     }
 
     serverQueue.songs = [];
     const connection = getVoiceConnection(guildId);
     connection.destroy();
-    return message.channel.send("Removed all songs from the queue");
+    return this.createAndSendEmbed(
+      message.channel,
+      "Removed all songs from the queue"
+    );
   };
 }

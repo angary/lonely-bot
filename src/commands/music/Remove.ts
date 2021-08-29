@@ -19,12 +19,14 @@ export default class Remove extends Command {
     // Check if there is a music queue
     const serverQueue = this.client.musicQueue.get(message.guild.id);
     if (!serverQueue || serverQueue.songs.length === 0) {
-      return message.channel.send("There's no active queue");
+      return this.createAndSendEmbed(
+        message.channel,
+        "There's no active queue"
+      );
     }
 
     const removeSongName = args.join(" ").toLowerCase();
     let removedSong: ISong = null;
-    console.log(removeSongName);
     const songs = serverQueue.songs;
 
     for (let i = 1; i < songs.length; i++) {
