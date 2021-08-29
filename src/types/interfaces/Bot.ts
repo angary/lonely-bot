@@ -30,10 +30,9 @@ export interface ISong {
 export interface IServerMusicQueue {
   voiceChannel: VoiceChannel | StageChannel;
   textChannel: TextChannel;
-  connection: VoiceConnection;
   songs: ISong[];
   playingMessage: Message;
-  playing: boolean;
+  isPlaying: boolean;
   isRepeating: boolean;
 }
 

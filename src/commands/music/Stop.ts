@@ -1,4 +1,5 @@
 import { Command } from "../../types/Command";
+import { getVoiceConnection } from "@discordjs/voice";
 import { Message } from "discord.js";
 
 export default class Stop extends Command {
@@ -24,13 +25,15 @@ export default class Stop extends Command {
     }
 
     // Check if there is a music queue
-    const serverQueue = this.client.musicQueue.get(message.guild.id);
+    const guildId = message.guild.id;
+    const serverQueue = this.client.musicQueue.get(guildId);
     if (!serverQueue) {
       return message.channel.send("There's no active queue");
     }
 
     serverQueue.songs = [];
-    serverQueue.connection.destroy();
+    const connection = getVoiceConnection(guildId);
+    connection.destroy();
     return message.channel.send("Removed all songs from the queue");
   };
 }

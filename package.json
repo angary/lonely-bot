@@ -4,8 +4,8 @@
   "description": "Discord bot for aggregating and presenting Dota 2 stats",
   "main": "index.js",
   "engines": {
-    "node": ">=12.16.1",
-    "npm": ">=6.13.4"
+    "node": ">=16.8.0",
+    "npm": ">=7.21.0"
   },
   "scripts": {
     "build": "tsc --esModuleInterop",

@@ -32,4 +32,8 @@ mongooseConnect(process.env.BOT_URI)
 
 // Login
 //------------------------------------------------------------------------------
-client.login(process.env.BOT_TOKEN);
+try {
+  client.login(process.env.BOT_TOKEN);
+} catch {
+  console.log("logging in");
+}

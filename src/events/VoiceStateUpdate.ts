@@ -1,5 +1,6 @@
 import { Event } from "../types/Event";
 import { IServerMusicQueue } from "../types/interfaces/Bot";
+import { getVoiceConnection } from "@discordjs/voice";
 import { Message, VoiceState } from "discord.js";
 
 export default class VoiceStateUpdate extends Event {
@@ -45,7 +46,8 @@ export default class VoiceStateUpdate extends Event {
   ): void {
     const serverQueue = musicQueue.get(guildId);
     if (serverQueue !== null && this.shouldLeave(serverQueue)) {
-      serverQueue.connection.destroy();
+      const connection = getVoiceConnection(guildId);
+      connection.destroy();
       serverQueue.songs = [];
     }
   }

@@ -1,4 +1,5 @@
 import { Command } from "../../types/Command";
+import { getVoiceConnection } from "@discordjs/voice";
 import { Message } from "discord.js";
 
 export default class Skip extends Command {
@@ -17,24 +18,32 @@ export default class Skip extends Command {
     // Check if we are in a voice channel
     const voiceChannel = message.member.voice.channel;
     if (!voiceChannel) {
-      return message.channel.send(
-        "You need to be in a voice channel to stop the queue!"
+      return this.createAndSendEmbed(
+        message.channel,
+        "You need to be in a voice channel to skip the queue!"
       );
     }
 
     // Check if there is a music queue
     const serverQueue = this.client.musicQueue.get(message.guild.id);
     if (!serverQueue) {
-      return message.channel.send("There's no active queue");
+      return this.createAndSendEmbed(
+        message.channel,
+        "There's no active queue"
+      );
     }
 
     // Check if they are in the same channel
     if (message.member.voice.channel !== serverQueue.voiceChannel) {
-      return message.channel.send("You are not in the same channel");
+      return this.createAndSendEmbed(
+        message.channel,
+        "You are not in the same channel"
+      );
     }
 
     try {
-      serverQueue.connection.destroy();
+      const connection = getVoiceConnection(message.guild.id);
+      connection.destroy();
     } catch (error) {
       serverQueue.songs = [];
       console.log(error);
