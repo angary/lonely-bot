@@ -1,9 +1,8 @@
 import * as config from "../../config.json";
 import { Client } from "../types/Client";
 import { Event } from "../types/Event";
+import { Cooldown } from "../types/interfaces/Bot";
 import { Collection, Guild, Message as DiscordMessage } from "discord.js";
-
-type Cooldown = Collection<string, number>;
 
 export default class MessageCreate extends Event {
   cooldowns: Collection<string, Cooldown>;
@@ -85,7 +84,7 @@ export default class MessageCreate extends Event {
     try {
       command.execute(message, messageArgs);
     } catch (error) {
-      message.reply("there was an error trying to execute that command");
+      message.reply(`There was an error ${error}`);
       console.log(error);
     }
   };

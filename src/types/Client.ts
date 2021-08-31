@@ -7,8 +7,11 @@ import { join } from "path";
 
 export class Client extends DiscordClient {
   commands: Collection<string, Command>;
+  slashCommands: Collection<string, Command>;
   prefixes: { [key: number]: string };
   musicQueue: Map<string, IServerMusicQueue>;
+  token: string;
+  testGuildId: string;
 
   /**
    * @param relativePath path from this file to the events and command directory
@@ -18,7 +21,9 @@ export class Client extends DiscordClient {
   public constructor(
     relativePath: string,
     commandsPath: string,
-    eventsPath: string
+    eventsPath: string,
+    token?: string,
+    testGuildId?: string
   ) {
     super({
       intents: [
@@ -29,8 +34,11 @@ export class Client extends DiscordClient {
       ],
     });
     this.commands = new Collection();
+    this.slashCommands = new Collection();
     this.prefixes = {};
     this.musicQueue = new Map();
+    this.token = token;
+    this.testGuildId = testGuildId;
 
     // Load all the commands
     readdirSync(commandsPath).forEach((dir) => {
@@ -49,6 +57,11 @@ export class Client extends DiscordClient {
 
           console.log(`Loaded command ${dir}/${file}`);
           this.commands.set(command.name, command);
+
+          // Slash commands
+          if (command.data !== undefined) {
+            this.slashCommands.set(command.name, command);
+          }
         }
       }
     });
@@ -61,12 +74,25 @@ export class Client extends DiscordClient {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const FoundEvent = require(join(relativePath, `events/${file}`)).default;
       const event: Event = new FoundEvent(this);
-      const eventName = file.split(".")[0];
-
-      this.on(
-        eventName.charAt(0).toLowerCase() + eventName.slice(1),
-        (...args: unknown[]) => event.run(args)
-      );
+      const eventFileName = file.split(".")[0];
+      const eventName =
+        eventFileName.charAt(0).toLowerCase() + eventFileName.slice(1);
+      console.log(`Loaded event ${eventName}`);
+      this.on(eventName, (...args: unknown[]) => {
+        event.run(args);
+      });
     }
+
+    /**
+     * This should be in it's own file, but it's not working for some reason
+     */
+    this.on("interactionCreate", (interaction) => {
+      if (!interaction.isCommand()) {
+        return;
+      }
+      if (interaction.commandName === "help") {
+        this.slashCommands.get("help").executeSlash(interaction);
+      }
+    });
   }
 }

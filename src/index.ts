@@ -7,7 +7,13 @@ require("dotenv").config();
 
 // Set up the bot user and commands
 //------------------------------------------------------------------------------
-const client = new Client("../", "dist/src/commands", "dist/src/events");
+const client = new Client(
+  "../",
+  "dist/src/commands",
+  "dist/src/events",
+  process.env.BOT_TOKEN,
+  process.env.TEST_SERVER_ID
+);
 
 // Connect to mongoose database
 //------------------------------------------------------------------------------

@@ -1,37 +1,69 @@
 import { prefix, githubLink, inviteLink } from "../../../config.json";
 import { Command } from "../../types/Command";
-import { Collection, Message, MessageEmbed } from "discord.js";
+import { SlashCommandBuilder } from "@discordjs/builders";
+import {
+  Collection,
+  CommandInteraction,
+  Message,
+  MessageEmbed,
+  TextBasedChannels,
+  User,
+} from "discord.js";
 
 export default class Help extends Command {
   name = "help";
   visible = true;
   description = "List all of my commands or info about a specific command.";
   information = "";
-  aliases: string[] = ["commands"];
+  aliases = ["commands"];
   args = false;
   usage = "[command name]";
   example = "help";
   cooldown = 0;
   category = "general";
   guildOnly = false;
+  data = new SlashCommandBuilder()
+    .setName(this.name)
+    .setDescription(this.description)
+    .addStringOption((option) =>
+      option
+        .setName("command")
+        .setDescription("The command to get specific information on")
+    );
   execute = (message: Message, args: string[]): Promise<Message> => {
-    const commands = this.client.commands;
-    const helpEmbed = new MessageEmbed().setColor("#0099ff");
+    let helpEmbed: MessageEmbed;
+    if (args.length > 0) {
+      helpEmbed = this.help(message.channel, message.author, args[0]);
+    } else {
+      helpEmbed = this.help(message.channel, message.author);
+    }
+    return message.channel.send({ embeds: [helpEmbed] });
+  };
 
-    // If they didn't specify a specific command
-    if (!args.length) {
+  executeSlash = (interaction: CommandInteraction): Promise<void> => {
+    const helpEmbed = this.help(
+      interaction.channel,
+      interaction.user,
+      interaction.options.getString("command")
+    );
+    return interaction.reply({ embeds: [helpEmbed] });
+  };
+
+  private help(
+    channel: TextBasedChannels,
+    author: User,
+    command?: string
+  ): MessageEmbed {
+    const commands = this.client.commands;
+    const helpEmbed = this.createColouredEmbed();
+
+    if (command === undefined || command === null) {
       this.generalInformation(helpEmbed, commands);
     } else {
-      try {
-        this.specificInformation(args, helpEmbed, commands);
-      } catch {
-        return message.channel.send(
-          `${message.author} Command **${args[0]}** was not valid!`
-        );
-      }
+      this.specificInformation(command, helpEmbed, commands);
     }
-    message.channel.send({ embeds: [helpEmbed] });
-  };
+    return helpEmbed;
+  }
 
   /**
    * Add general information to an embed and send it
@@ -93,17 +125,17 @@ export default class Help extends Command {
   /**
    * Adds specific information about a command
    *
-   * @param args the arguments given by the user
+   * @param name the arguments given by the user
    * @param helpEmbed the MessageEmbed to add details to
    * @param commands a collection of the bot's commands
    */
   private specificInformation(
-    args: string[],
+    name: string,
     helpEmbed: MessageEmbed,
     commands: Collection<string, Command>
   ): void {
     // Check if the command exists
-    const name = args[0].toLowerCase();
+    name = name.toLowerCase();
     const command =
       commands.get(name) ||
       commands.find((c) => c.aliases && c.aliases.includes(name));

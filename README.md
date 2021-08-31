@@ -23,10 +23,13 @@ Link to add to your server [here](https://discord.com/oauth2/authorize?client_id
 
 Set up the environment variables by copying over the text in `.env.example` to `.env` and fill out the missing variables.
 
-| Environment variable | Value                  |
-| -------------------- | ---------------------- |
-| `BOT_TOKEN`          | Discord bot token      |
-| `BOT_URI`            | Mongodb connection uri |
+| Environment variable | Value                        |
+| -------------------- | ---------------------------- |
+| `BOT_TOKEN`          | Discord bot token            |
+| `BOT_URI`            | Mongodb connection uri       |
+| `TEST_SERVER_ID      | Server id of the test server |
+
+The reason a test server is required, is because global slash commands can take up to an hour to register across all guilds, whereas guild specific commands update immediately making it useful for testing.
 
 </br>
 

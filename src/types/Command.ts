@@ -1,6 +1,7 @@
 import { Client } from "./Client";
 import { ISong } from "./interfaces/Bot";
 import {
+  CommandInteraction,
   Message,
   MessageEmbed,
   StageChannel,
@@ -21,7 +22,9 @@ export abstract class Command {
   abstract cooldown: number;
   abstract category: string;
   abstract guildOnly: boolean;
+  data: any;
   abstract execute: (message: Message, args?: string[]) => Promise<Message>;
+  executeSlash: (interaction: CommandInteraction) => Promise<void>;
 
   public constructor(client: Client) {
     this.client = client;

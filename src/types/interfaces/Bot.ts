@@ -1,5 +1,11 @@
 import { AudioPlayer } from "@discordjs/voice";
-import { Message, StageChannel, TextChannel, VoiceChannel } from "discord.js";
+import {
+  Collection,
+  Message,
+  StageChannel,
+  TextChannel,
+  VoiceChannel,
+} from "discord.js";
 
 import ytdl = require("ytdl-core");
 
@@ -92,3 +98,5 @@ export interface IMetaHeroData {
   winRate: string;
   index: number;
 }
+
+export type Cooldown = Collection<string, number>;
