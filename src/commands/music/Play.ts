@@ -65,7 +65,7 @@ export default class Play extends Command {
     return message.channel.send({ embeds: [playEmbed] });
   };
   executeSlash = async (interaction: CommandInteraction): Promise<void> => {
-    interaction.deferReply();
+    await interaction.deferReply();
     interaction.member = interaction.member as GuildMember;
     const args: string[] = [interaction.options.get("song").value as string];
     const playEmbed = await this.play(

@@ -177,7 +177,7 @@ export default class Profile extends Command {
 
     const playerRecentData: IPlayerRecentData = {
       outcome: won ? "Win" : "Lost",
-      skill: ["invalid", "normal", "high", "very high"][recent.skill],
+      skill: ["unknown", "normal", "high", "very high"][recent.skill || 0],
       lobbyType: lobbyTypes[recent.lobby_type].replace(/_/g, " ") || "",
       gameMode: gameModes[recent.game_mode].replace(/_/g, " ") || "",
       hero: this.idToHeroName(heroes, recent.hero_id),
