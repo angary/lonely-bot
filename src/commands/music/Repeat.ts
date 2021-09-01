@@ -24,7 +24,7 @@ export default class Repeat extends Command {
       return;
     }
 
-    // Check if teh bot has permissions to play music in that server
+    // Check if the bot has permissions to play music in that server
     if (!this.hasPermissions(voiceChannel, message)) {
       return;
     }

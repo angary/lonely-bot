@@ -6,8 +6,6 @@ import {
   CommandInteraction,
   Message,
   MessageEmbed,
-  TextBasedChannels,
-  User,
 } from "discord.js";
 
 export default class Help extends Command {
@@ -33,34 +31,31 @@ export default class Help extends Command {
   execute = (message: Message, args: string[]): Promise<Message> => {
     let helpEmbed: MessageEmbed;
     if (args.length > 0) {
-      helpEmbed = this.help(message.channel, message.author, args[0]);
+      helpEmbed = this.help(args[0]);
     } else {
-      helpEmbed = this.help(message.channel, message.author);
+      helpEmbed = this.help();
     }
     return message.channel.send({ embeds: [helpEmbed] });
   };
 
   executeSlash = (interaction: CommandInteraction): Promise<void> => {
-    const helpEmbed = this.help(
-      interaction.channel,
-      interaction.user,
-      interaction.options.getString("command")
-    );
+    const helpEmbed = this.help(interaction.options.getString("command"));
     return interaction.reply({ embeds: [helpEmbed] });
   };
 
-  private help(
-    channel: TextBasedChannels,
-    author: User,
-    command?: string
-  ): MessageEmbed {
+  /**
+   * @param command the specific command to get help on
+   * @returns help embed for general help ro specific help for a command based
+   *          off arguments
+   */
+  private help(command?: string): MessageEmbed {
     const commands = this.client.commands;
     const helpEmbed = this.createColouredEmbed();
 
     if (command === undefined || command === null) {
       this.generalInformation(helpEmbed, commands);
     } else {
-      this.specificInformation(command, helpEmbed, commands);
+      this.specificInformation(helpEmbed, commands, command);
     }
     return helpEmbed;
   }
@@ -130,9 +125,9 @@ export default class Help extends Command {
    * @param commands a collection of the bot's commands
    */
   private specificInformation(
-    name: string,
     helpEmbed: MessageEmbed,
-    commands: Collection<string, Command>
+    commands: Collection<string, Command>,
+    name: string
   ): void {
     // Check if the command exists
     name = name.toLowerCase();

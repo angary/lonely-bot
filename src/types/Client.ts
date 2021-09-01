@@ -1,7 +1,12 @@
 import { Command } from "./Command";
 import { Event } from "./Event";
 import { IServerMusicQueue } from "./interfaces/Bot";
-import { Collection, Client as DiscordClient, Intents } from "discord.js";
+import {
+  Collection,
+  Client as DiscordClient,
+  Intents,
+  CommandInteraction,
+} from "discord.js";
 import { readdirSync, statSync } from "fs";
 import { join } from "path";
 
@@ -90,9 +95,9 @@ export class Client extends DiscordClient {
       if (!interaction.isCommand()) {
         return;
       }
-      if (interaction.commandName === "help") {
-        this.slashCommands.get("help").executeSlash(interaction);
-      }
+
+      const command = this.commands.get(interaction.commandName);
+      command.executeSlash(interaction);
     });
   }
 }

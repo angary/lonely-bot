@@ -1,5 +1,6 @@
 import { Command } from "../../types/Command";
-import { Message } from "discord.js";
+import { SlashCommandBuilder } from "@discordjs/builders";
+import { CommandInteraction, Message } from "discord.js";
 
 export default class Ping extends Command {
   name = "ping";
@@ -13,8 +14,18 @@ export default class Ping extends Command {
   cooldown = 0;
   category = "general";
   guildOnly = false;
+  data = new SlashCommandBuilder()
+    .setName(this.name)
+    .setDescription(this.description);
   execute = (message: Message): Promise<Message> => {
-    const ping = `${Date.now() - message.createdTimestamp} ms`;
-    return message.channel.send(`Pong! Your ping is **${ping}**`);
+    return message.channel.send(this.ping(message.createdTimestamp));
   };
+  executeSlash = (interaction: CommandInteraction): Promise<void> => {
+    return interaction.reply(this.ping(interaction.createdTimestamp));
+  };
+
+  private ping(startTime: number): string {
+    const ping = Date.now() - startTime;
+    return `Pong! Your ping is **${ping} ms**`;
+  }
 }
