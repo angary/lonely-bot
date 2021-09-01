@@ -1,6 +1,7 @@
 import { Command } from "../../types/Command";
+import { SlashCommandBuilder } from "@discordjs/builders";
 import { AudioPlayerPlayingState, AudioPlayerStatus } from "@discordjs/voice";
-import { Message } from "discord.js";
+import { CommandInteraction, Guild, Message, MessageEmbed } from "discord.js";
 
 export default class Queue extends Command {
   name = "queue";
@@ -14,14 +15,29 @@ export default class Queue extends Command {
   cooldown = 0;
   category = "music";
   guildOnly = true;
+  data = new SlashCommandBuilder()
+    .setName(this.name)
+    .setDescription(this.description);
   execute = (message: Message): Promise<Message> => {
-    // Check if there is a music queue
-    const serverQueue = this.client.musicQueue.get(message.guild.id);
+    const queueEmbed = this.queue(message.guild);
+    return message.channel.send({ embeds: [queueEmbed] });
+  };
+
+  executeSlash = (interaction: CommandInteraction): Promise<void> => {
+    const queueEmbed = this.queue(interaction.guild);
+    return interaction.reply({ embeds: [queueEmbed] });
+  };
+
+  /**
+   * Sends an embed with the the top 10 songs in the queue
+   *
+   * @param guild the server in which the command was triggered
+   * @returns a new messaged embed
+   */
+  private queue(guild: Guild): MessageEmbed {
+    const serverQueue = this.client.musicQueue.get(guild.id);
     if (!serverQueue || serverQueue.songs.length === 0) {
-      return this.createAndSendEmbed(
-        message.channel,
-        "There's no active queue"
-      );
+      return this.createColouredEmbed("There's no active queue");
     }
 
     const songs = serverQueue.songs;
@@ -72,6 +88,6 @@ export default class Queue extends Command {
         false
       )
       .addField("Songs", songsInQueue, false);
-    message.channel.send({ embeds: [queueEmbed] });
-  };
+    return queueEmbed;
+  }
 }

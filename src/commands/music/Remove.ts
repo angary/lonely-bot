@@ -1,6 +1,7 @@
 import { Command } from "../../types/Command";
 import { ISong } from "../../types/interfaces/Bot";
-import { Message } from "discord.js";
+import { SlashCommandBuilder } from "@discordjs/builders";
+import { CommandInteraction, Guild, Message, MessageEmbed } from "discord.js";
 
 export default class Remove extends Command {
   name = "remove";
@@ -15,14 +16,37 @@ export default class Remove extends Command {
   cooldown = 0;
   category = "music";
   guildOnly = true;
+  data = new SlashCommandBuilder()
+    .setName(this.name)
+    .setDescription(this.description)
+    .addStringOption((option) =>
+      option.setName("song").setDescription("The name of the song to remove")
+    );
   execute = (message: Message, args: string[]): Promise<Message> => {
-    // Check if there is a music queue
-    const serverQueue = this.client.musicQueue.get(message.guild.id);
+    return message.channel.send({ embeds: [this.remove(message.guild, args)] });
+  };
+  executeSlash = (interaction: CommandInteraction): Promise<void> => {
+    return interaction.reply({
+      embeds: [
+        this.remove(interaction.guild, [
+          interaction.options.get("song").value as string,
+        ]),
+      ],
+    });
+  };
+
+  /**
+   * Attempts to remove the song if there is one, and then sends an embed with
+   * the outcome.
+   *
+   * @param guild the server where the command was triggered
+   * @param args the arguments supplied by the user
+   * @returns a message embed notifying whether a song was removed or not
+   */
+  private remove(guild: Guild, args: string[]): MessageEmbed {
+    const serverQueue = this.client.musicQueue.get(guild.id);
     if (!serverQueue || serverQueue.songs.length === 0) {
-      return this.createAndSendEmbed(
-        message.channel,
-        "There's no active queue"
-      );
+      return this.createColouredEmbed("There's no active queue");
     }
 
     const removeSongName = args.join(" ").toLowerCase();
@@ -42,6 +66,6 @@ export default class Remove extends Command {
       removedSong === null
         ? `Could not find ${removeSongName} in the queue`
         : `Removed ${this.getFormattedLink(removedSong)} from the queue`;
-    this.createAndSendEmbed(message.channel, description);
-  };
+    return this.createColouredEmbed(description);
+  }
 }

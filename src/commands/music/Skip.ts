@@ -1,5 +1,12 @@
 import { Command } from "../../types/Command";
-import { Message } from "discord.js";
+import { SlashCommandBuilder } from "@discordjs/builders";
+import {
+  CommandInteraction,
+  GuildMember,
+  Message,
+  MessageEmbed,
+  VoiceChannel,
+} from "discord.js";
 
 export default class Skip extends Command {
   name = "skip";
@@ -13,31 +20,50 @@ export default class Skip extends Command {
   cooldown = 0;
   category = "music";
   guildOnly = true;
+  data = new SlashCommandBuilder()
+    .setName(this.name)
+    .setDescription(this.description);
   execute = (message: Message): Promise<Message> => {
-    // Check if we are in a voice channel
-    const voiceChannel = message.member.voice.channel;
-    if (!voiceChannel) {
-      return this.createAndSendEmbed(
-        message.channel,
-        "You need to be in a voice channel to skip the queue!"
-      );
-    }
+    return message.channel.send({
+      embeds: [
+        this.skip(
+          message.member.voice.channel as VoiceChannel,
+          message.guild.id
+        ),
+      ],
+    });
+  };
+  executeSlash = (interaction: CommandInteraction): Promise<void> => {
+    interaction.member = interaction.member as GuildMember;
+    return interaction.reply({
+      embeds: [
+        this.skip(
+          interaction.member.voice.channel as VoiceChannel,
+          interaction.guild.id
+        ),
+      ],
+    });
+  };
 
-    // Check if there is a music queue
-    const serverQueue = this.client.musicQueue.get(message.guild.id);
+  /**
+   * Attempts to skip the current song playing
+   *
+   * @param voiceChannel the voice channel the user is in
+   * @param guildId the id of the server this command is used in
+   * @returns a message embed with the status of the skip option
+   */
+  private skip(voiceChannel: VoiceChannel, guildId: string): MessageEmbed {
+    const musicQueue = this.client.musicQueue;
+    const serverQueue = musicQueue.get(guildId);
+
     if (!serverQueue) {
-      return this.createAndSendEmbed(
-        message.channel,
-        "There's no active queue"
+      return this.createColouredEmbed(
+        "There is no active music queue in the server!"
       );
     }
 
-    // Check if they are in the same channel
-    if (message.member.voice.channel !== serverQueue.voiceChannel) {
-      return this.createAndSendEmbed(
-        message.channel,
-        "You are not in the same channel"
-      );
+    if (serverQueue.voiceChannel !== voiceChannel) {
+      return this.createColouredEmbed("You are not in the right voice channel");
     }
 
     try {
@@ -49,5 +75,5 @@ export default class Skip extends Command {
       serverQueue.songs = [];
       console.log(error);
     }
-  };
+  }
 }

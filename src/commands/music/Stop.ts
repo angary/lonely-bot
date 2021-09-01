@@ -1,6 +1,12 @@
 import { Command } from "../../types/Command";
+import { SlashCommandBuilder } from "@discordjs/builders";
 import { getVoiceConnection } from "@discordjs/voice";
-import { Message } from "discord.js";
+import {
+  CommandInteraction,
+  GuildMember,
+  Message,
+  VoiceChannel,
+} from "discord.js";
 
 export default class Stop extends Command {
   name = "stop";
@@ -14,33 +20,55 @@ export default class Stop extends Command {
   cooldown = 0;
   category = "music";
   guildOnly = true;
+  data = new SlashCommandBuilder()
+    .setName(this.name)
+    .setDescription(this.description);
   execute = (message: Message): Promise<Message> => {
-    // Check if we are in a voice channel
-    const voiceChannel = message.member.voice.channel;
-    if (!voiceChannel) {
-      this.createAndSendEmbed(
-        message.channel,
-        "You need to be in a voice channel to stop the queue!"
+    return message.channel.send({
+      embeds: [
+        this.stop(
+          message.member.voice.channel as VoiceChannel,
+          message.guild.id
+        ),
+      ],
+    });
+  };
+  executeSlash = (interaction: CommandInteraction): Promise<void> => {
+    interaction.member = interaction.member as GuildMember;
+    return interaction.reply({
+      embeds: [
+        this.stop(
+          interaction.member.voice.channel as VoiceChannel,
+          interaction.guild.id
+        ),
+      ],
+    });
+  };
+
+  /**
+   * Attempts to stop the current queue
+   *
+   * @param voiceChannel the voice channel the user is in
+   * @param guildId the id of the server this command is used in
+   * @returns a message embed with the status of stopping the queue
+   */
+  private stop(voiceChannel: VoiceChannel, guildId: string) {
+    const musicQueue = this.client.musicQueue;
+    const serverQueue = musicQueue.get(guildId);
+
+    if (!serverQueue) {
+      return this.createColouredEmbed(
+        "There is no active music queue in the server!"
       );
-      return;
     }
 
-    // Check if there is a music queue
-    const guildId = message.guild.id;
-    const serverQueue = this.client.musicQueue.get(guildId);
-    if (!serverQueue) {
-      return this.createAndSendEmbed(
-        message.channel,
-        "There's no active queue"
-      );
+    if (serverQueue.voiceChannel !== voiceChannel) {
+      return this.createColouredEmbed("You are not in the right voice channel");
     }
 
     serverQueue.songs = [];
     const connection = getVoiceConnection(guildId);
     connection.destroy();
-    return this.createAndSendEmbed(
-      message.channel,
-      "Removed all songs from the queue"
-    );
-  };
+    return this.createColouredEmbed("Removed all songs from the queue");
+  }
 }

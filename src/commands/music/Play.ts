@@ -1,5 +1,6 @@
 import { Command } from "../../types/Command";
 import { IServerMusicQueue, ISong } from "../../types/interfaces/Bot";
+import { SlashCommandBuilder } from "@discordjs/builders";
 import {
   AudioPlayer,
   AudioPlayerStatus,
@@ -12,7 +13,16 @@ import {
   VoiceConnection,
   VoiceConnectionStatus,
 } from "@discordjs/voice";
-import { Message, StageChannel, TextChannel, VoiceChannel } from "discord.js";
+import {
+  CommandInteraction,
+  Guild,
+  GuildMember,
+  Message,
+  MessageEmbed,
+  StageChannel,
+  TextChannel,
+  VoiceChannel,
+} from "discord.js";
 
 import ytdl = require("ytdl-core");
 import ytsr = require("ytsr");
@@ -30,25 +40,74 @@ export default class Play extends Command {
   cooldown = 0;
   category = "music";
   guildOnly = true;
+  data = new SlashCommandBuilder()
+    .setName(this.name)
+    .setDescription(this.description)
+    .addStringOption((option) =>
+      option
+        .setName("song")
+        .setDescription("The name of the song to play or URL")
+        .setRequired(true)
+    );
   execute = async (message: Message, args: string[]): Promise<Message> => {
     message.channel.sendTyping();
+    const playEmbed = await this.play(
+      message.channel as TextChannel,
+      message.member.voice.channel as VoiceChannel,
+      message.guild,
+      args
+    );
+    return message.channel.send({ embeds: [playEmbed] });
+  };
+  executeSlash = async (interaction: CommandInteraction): Promise<void> => {
+    interaction.deferReply();
+    interaction.member = interaction.member as GuildMember;
+    const args: string[] = [interaction.options.get("song").value as string];
+    const playEmbed = await this.play(
+      interaction.channel as TextChannel,
+      interaction.member.voice.channel as VoiceChannel,
+      interaction.guild,
+      args
+    );
+    interaction.editReply({ embeds: [playEmbed] });
+  };
 
+  /**
+   * Check if the user can play a song based off permissions.
+   * If they can't then notify the channel of why, else load the song from
+   * youtube and play it or add it to the queue
+   *
+   * @param textChannel the text channel which triggered the command
+   * @param voiceChannel the voice channel of the member who triggered the command
+   * @param guild the server to play music in
+   * @param args the song name or url
+   */
+  private async play(
+    textChannel: TextChannel,
+    voiceChannel: VoiceChannel,
+    guild: Guild,
+    args: string[]
+  ): Promise<MessageEmbed> {
     // Check if they are in a voice channel
-    const voiceChannel = message.member.voice.channel;
     if (!voiceChannel) {
-      return this.createAndSendEmbed(
-        message.channel,
+      return this.createColouredEmbed(
         "You need to be in a voice channel to play music!"
       );
     }
 
     // Check if the bot has permissions to play music in that server
-    if (!this.hasPermissions(voiceChannel, message)) {
-      return;
+    const issue = this.hasPermissions(voiceChannel);
+    if (issue !== null) {
+      return this.createColouredEmbed(issue);
     }
 
     // Get the song info
-    const songInfo: ytdl.videoInfo = await this.getSongInfo(message, args);
+    const songInfo: ytdl.videoInfo = await this.getSongInfo(args);
+    if (songInfo === null) {
+      return this.createColouredEmbed(
+        "There was an error searching for that song"
+      );
+    }
 
     // Create the song object
     const duration = parseInt(songInfo.videoDetails.lengthSeconds);
@@ -61,40 +120,33 @@ export default class Play extends Command {
     };
 
     // Add the new song to the queue
-    const serverQueue = this.addSongToQueue(song, message);
-    const guildId = message.guild.id;
-    if (serverQueue.isPlaying) {
-      this.createAndSendEmbed(
-        message.channel,
-        `Queued ${this.getFormattedLink(song)} (${song.formattedDuration})`
-      );
-    } else {
+    const serverQueue = this.addSongToQueue(
+      song,
+      guild,
+      voiceChannel,
+      textChannel
+    );
+    const guildId = guild.id;
+    if (!serverQueue.isPlaying) {
       // If a new queue was created then we immediately play the song
       this.playSong(guildId, this.client.musicQueue);
     }
-  };
+    return this.createColouredEmbed(
+      `Queued ${this.getFormattedLink(song)} (${song.formattedDuration})`
+    );
+  }
 
   /**
    * Read the user's arguments and get the song from youtube
    *
-   * @param message the message that triggered this command
    * @param args the arguments of the user
    * @returns the song info of their desired song
    */
-  private async getSongInfo(
-    message: Message,
-    args: string[]
-  ): Promise<ytdl.videoInfo> {
+  private async getSongInfo(args: string[]): Promise<ytdl.videoInfo> {
     let songInfo = null;
     if (ytdl.validateURL(args[0])) {
       // Find the song details from URL
       songInfo = await ytdl.getInfo(args[0]);
-      if (!songInfo) {
-        this.createAndSendEmbed(
-          message.channel,
-          "Could not find details from youtube"
-        );
-      }
     } else {
       try {
         const searchString = await ytsr.getFilters(args.join(" "));
@@ -106,10 +158,6 @@ export default class Play extends Command {
         songInfo = await ytdl.getInfo(results.items[0].url);
       } catch (error) {
         console.log(error);
-        this.createAndSendEmbed(
-          message.channel,
-          "There was an error searching for that song"
-        );
       }
     }
     return songInfo;
@@ -126,6 +174,7 @@ export default class Play extends Command {
     const player = createAudioPlayer();
     const stream = ytdl(song.url, {
       filter: "audioonly",
+      highWaterMark: 1 << 25,
     });
     const resource = createAudioResource(stream, {
       inputType: StreamType.Arbitrary,
@@ -166,13 +215,17 @@ export default class Play extends Command {
    * @param message the message that triggered this command
    * @returns the server's music queue
    */
-  private addSongToQueue(song: ISong, message: Message): IServerMusicQueue {
-    const guild = message.guild;
+  private addSongToQueue(
+    song: ISong,
+    guild: Guild,
+    voiceChannel: VoiceChannel,
+    textChannel: TextChannel
+  ): IServerMusicQueue {
     let musicQueue: IServerMusicQueue = this.client.musicQueue.get(guild.id);
     if (musicQueue === undefined) {
       musicQueue = {
-        voiceChannel: message.member.voice.channel,
-        textChannel: message.channel as TextChannel,
+        voiceChannel: voiceChannel,
+        textChannel: textChannel as TextChannel,
         songs: [],
         audioPlayer: null,
         playingMessage: null,
@@ -264,11 +317,11 @@ export default class Play extends Command {
     if (serverQueue.voiceChannel.members.size === 0) {
       // If there are no more members
       connection.destroy();
+      musicQueue.delete(guildId);
       this.createAndSendEmbed(
         serverQueue.textChannel,
         "Stopping music as all members have left the voice channel"
       );
-      musicQueue.delete(guildId);
       return;
     }
     // Wait for 1 minute and if there is no new songs, leave

@@ -60,30 +60,20 @@ export abstract class Command {
   }
 
   /**
-   * Check if the bot has permissions to join the voice channel. Also
-   * sends a message to the channel if the bot cannot join
+   * Check if the bot has permissions to join the voice channel.
    *
    * @param voiceChannel the voice channel to join
-   * @param message the message where the play command was sent
-   * @returns if the bot has permission to join the voice channel or not
+   * @returns a string with the issue preventing the bot from connecting, else
+   *          null if there are no issues
    */
-  protected hasPermissions(
-    voiceChannel: VoiceChannel | StageChannel,
-    message: Message
-  ): boolean {
-    const permissions = voiceChannel.permissionsFor(message.client.user);
+  protected hasPermissions(voiceChannel: VoiceChannel | StageChannel): string {
+    const permissions = voiceChannel.permissionsFor(this.client.user);
     if (!permissions.has("CONNECT")) {
-      message.channel.send(
-        "I need the permissions to join your voice channel!"
-      );
-      return false;
+      return "I need the permissions to join your voice channel!";
     } else if (!permissions.has("SPEAK")) {
-      message.channel.send(
-        "I need the permissions to speak in your voice channel!"
-      );
-      return false;
+      return "I need the permissions to speak in your voice channel!";
     }
-    return true;
+    return null;
   }
 
   /**
