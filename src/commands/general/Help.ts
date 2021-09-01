@@ -78,7 +78,7 @@ export default class Help extends Command {
     this.addCategory("music", helpEmbed, commands);
     this.addHelpAndSupport(helpEmbed);
     helpEmbed.setFooter(
-      `You can send "${prefix}help [command name]" to get info on a specific command!`
+      `You can send "/help [command name]" to get info on a specific command!`
     );
   }
 

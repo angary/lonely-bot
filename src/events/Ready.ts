@@ -26,7 +26,7 @@ export default class Ready extends Event {
           body: slashCommandsJSON,
         });
       }
-      this.client.user.setActivity(`${prefix}${activity}`);
+      this.client.user.setActivity(`/${activity}`);
       console.log(`Active in ${this.client.guilds.cache.size} servers!`);
       console.log(`${this.client.user.tag} is ready!`);
     } catch (err) {
