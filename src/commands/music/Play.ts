@@ -11,6 +11,7 @@ import {
   joinVoiceChannel,
   StreamType,
   VoiceConnection,
+  VoiceConnectionDisconnectReason,
   VoiceConnectionStatus,
 } from "@discordjs/voice";
 import {
@@ -23,9 +24,12 @@ import {
   TextChannel,
   VoiceChannel,
 } from "discord.js";
+import { promisify } from "util";
 
 import ytdl = require("ytdl-core");
 import ytsr = require("ytsr");
+
+const wait = promisify(setTimeout);
 
 export default class Play extends Command {
   name = "play";
@@ -55,6 +59,7 @@ export default class Play extends Command {
       message.channel as TextChannel,
       message.member.voice.channel as VoiceChannel,
       message.guild,
+      message.member,
       args
     );
     return message.channel.send({ embeds: [playEmbed] });
@@ -67,6 +72,7 @@ export default class Play extends Command {
       interaction.channel as TextChannel,
       interaction.member.voice.channel as VoiceChannel,
       interaction.guild,
+      interaction.member,
       args
     );
     interaction.editReply({ embeds: [playEmbed] });
@@ -80,12 +86,14 @@ export default class Play extends Command {
    * @param textChannel the text channel which triggered the command
    * @param voiceChannel the voice channel of the member who triggered the command
    * @param guild the server to play music in
+   * @param member the server member who triggered the command
    * @param args the song name or url
    */
   private async play(
     textChannel: TextChannel,
     voiceChannel: VoiceChannel,
     guild: Guild,
+    member: GuildMember,
     args: string[]
   ): Promise<MessageEmbed> {
     // Check if they are in a voice channel
@@ -117,6 +125,7 @@ export default class Play extends Command {
       url: songInfo.videoDetails.video_url,
       duration: duration,
       formattedDuration: this.formatDuration(duration),
+      member: member,
     };
 
     // Add the new song to the queue
@@ -174,7 +183,7 @@ export default class Play extends Command {
     const player = createAudioPlayer();
     const stream = ytdl(song.url, {
       filter: "audioonly",
-      highWaterMark: 1 << 25,
+      highWaterMark: 1 << 25, // Set buffer size
     });
     const resource = createAudioResource(stream, {
       inputType: StreamType.Arbitrary,
@@ -200,6 +209,44 @@ export default class Play extends Command {
     });
     try {
       await entersState(connection, VoiceConnectionStatus.Ready, 30_000);
+      connection.on("stateChange", async (_, newState) => {
+        if (newState.status === VoiceConnectionStatus.Disconnected) {
+          if (
+            newState.reason ===
+              VoiceConnectionDisconnectReason.WebSocketClose &&
+            newState.closeCode === 4014
+          ) {
+            /**
+             * If the websocket closed with a 4014 code, this means that we
+             * should not manually attempt to reconnect but there is a chance
+             * the connection will recover itself if the reason of disconnect
+             * was due to switching voice channels. This is also the same code
+             * for being kicked from the voice channel so we allow 5 s to figure
+             * out which scenario it is. If the bot has been kicked, we should
+             * destroy the voice connection
+             */
+            try {
+              await entersState(
+                connection,
+                VoiceConnectionStatus.Connecting,
+                5_000
+              );
+              // Probably moved voice channel
+            } catch {
+              connection.destroy();
+              // Probably removed from voice channel
+            }
+          } else if (connection.rejoinAttempts < 5) {
+            // The disconnect is recoverable, and we have < 5 attempts so we
+            // will reconnect
+            await wait((connection.rejoinAttempts + 1) * 5_000);
+            connection.rejoin();
+          } else {
+            // The disconnect is recoverable, but we have no more attempts
+            connection.destroy();
+          }
+        }
+      });
       return connection;
     } catch (error) {
       connection.destroy();
@@ -345,7 +392,7 @@ export default class Play extends Command {
     const songLink = this.getFormattedLink(song);
     this.createAndSendEmbed(
       serverQueue.textChannel,
-      `Now playing ${songLink} (${song.formattedDuration})`
+      `Now playing ${songLink} (${song.formattedDuration}) [${song.member}]`
     ).then((message) => {
       if (serverQueue.playingMessage !== null) {
         serverQueue.playingMessage.delete();

@@ -71,6 +71,7 @@ export default class Skip extends Command {
       // Because of a state transition listener defined in Play.ts
       // transitions into the Idle state mean the next song is played
       serverQueue.audioPlayer.stop();
+      return this.createColouredEmbed("Skipped current song");
     } catch (error) {
       serverQueue.songs = [];
       console.log(error);

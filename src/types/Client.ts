@@ -1,12 +1,7 @@
 import { Command } from "./Command";
 import { Event } from "./Event";
 import { IServerMusicQueue } from "./interfaces/Bot";
-import {
-  Collection,
-  Client as DiscordClient,
-  Intents,
-  CommandInteraction,
-} from "discord.js";
+import { Collection, Client as DiscordClient, Intents } from "discord.js";
 import { readdirSync, statSync } from "fs";
 import { join } from "path";
 
@@ -87,17 +82,5 @@ export class Client extends DiscordClient {
         event.run(args);
       });
     }
-
-    /**
-     * This should be in it's own file, but it's not working for some reason
-     */
-    this.on("interactionCreate", (interaction) => {
-      if (!interaction.isCommand()) {
-        return;
-      }
-
-      const command = this.commands.get(interaction.commandName);
-      command.executeSlash(interaction);
-    });
   }
 }

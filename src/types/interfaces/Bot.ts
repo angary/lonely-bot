@@ -1,6 +1,7 @@
 import { AudioPlayer } from "@discordjs/voice";
 import {
   Collection,
+  GuildMember,
   Message,
   StageChannel,
   TextChannel,
@@ -28,6 +29,7 @@ export interface ISong {
   url: string;
   duration: number;
   formattedDuration: string;
+  member: GuildMember;
 }
 
 /**
