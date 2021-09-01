@@ -1,8 +1,9 @@
 import { Command } from "../../types/Command";
 import { IMetaHeroData } from "../../types/interfaces/Bot";
+import { SlashCommandBuilder } from "@discordjs/builders";
 import axios from "axios";
 import cheerio from "cheerio";
-import { Message, MessageEmbed } from "discord.js";
+import { CommandInteraction, Message, MessageEmbed } from "discord.js";
 
 export default class Meta extends Command {
   name = "meta";
@@ -17,17 +18,81 @@ export default class Meta extends Command {
   cooldown = 0;
   category = "dota";
   guildOnly = false;
-  execute = (message: Message, args: string[]): Promise<Message> => {
+  data = new SlashCommandBuilder()
+    .setName(this.name)
+    .setDescription(this.description)
+    .addStringOption((option) =>
+      option
+        .setName("rank")
+        .setDescription("The ranked bracket to find the meta for")
+    );
+  execute = async (message: Message, args: string[]): Promise<Message> => {
     message.channel.sendTyping();
+    const [metaEmbed, rank, results] = await this.meta(args);
+    const sentMessage = await message.channel.send({ embeds: [metaEmbed] });
+    if (
+      !message.guild.me.permissions.has("MANAGE_MESSAGES") ||
+      results === []
+    ) {
+      return;
+    }
+    let page = 0;
+    await sentMessage.react("⬅️");
+    await sentMessage.react("➡️");
 
+    // Create collector
+    const filter = (reaction, user) =>
+      ["⬅️", "➡️"].includes(reaction.emoji.name) && !user.bot;
+    const collector = sentMessage.createReactionCollector({
+      filter,
+      time: 60_000,
+    });
+
+    // Handle reaction logic
+    collector.on("collect", (reaction, user) => {
+      page =
+        reaction.emoji.name === "⬅️"
+          ? Math.max(0, page - 1)
+          : Math.min(Math.ceil(results.length / 10), page + 1);
+      sentMessage.edit({
+        embeds: [this.createEmbedWithData(rank, results, page)],
+      });
+
+      // Remove the user reactions
+      reaction.users.remove(user.id);
+    });
+    collector.on("end", () => {
+      sentMessage.reactions.removeAll();
+    });
+  };
+
+  executeSlash = async (interaction: CommandInteraction): Promise<void> => {
+    const commandArg = interaction.options.get("rank");
+    const args = commandArg !== null ? [commandArg.value as string] : [];
+    const metaEmbed = await this.meta(args)[0];
+    return interaction.reply({ embeds: [metaEmbed] });
+  };
+
+  /**
+   * Finds data on the current meta at the archon rank by default, unless a
+   * rank is specified in the args
+   *
+   * @param args user arguments
+   * @returns the embed containing the meta data, the rank, and a list of
+   *          winrates and pick rates of that rank
+   */
+  private async meta(
+    args: string[]
+  ): Promise<[MessageEmbed, string, IMetaHeroData[]]> {
     const rank = args.length === 0 ? "archon" : args[0];
     const rankCol = this.getRankCol(rank);
     if (rankCol === -1) {
-      return this.createAndSendEmbed(message.channel, "Invalid rank");
+      return [this.createColouredEmbed("Invalid rank"), rank, []];
     }
 
     const results: IMetaHeroData[] = [];
-    axios
+    let metaEmbed: MessageEmbed;
+    await axios
       .get(
         "https://www.dotabuff.com/heroes/meta?view=played&metric=rating_bracket"
       )
@@ -53,43 +118,10 @@ export default class Meta extends Command {
         results
           .sort((a, b) => parseFloat(b.winRate) - parseFloat(a.winRate))
           .forEach((result, index) => (result.index = index));
-        const metaEmbed = this.createEmbedWithData(rank, results, 0);
-        return message.channel.send({ embeds: [metaEmbed] });
-      })
-      .then(async (sentEmbed) => {
-        if (!message.guild.me.permissions.has("MANAGE_MESSAGES")) {
-          return;
-        }
-        let page = 0;
-        await sentEmbed.react("⬅️");
-        await sentEmbed.react("➡️");
-
-        // Create collector
-        const filter = (reaction, user) =>
-          ["⬅️", "➡️"].includes(reaction.emoji.name) && !user.bot;
-        const collector = sentEmbed.createReactionCollector({
-          filter,
-          time: 60_000,
-        });
-
-        // Handle reaction logic
-        collector.on("collect", (reaction, user) => {
-          page =
-            reaction.emoji.name === "⬅️"
-              ? Math.max(0, page - 1)
-              : Math.min(Math.ceil(results.length / 10), page + 1);
-          sentEmbed.edit({
-            embeds: [this.createEmbedWithData(rank, results, page)],
-          });
-
-          // Remove the user reactions
-          reaction.users.remove(user.id);
-        });
-        collector.on("end", () => {
-          sentEmbed.reactions.removeAll();
-        });
+        metaEmbed = this.createEmbedWithData(rank, results, 0);
       });
-  };
+    return [metaEmbed, rank, results];
+  }
 
   /**
    * Given a rank, give the rank's corresponding column in the table of the

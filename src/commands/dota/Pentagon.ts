@@ -14,6 +14,7 @@ export default class Pentagon extends Command {
   cooldown = 0;
   category = "dota";
   guildOnly = false;
+  data = null;
   execute = (message: Message, args: string[]): Promise<Message> => {
     if (args.length !== 5) {
       return message.channel.send("You didn't give 5 values");
@@ -48,7 +49,7 @@ export default class Pentagon extends Command {
       )}**, rating: **${sortedPercentage.toFixed(2)}%**.`
     );
   };
-
+  executeSlash = null;
   /**
    *  Given the five lengths from center to corners of pentagon, calculate area
    *

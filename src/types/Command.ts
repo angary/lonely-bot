@@ -1,5 +1,6 @@
 import { Client } from "./Client";
 import { ISong } from "./interfaces/Bot";
+import { SlashCommandBuilder } from "@discordjs/builders";
 import {
   CommandInteraction,
   Message,
@@ -22,9 +23,12 @@ export abstract class Command {
   abstract cooldown: number;
   abstract category: string;
   abstract guildOnly: boolean;
-  data: any;
+  abstract data: Omit<
+    SlashCommandBuilder,
+    "addSubcommand" | "addSubcommandGroup"
+  >;
   abstract execute: (message: Message, args?: string[]) => Promise<Message>;
-  executeSlash: (interaction: CommandInteraction) => Promise<void>;
+  abstract executeSlash: (interaction: CommandInteraction) => Promise<void>;
 
   public constructor(client: Client) {
     this.client = client;

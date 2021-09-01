@@ -59,7 +59,7 @@ export class Client extends DiscordClient {
           this.commands.set(command.name, command);
 
           // Slash commands
-          if (command.data !== undefined) {
+          if (command.data !== null) {
             this.slashCommands.set(command.name, command);
           }
         }

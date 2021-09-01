@@ -2,21 +2,22 @@ import { clientName, profilePicture, githubLink } from "../../../config.json";
 import { heroNames as aliasToHeroName } from "../../assets/heroNames";
 import { Command } from "../../types/Command";
 import { IHero } from "../../types/interfaces/Bot";
+import { SlashCommandBuilder } from "@discordjs/builders";
 import axios, { AxiosResponse } from "axios";
 import cheerio from "cheerio";
-import { Message, MessageEmbed } from "discord.js";
+import { CommandInteraction, Message, MessageEmbed } from "discord.js";
 
 const information = `
 Given the enemy hero names separated by commas, return the top counters by winrate and advantage.
 
 Explanation of data:
 
-**Winrate**
-- The numbers suggest the enemy's average winrate against the hero
+**Win Rate**
+- The numbers suggest the hero's average winrate against the enemies
 - Sorting by winrate suggests heroes that are in the meta
 
-**Disadvantage**
-- The numbers suggest the enemy's average disadvantage against the hero
+**Advantage**
+- The numbers suggest the hero's average advantage against the enemies
 - Sorting by disadvantage suggests heroes that generally counter the heros based on their abilities, but may not be the best in the current meta
 `;
 
@@ -32,11 +33,34 @@ export default class Counter extends Command {
   cooldown = 0;
   category = "dota";
   guildOnly = false;
+  data = new SlashCommandBuilder()
+    .setName(this.name)
+    .setDescription(this.description)
+    .addStringOption((option) =>
+      option
+        .setName("enemies")
+        .setDescription("A list of the enemy's heroes")
+        .setRequired(true)
+    );
   execute = async (message: Message, args: string[]): Promise<Message> => {
-    // Trigger bot to start typing and record time message was received
     message.channel.sendTyping();
+    const counterEmbed = await this.counter(args);
+    return message.channel.send({ embeds: [counterEmbed] });
+  };
+  executeSlash = async (interaction: CommandInteraction): Promise<void> => {
+    const args = [interaction.options.get("enemies").value as string];
+    const counterEmbed = await this.counter(args);
+    return interaction.reply({ embeds: [counterEmbed] });
+  };
 
-    // Convert argument names into official names
+  /**
+   * Extract out the enemies hero names, webscrape data about their matches and
+   * then return an embed containing the relevant counters
+   *
+   * @param args a list of the enemy heroes input by the user
+   * @returns an embed containing data about the top counters
+   */
+  private async counter(args: string[]) {
     const enemies: string[] = [];
     const parsedArgs = args.join("").split(",");
     for (const name of parsedArgs) {
@@ -44,10 +68,7 @@ export default class Counter extends Command {
       if (officialName) {
         enemies.push(officialName);
       } else {
-        return this.createAndSendEmbed(
-          message.channel,
-          `Invalid hero name **${name}**.`
-        );
+        return this.createColouredEmbed(`Invalid hero name **${name}**.`);
       }
     }
 
@@ -57,24 +78,17 @@ export default class Counter extends Command {
       return axios.get(`https://www.dotabuff.com/heroes/${urlName}/counters`);
     });
 
-    axios
+    let counterEmbed: MessageEmbed;
+    await axios
       .all(promises)
 
       // Collect via webscraping
       .then(async (responses) => this.aggregateData(responses, enemies))
 
-      // Format data and send it
-      .then((counters) => this.sendEmbed(message, enemies, counters))
-
-      // Handle errors
-      .catch((error) => {
-        this.createAndSendEmbed(
-          message.channel,
-          `There was an error: ${error}`
-        );
-      });
-  };
-
+      // Format data onto the counter embed
+      .then((counters) => (counterEmbed = this.getEmbed(enemies, counters)));
+    return counterEmbed;
+  }
   /**
    * Collect all relevant data from webscraping
    *
@@ -137,44 +151,41 @@ export default class Counter extends Command {
   /**
    * Format data and send an embed to channel with details
    *
-   * @param message the message to respond to
    * @param enemies the list of enemies given in the arguments
    * @param counters the list of data containing top counters
    * @returns promise to the message sent
    */
-  private sendEmbed(
-    message: Message,
-    enemies: string[],
-    counters: IHero[]
-  ): Promise<Message> {
+  private getEmbed(enemies: string[], counters: IHero[]): MessageEmbed {
     // Boilerplate formatting
     const heroesEmbed = this.createColouredEmbed()
       .setTitle("Team Picker Help")
       .setAuthor(clientName, profilePicture, githubLink)
       .setTimestamp()
       .setFooter(
-        `Source: Dotabuff | Total Processing Time: ${
-          Date.now() - message.createdTimestamp
-        } ms`,
+        "Source: Dotabuff",
         "https://pbs.twimg.com/profile_images/879332626414358528/eHLyVWo-_400x400.jpg"
       );
 
     // Description formatting
-    heroesEmbed.setDescription(`Heroes good against **${enemies.join(", ")}**`);
+    heroesEmbed.setDescription(
+      `Heroes good against **${enemies.join(", ")}**\n
+      High **win rate** heroes are good in the current meta
+      High **advantage** heroes are natural counters`
+    );
 
     // Add heroes with good winrates against enemy
     const winCounters = counters
       .sort((a, b) => a.winrate - b.winrate)
       .slice(0, 5);
-    this.addHeroes(heroesEmbed, winCounters, "winrate");
+    this.addHeroes(heroesEmbed, winCounters, "Win Rate");
 
     // Add heroes with good advantage against enemy
     const advCounters = counters
       .sort((a, b) => b.disadvantage - a.disadvantage)
       .slice(0, 5);
-    this.addHeroes(heroesEmbed, advCounters, "disadvantage");
+    this.addHeroes(heroesEmbed, advCounters, "Advantage");
 
-    return message.channel.send({ embeds: [heroesEmbed] });
+    return heroesEmbed;
   }
 
   /**
@@ -196,11 +207,11 @@ export default class Counter extends Command {
       heroes += `${index + 1}: **${element.name}**\n`;
     });
     details[`**__Sorted by ${sortMethod}__\nHeroes**`] = heroes;
-    details["**\nDisadvantage**"] = `${counters
+    details["**\nAdvantage**"] = `${counters
       .map((c) => c.disadvantage.toFixed(2))
       .join("%\n")}%`;
     details["**\nWin Rate**"] = `${counters
-      .map((c) => c.winrate.toFixed(2))
+      .map((c) => (100 - c.winrate).toFixed(2))
       .join("%\n")}%`;
     for (const [key, value] of Object.entries(details)) {
       heroesEmbed.addFields({

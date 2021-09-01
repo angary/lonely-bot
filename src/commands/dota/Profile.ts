@@ -16,7 +16,8 @@ import {
   IOpenDotaPlayerRecentMatches,
   IOpenDotaWinLose,
 } from "../../types/interfaces/OpenDota";
-import { Message } from "discord.js";
+import { SlashCommandBuilder } from "@discordjs/builders";
+import { CommandInteraction, Message, MessageEmbed } from "discord.js";
 import fetch, { Response } from "node-fetch";
 
 type OpenDotaResponse = [
@@ -41,17 +42,48 @@ export default class Profile extends Command {
   cooldown = 0;
   category = "dota";
   guildOnly = false;
+  data = new SlashCommandBuilder()
+    .setName(this.name)
+    .setDescription(this.description)
+    .addStringOption((option) =>
+      option
+        .setName("steamid")
+        .setDescription("The steam id of the user to get data on")
+    );
   execute = async (message: Message, args: string[]): Promise<Message> => {
     message.channel.sendTyping();
+    const profileEmbed = await this.profile(args, message.author.id);
+    return message.channel.send({ embeds: [profileEmbed] });
+  };
+  executeSlash = async (interaction: CommandInteraction): Promise<void> => {
+    const commandArg = interaction.options.get("steamid");
+    const args = commandArg !== null ? [commandArg.value as string] : [];
+    const profileEmbed = await this.profile(args, interaction.user.id);
+    return interaction.reply({ embeds: [profileEmbed] });
+  };
+
+  /**
+   * Extracts the user's steamid through the argument or database, and then
+   * collect data on their profile from opendota
+   *
+   * @param args the arguments given by the user
+   * @param authorId the id of the user who triggered the command
+   * @returns a message embed containing data about the user's dota profile
+   */
+  private async profile(
+    args: string[],
+    authorId: string
+  ): Promise<MessageEmbed> {
+    let profileEmbed: MessageEmbed;
 
     // Checks for id
     let id = args[0];
     if (!id) {
-      const details = await this.discordToSteamID(message.author.id);
+      const details = await this.discordToSteamID(authorId);
       if (details) {
         id = details.steamID;
       } else {
-        return this.invalidDatabaseResponse(message);
+        return this.invalidDatabaseResponse();
       }
     }
     const url = "https://api.opendota.com/api/";
@@ -62,7 +94,7 @@ export default class Profile extends Command {
     // 3: Hero names
     // 4: Hero rankings
     // 5: Most recent match data
-    Promise.all([
+    await Promise.all([
       fetch(`${url}players/${id}`),
       fetch(`${url}players/${id}/wl`),
       fetch(`${url}players/${id}/heroes`),
@@ -82,23 +114,16 @@ export default class Profile extends Command {
       .then((data: OpenDotaResponse) => this.formatData(data))
 
       // Add data onto embed
-      .then((playerData) =>
-        this.sendEmbed(
-          message,
-          playerData,
-          playerData.heroes,
-          playerData.recent
-        )
-      )
-
-      // Catch errors
-      .catch((error) => {
-        this.createAndSendEmbed(
-          message.channel,
-          `There was an error: ${error}`
-        );
-      });
-  };
+      .then(
+        (playerData) =>
+          (profileEmbed = this.getEmbed(
+            playerData,
+            playerData.heroes,
+            playerData.recent
+          ))
+      );
+    return profileEmbed;
+  }
 
   /**
    * Checks that all the responses had a valid status code of 200
@@ -107,7 +132,6 @@ export default class Profile extends Command {
    * @returns the same list of responses given
    */
   private checkAPIResponse(responses: Response[]): Response[] {
-    console.log(typeof responses);
     // Takes a long time to loop, can be optimised
     for (const response of responses) {
       if (response.status !== 200) {
@@ -196,12 +220,11 @@ export default class Profile extends Command {
    * @param match data for the most recent match
    * @returns a promise to the message send
    */
-  private sendEmbed(
-    message: Message,
+  private getEmbed(
     player: IPlayerData,
     heroes: IPlayerHeroData[],
     match: IPlayerRecentData
-  ): Promise<Message> {
+  ): MessageEmbed {
     const profileEmbed = this.createColouredEmbed()
       .setTitle(`${player.name}`)
       .setURL(`https://www.opendota.com/players/${player.accountId}`)
@@ -213,9 +236,7 @@ export default class Profile extends Command {
       .setThumbnail(player.avatar)
       .setTimestamp()
       .setFooter(
-        `Source: Opendota | Total Processing Time: ${
-          Date.now() - message.createdTimestamp
-        } ms`,
+        "Source: Opendota",
         "https://pbs.twimg.com/profile_images/962444554967203840/G6KHe1q3.jpg"
       )
       .addFields({
@@ -249,7 +270,7 @@ export default class Profile extends Command {
       Date: **${match.date}** | Duration: **${match.duration}**`,
     });
 
-    return message.channel.send({ embeds: [profileEmbed] });
+    return profileEmbed;
   }
 
   /**
@@ -258,11 +279,11 @@ export default class Profile extends Command {
    * @param message the original message that triggered this command
    * @returns a promise to the new message sent
    */
-  private invalidDatabaseResponse(message: Message): Promise<Message> {
-    const response = `${message.author} Invalid response from database. 
+  private invalidDatabaseResponse(): MessageEmbed {
+    const response = `Invalid response from database. 
       Either you haven't added your id, or there was a database error. 
       You can add you id with the steamid command!`;
-    return this.createAndSendEmbed(message.channel, response);
+    return this.createColouredEmbed(response);
   }
 
   /**
