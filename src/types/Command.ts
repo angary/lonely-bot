@@ -4,6 +4,8 @@ import { SlashCommandBuilder } from "@discordjs/builders";
 import {
   CommandInteraction,
   Message,
+  MessageActionRow,
+  MessageButton,
   MessageEmbed,
   StageChannel,
   TextBasedChannels,
@@ -32,6 +34,26 @@ export abstract class Command {
 
   public constructor(client: Client) {
     this.client = client;
+  }
+
+  /**
+   * @param isDisabled whether the buttons of the row is disabled or not
+   * @returns the a new message action row with buttons "First", "Prev", "Next",
+   *          and "Last" option
+   */
+  protected createScrollButtonRow(isDisabled: boolean): MessageActionRow {
+    const row = new MessageActionRow();
+    const options = ["First", "Prev", "Next", "Last"];
+    for (const option of options) {
+      row.addComponents(
+        new MessageButton()
+          .setCustomId(option)
+          .setLabel(option)
+          .setStyle("SECONDARY")
+          .setDisabled(isDisabled)
+      );
+    }
+    return row;
   }
 
   /**

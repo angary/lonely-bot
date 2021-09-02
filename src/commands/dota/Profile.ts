@@ -176,7 +176,7 @@ export default class Profile extends Command {
       recent.player_slot < 6 ? recent.radiant_win : !recent.radiant_win;
 
     const playerRecentData: IPlayerRecentData = {
-      outcome: won ? "Win" : "Lost",
+      outcome: won ? "Won" : "Lost",
       skill: ["unknown", "normal", "high", "very high"][recent.skill || 0],
       lobbyType: lobbyTypes[recent.lobby_type].replace(/_/g, " ") || "",
       gameMode: gameModes[recent.game_mode].replace(/_/g, " ") || "",
