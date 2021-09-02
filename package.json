@@ -13,7 +13,7 @@
     "lint": "eslint \"**/*.ts\" --fix",
     "prepare": "husky install",
     "start": "npm run build && node ./dist/src/index.js",
-    "test": "jest --coverage --forceExit --verbose"
+    "test": "jest --coverage --forceExit --verbose --detectOpenHandles"
   },
   "repository": {
     "type": "git",

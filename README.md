@@ -10,14 +10,13 @@ Link to add to your server [here](https://discord.com/oauth2/authorize?client_id
 
 ## Example Usages <a name="Example_Usages"></a>
 
-| Command name | Example                                                                       |
-| ------------ | ----------------------------------------------------------------------------- |
-| `help`       | ![help command example](https://i.imgur.com/pdmNJWq.png)                      |
-| `steamid`    | ![steamid command example](https://i.imgur.com/DtaQ7dF.png)                   |
-| `profile`    | ![profile command example](https://i.imgur.com/7Pjjnrk.png)                   |
-| `counter`    | ![counter command example](https://i.imgur.com/wAvEkgj.png)                   |
-| `meta`       | (Image pending) Displays the pick rate and winrate of top heroes in the meta  |
-| `play`       | (Image pending) Searches and finds the song to play from youtube and plays it |
+| Command name | Example                                                   |
+| ------------ | --------------------------------------------------------- |
+| `help`       | ![help command example](https://imgur.com/8KwsGLr.png)    |
+| `counter`    | ![counter command example](https://imgur.com/DK4QY5x.png) |
+| `meta`       | ![meta command example](https://imgur.com/UigP7Yc.png)    |
+| `profile`    | ![profile command example](https://imgur.com/d2ihZwg.png) |
+| `steamid`    | ![steamid command example](https://imgur.com/mJQlz5t.png) |
 
 ## Setup <a name="Setup"></a>
 
@@ -27,7 +26,7 @@ Set up the environment variables by copying over the text in `.env.example` to `
 | -------------------- | ---------------------------- |
 | `BOT_TOKEN`          | Discord bot token            |
 | `BOT_URI`            | Mongodb connection uri       |
-| `TEST_SERVER_ID      | Server id of the test server |
+| `TEST_SERVER_ID`     | Server id of the test server |
 
 The reason a test server is required, is because global slash commands can take up to an hour to register across all guilds, whereas guild specific commands update immediately making it useful for testing.
 

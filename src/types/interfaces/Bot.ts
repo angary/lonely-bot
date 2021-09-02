@@ -99,6 +99,7 @@ export interface IMetaHeroData {
   pickRate: string;
   winRate: string;
   index: number;
+  popularity: number;
 }
 
 export type Cooldown = Collection<string, number>;

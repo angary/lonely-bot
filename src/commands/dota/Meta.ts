@@ -3,14 +3,19 @@ import { IMetaHeroData } from "../../types/interfaces/Bot";
 import { SlashCommandBuilder } from "@discordjs/builders";
 import axios from "axios";
 import cheerio from "cheerio";
-import { CommandInteraction, Message, MessageEmbed } from "discord.js";
+import {
+  CommandInteraction,
+  Message,
+  MessageComponentInteraction,
+  MessageEmbed,
+} from "discord.js";
 
 export default class Meta extends Command {
   name = "meta";
   visible = true;
   description = "Get the top heroes of the current meta";
   information =
-    "Get the top heroes of the current meta. By default it shows the top heroes in the Archon bracket, however the bracket can be specified as an additional argument.";
+    "Get the top heroes of the current meta. By default it shows the top heroes in the Archon bracket, however the bracket can be specified as an additional argument. If you use the slash command, you can move through the different pages, however the buttons are disabled after a minute.";
   aliases = [];
   args = false;
   usage = "[rank]";
@@ -53,7 +58,7 @@ export default class Meta extends Command {
       page =
         reaction.emoji.name === "⬅️"
           ? Math.max(0, page - 1)
-          : Math.min(Math.ceil(results.length / 10), page + 1);
+          : Math.min(Math.floor(results.length / 10), page + 1);
       sentMessage.edit({
         embeds: [this.createEmbedWithData(rank, results, page)],
       });
@@ -69,8 +74,47 @@ export default class Meta extends Command {
   executeSlash = async (interaction: CommandInteraction): Promise<void> => {
     const commandArg = interaction.options.get("rank");
     const args = commandArg !== null ? [commandArg.value as string] : [];
-    const metaEmbed = await this.meta(args)[0];
-    return interaction.reply({ embeds: [metaEmbed] });
+
+    // Get the embed
+    const [metaEmbed, rank, results] = await this.meta(args);
+
+    // Create the row of buttons
+    let row = this.createScrollButtonRow(false);
+
+    // Create functionality for the buttons
+    let page = 0;
+    const collector = interaction.channel.createMessageComponentCollector({
+      time: 60_000,
+    });
+    collector.on("collect", async (i: MessageComponentInteraction) => {
+      switch (i.customId) {
+        case "First":
+          page = 0;
+          break;
+        case "Prev":
+          page = Math.max(0, page - 1);
+          break;
+        case "Next":
+          page = Math.min(Math.floor(results.length / 10), page + 1);
+          break;
+        case "Last":
+          page = Math.floor(results.length / 10);
+          break;
+      }
+      await i.update({
+        embeds: [this.createEmbedWithData(rank, results, page)],
+        components: [row],
+      });
+      return;
+    });
+
+    // Remove the buttons after a minute
+    collector.on("end", () => {
+      row = this.createScrollButtonRow(true);
+      interaction.editReply({ embeds: [metaEmbed], components: [row] });
+    });
+
+    return await interaction.reply({ embeds: [metaEmbed], components: [row] });
   };
 
   /**
@@ -109,11 +153,17 @@ export default class Meta extends Command {
               .find(`td:nth-child(${rankCol + 1})`)
               .text(),
             index: 0,
+            popularity: 0,
           });
         });
         return results;
       })
       .then((results) => {
+        // Sort the results by pick rate to get their popularity
+        results
+          .sort((a, b) => parseFloat(b.pickRate) - parseFloat(a.pickRate))
+          .forEach((result, index) => (result.popularity = index));
+
         // Sort the results by winrate and get the top 10
         results
           .sort((a, b) => parseFloat(b.winRate) - parseFloat(a.winRate))
@@ -189,13 +239,34 @@ export default class Meta extends Command {
           inline: true,
         },
         {
-          name: "Pick Rate",
+          name: "Popularity",
           value: results
-            .map((result) => `${result.pickRate}`)
+            .map(
+              (result) =>
+                `${result.popularity}${this.ordinalSuffix(result.popularity)}`
+            )
             .join("\n") as string,
           inline: true,
         }
       )
       .setFooter(`Page ${page + 1}`);
+  }
+
+  /**
+   * @param n the given number
+   * @returns the ordinal suffix of the given number
+   */
+  private ordinalSuffix(n: number): string {
+    const lastDigit = n % 10;
+    switch (lastDigit) {
+      case 1:
+        return "st";
+      case 2:
+        return "nd";
+      case 3:
+        return "rd";
+      default:
+        return "th";
+    }
   }
 }
