@@ -10,6 +10,10 @@ export default class InteractionCreate extends Event {
     const commandInteraction = interaction as CommandInteraction;
     const { commandName } = commandInteraction;
     const command = this.client.commands.get(commandName);
-    command.executeSlash(commandInteraction);
+    try {
+      command.executeSlash(commandInteraction);
+    } catch (error) {
+      interaction.reply(`There was an error ${error}`);
+    }
   };
 }
