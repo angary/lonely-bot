@@ -101,10 +101,14 @@ export default class Meta extends Command {
           page = Math.floor(results.length / 10);
           break;
       }
-      await i.update({
-        embeds: [this.createEmbedWithData(rank, results, page)],
-        components: [row],
-      });
+      try {
+        await i.update({
+          embeds: [this.createEmbedWithData(rank, results, page)],
+          components: [row],
+        });
+      } catch (error) {
+        console.log(error);
+      }
       return;
     });
 
