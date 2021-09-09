@@ -44,7 +44,7 @@ export class Client extends DiscordClient {
     readdirSync(commandsPath).forEach((dir) => {
       if (statSync(join(commandsPath, dir)).isDirectory()) {
         const commandFiles = readdirSync(`${commandsPath}/${dir}`).filter(
-          (f) => f.endsWith(".js" || ".ts") || f.endsWith(".ts")
+          (f) => f.endsWith(".js") || f.endsWith(".ts")
         );
 
         for (const file of commandFiles) {

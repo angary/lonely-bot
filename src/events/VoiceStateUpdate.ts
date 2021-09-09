@@ -1,3 +1,4 @@
+import { vcStandbyDuration } from "../../config.json";
 import { Event } from "../types/Event";
 import { IServerMusicQueue } from "../types/interfaces/Bot";
 import { getVoiceConnection } from "@discordjs/voice";
@@ -28,7 +29,10 @@ export default class VoiceStateUpdate extends Event {
     }
     // Check if the voice channel is empty
     else if (this.shouldLeave(serverQueue)) {
-      setTimeout(() => this.leaveVoiceChannel(musicQueue, guildId), 60_000);
+      setTimeout(
+        () => this.leaveVoiceChannel(musicQueue, guildId),
+        vcStandbyDuration
+      );
     }
   };
 

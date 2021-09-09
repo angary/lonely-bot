@@ -1,3 +1,4 @@
+import { vcStandbyDuration } from "../../../config.json";
 import { Command } from "../../types/Command";
 import { IServerMusicQueue, ISong } from "../../types/interfaces/Bot";
 import { SlashCommandBuilder } from "@discordjs/builders";
@@ -304,7 +305,12 @@ export default class Play extends Command {
     }
     // Base case
     if (serverQueue.songs.length === 0) {
-      return this.handleEmptyQueue(guildId, musicQueue, serverQueue, 60_000);
+      return this.handleEmptyQueue(
+        guildId,
+        musicQueue,
+        serverQueue,
+        vcStandbyDuration
+      );
     }
     const song = serverQueue.songs[0];
     const connection = await this.connectToChannel(serverQueue.voiceChannel);
