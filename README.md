@@ -1,6 +1,6 @@
 # Discord Lonely Bot
 
-Link to add to your server [here](https://discord.com/oauth2/authorize?client_id=647044127313362980&scope=bot&permissions=0).
+Link to add to your server [here](https://discord.com/api/oauth2/authorize?client_id=647044127313362980&permissions=2184194112&scope=bot%20applications.commands).
 
 ## Table Of Contents
 

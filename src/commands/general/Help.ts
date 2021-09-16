@@ -11,7 +11,7 @@ import {
 export default class Help extends Command {
   name = "help";
   visible = true;
-  description = "List all of my commands or info about a specific command.";
+  description = "List all of my commands or info about a specific command";
   information = "";
   aliases = ["commands"];
   args = false;
@@ -169,8 +169,8 @@ export default class Help extends Command {
     helpEmbed.addField(
       "**Help and Support**",
       `Add lonely to your server: **[Link](${inviteLink})**\n \
-      I'm open source! You can find my code here **[Link](${githubLink})**\n \
-      Feel free to add an issue or make a pull request!`
+      If slash commands do not appear, reinvite this bot with the link above.\n \
+      I'm **[open source](${githubLink})**! Feel free to add an issue or make a PR.`
     );
   }
 }

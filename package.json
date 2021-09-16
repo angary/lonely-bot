@@ -12,7 +12,7 @@
     "format": "prettier --write --ext .ts .",
     "lint": "eslint \"**/*.ts\" --fix",
     "prepare": "husky install",
-    "start": "npm run build && node ./dist/src/index.js",
+    "start": "npm run build && node --experimental-modules ./dist/src/index.js",
     "test": "jest --coverage --forceExit --verbose --detectOpenHandles"
   },
   "repository": {
