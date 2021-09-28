@@ -118,9 +118,7 @@ export default class Play extends Command {
       return this.createColouredEmbed(error);
     }
     if (songInfo === null) {
-      return this.createColouredEmbed(
-        "There was an error searching for that song"
-      );
+      return this.createColouredEmbed("Could not find the song");
     }
 
     // Create the song object
@@ -159,16 +157,10 @@ export default class Play extends Command {
    */
   private async getSongInfo(args: string[]): Promise<ytdl.videoInfo> {
     let songInfo = null;
+    let songUrl = args[0];
 
-    if (ytdl.validateURL(args[0])) {
-      try {
-        // Find the song details from URL
-        songInfo = await ytdl.getInfo(args[0]);
-      } catch (error) {
-        console.log(error);
-        throw "Error getting the video from the URL";
-      }
-    } else {
+    // Search for the song if the url is invalid
+    if (!ytdl.validateURL(songUrl)) {
       try {
         const searchString = await ytsr.getFilters(args.join(" "));
         const videoSearch = searchString.get("Type").get("Video");
@@ -176,11 +168,19 @@ export default class Play extends Command {
         const results: any = await ytsr(videoSearch.url, {
           limit: 1,
         });
-        songInfo = await ytdl.getInfo(results.items[0].url);
+        console.log(results);
+        songUrl = results.items[0].url;
       } catch (error) {
         console.log(error);
         throw "Error searching for the song";
       }
+    }
+    try {
+      // Find the song details from URL
+      songInfo = await ytdl.getInfo(songUrl);
+    } catch (error) {
+      console.log(error);
+      throw "Error getting the video from the URL";
     }
     return songInfo;
   }

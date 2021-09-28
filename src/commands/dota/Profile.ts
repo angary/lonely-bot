@@ -114,14 +114,16 @@ export default class Profile extends Command {
       .then((data: OpenDotaResponse) => this.formatData(data))
 
       // Add data onto embed
-      .then(
-        (playerData) =>
-          (profileEmbed = this.getEmbed(
-            playerData,
-            playerData.heroes,
-            playerData.recent
-          ))
-      );
+      .then((playerData) => {
+        profileEmbed = this.getEmbed(
+          playerData,
+          playerData.heroes,
+          playerData.recent
+        );
+      })
+      .catch((error) => {
+        return this.createColouredEmbed(error);
+      });
     return profileEmbed;
   }
 
