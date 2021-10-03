@@ -8,7 +8,7 @@ describe("ping command", () => {
     },
   } as unknown as Message;
 
-  const client = new Client("../", "src/commands", "src/events");
+  const client = new Client("src/commands", "src/events");
   const ping = client.commands.get("ping");
   it("ping should respond with 'Pong!'", () => {
     ping.execute(message);

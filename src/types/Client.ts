@@ -14,12 +14,10 @@ export class Client extends DiscordClient {
   testGuildId: string;
 
   /**
-   * @param relativePath path from this file to the events and command directory
    * @param commandsPath the path from root to the commands directory
    * @param eventsPath the path from root to the events directory
    */
   public constructor(
-    relativePath: string,
     commandsPath: string,
     eventsPath: string,
     token?: string,
@@ -49,10 +47,7 @@ export class Client extends DiscordClient {
 
         for (const file of commandFiles) {
           // eslint-disable-next-line @typescript-eslint/no-var-requires
-          const FoundCommand = require(join(
-            relativePath,
-            `commands/${dir}/${file}`
-          )).default;
+          const FoundCommand = require(`../commands/${dir}/${file}`).default;
           const command: Command = new FoundCommand(this);
 
           console.log(`Loaded command ${dir}/${file}`);
@@ -72,7 +67,7 @@ export class Client extends DiscordClient {
     );
     for (const file of eventFiles) {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const FoundEvent = require(join(relativePath, `events/${file}`)).default;
+      const FoundEvent = require(join(`../events/${file}`)).default;
       const event: Event = new FoundEvent(this);
       const eventFileName = file.split(".")[0];
       const eventName =

@@ -6,7 +6,7 @@ import { Message } from "discord.js";
 require("dotenv").config();
 
 describe("client", () => {
-  const client = new Client("../", "src/commands", "src/events");
+  const client = new Client("src/commands", "src/events");
   const message = {
     author: {
       bot: false,

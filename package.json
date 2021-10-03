@@ -13,6 +13,7 @@
     "lint": "eslint \"**/*.ts\" --fix",
     "prepare": "husky install",
     "start": "npm run build && node --experimental-modules ./dist/src/index.js",
+    "dev": "ts-node src/index.ts",
     "test": "jest --coverage --forceExit --verbose --detectOpenHandles"
   },
   "repository": {

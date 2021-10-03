@@ -7,10 +7,12 @@ require("dotenv").config();
 
 // Set up the bot user and commands
 //------------------------------------------------------------------------------
+const dev: boolean = process.argv[0].endsWith("ts-node");
+const commandPaths: string = dev ? "src/commands" : "dist/src/commands";
+const eventsPath: string = dev ? "src/events" : "dist/src/events";
 const client = new Client(
-  "../",
-  "dist/src/commands",
-  "dist/src/events",
+  commandPaths,
+  eventsPath,
   process.env.BOT_TOKEN,
   process.env.TEST_SERVER_ID
 );
@@ -20,8 +22,6 @@ const client = new Client(
 mongooseConnect(process.env.BOT_URI)
   .then(() => {
     console.log("Connected to MongoDB");
-  })
-  .then(() => {
     GuildModel.find()
       .then((guilds) => {
         guilds.forEach((guild) => {
@@ -40,6 +40,6 @@ mongooseConnect(process.env.BOT_URI)
 //------------------------------------------------------------------------------
 try {
   client.login(process.env.BOT_TOKEN);
-} catch {
-  console.log("logging in");
+} catch (error) {
+  console.log(`Error logging in: ${error}`);
 }
