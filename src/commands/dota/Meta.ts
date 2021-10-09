@@ -15,7 +15,11 @@ export default class Meta extends Command {
   visible = true;
   description = "Get the top heroes of the current meta";
   information =
-    "Get the top heroes of the current meta. By default it shows the top heroes in the Archon bracket, however the bracket can be specified as an additional argument. If you use the slash command, you can move through the different pages, however the buttons are disabled after a minute.";
+    "Get the top heroes of the current meta. \
+    By default it shows the top heroes in the Archon bracket, \
+    however the bracket can be specified as an additional argument. \
+    If you use the slash command, you can move through the different pages, \
+    however the buttons are disabled after a minute.";
   aliases = [];
   args = false;
   usage = "[rank]";
@@ -147,7 +151,9 @@ export default class Meta extends Command {
       .then((response) => {
         const $ = cheerio.load(response.data);
         const table = $(
-          "body > div.container-outer.seemsgood > div.skin-container > div.container-inner.container-inner-content > div.content-inner > section > footer > article > table > tbody > tr"
+          "body > div.container-outer.seemsgood > div.skin-container > \
+          div.container-inner.container-inner-content > div.content-inner > \
+          section > footer > article > table > tbody > tr"
         );
         table.each((index, element) => {
           results.push({

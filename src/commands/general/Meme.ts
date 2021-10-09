@@ -8,7 +8,7 @@ export default class Meme extends Command {
   visible = true;
   description = "Get a random meme from r/dankmemes";
   information = "";
-  aliases: string[] = [];
+  aliases = [];
   args = false;
   usage = "";
   example = "";

@@ -5,7 +5,7 @@ import { CommandInteraction, Guild, Message, MessageEmbed } from "discord.js";
 
 export default class Remove extends Command {
   name = "remove";
-  visible: true;
+  visible = true;
   description = "Remove a song with the same name from the queue";
   information =
     "Remove a song with the same name from the queue. Will not remove the currently playing song.";

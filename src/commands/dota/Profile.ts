@@ -34,8 +34,11 @@ export default class Profile extends Command {
   visible = true;
   description = "Uses opendota API to collect general information on player";
   information =
-    "Given a steamID, return general info about the player. If your steamID is saved with the id command, then the steamID argument is not required. \nThe steamID should consist of only numbers and be the number that you see as your steam friend id or in your steam URL, or the number at the end of your dotabuff/ opendota URL.";
-  aliases: string[] = [];
+    "Given a steamID, return general info about the player. \
+    If your steamID is saved with the id command, then the steamID argument is not required. \n\
+    The steamID should consist of only numbers and be the number that you see as your steam friend id \
+    or in your steam URL, or the number at the end of your dotabuff / opendota URL.";
+  aliases = [];
   args = false;
   usage = "[Steam32 ID]";
   example = "193480093";

@@ -6,8 +6,10 @@ export default class Pentagon extends Command {
   visible = false;
   description = "Returns a list of top counters to given heroes";
   information =
-    "Given 5 values of the player's pentagon, it gives the area of the pentagon with those values, the maximum possible area by swapping value positions, and the ratio of area of the given area to the maximum area.";
-  aliases: string[] = [];
+    "Given 5 values of the player's pentagon, it gives the area of the pentagon with those values, \
+    the maximum possible area by swapping value positions, \
+    and the ratio of area of the given area to the maximum area.";
+  aliases = [];
   args = true;
   usage = "[Fighting] [Farming] [Supporting] [Pushing] [Versatility]";
   example = "7.5 0.5 9.8 5.1 0.7";

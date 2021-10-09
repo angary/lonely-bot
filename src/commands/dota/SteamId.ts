@@ -8,8 +8,11 @@ export default class SteamId extends Command {
   visible = true;
   description = "Stores or update your Steam ID";
   information =
-    "Stores or updates your steam ID (it should consist of only numbers and be the number that you see as your steam friend id). Once your steam ID is saved, you do not need to type your steamID when you use the opendota command. To remove your steamID info from the database, use `steamid 0`. If no argument is provided, then it returns your Steam ID if it's stored.";
-  aliases: string[] = [];
+    "Stores or updates your steam ID (it should consist of only numbers and be the number that you see as your steam friend id). \
+    Once your steam ID is saved, you do not need to type your steamID when you use the opendota command. \
+    To remove your steamID info from the database, use `steamid 0`. \
+    If no argument is provided, then it returns your Steam ID if it's stored.";
+  aliases = [];
   args = false;
   usage = "[Steam32 ID]";
   example = "193480093";

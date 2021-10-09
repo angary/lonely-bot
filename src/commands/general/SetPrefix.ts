@@ -8,8 +8,11 @@ export default class SetPrefix extends Command {
   name = "setprefix";
   visible = true;
   description = "Change the prefix of the bot for the current server";
-  information = `Change the prefix of the bot for the current server. If you would like to remove your server's prefix, you may set it back to \`${prefix}\`.`;
-  aliases: string[] = [];
+  information = `
+    Change the prefix of the bot for the current server. \
+    If you would like to remove your server's prefix, you may set it back to \`${prefix}\`.
+  `;
+  aliases = [];
   args = true;
   usage = "[new prefix]";
   example = ">>";

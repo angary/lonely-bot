@@ -25,8 +25,8 @@ export default class Counter extends Command {
   name = "counter";
   visible = true;
   description = "Returns a list of top counters to given heroes";
-  information: string = information;
-  aliases: string[] = [];
+  information = information;
+  aliases = [];
   args = true;
   usage = "[enemy_1], [enemy_2] ...";
   example = "am, venge, lone druid";
@@ -107,7 +107,9 @@ export default class Counter extends Command {
       // Grab the data from the counters table
       const $ = cheerio.load(response.data);
       const counterTable = $(
-        "body > div.container-outer.seemsgood > div.skin-container > div.container-inner.container-inner-content > div.content-inner > section:nth-child(4) > article > table > tbody > tr"
+        "body > div.container-outer.seemsgood > div.skin-container > \
+        div.container-inner.container-inner-content > div.content-inner > \
+        section:nth-child(4) > article > table > tbody > tr"
       );
 
       // Extract data from each hero
