@@ -124,8 +124,8 @@ export default class Profile extends Command {
           playerData.recent
         );
       })
-      .catch((error) => {
-        return this.createColouredEmbed(error);
+      .catch((error: Error) => {
+        return this.createColouredEmbed(error.message);
       });
     return profileEmbed;
   }
