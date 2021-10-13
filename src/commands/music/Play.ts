@@ -162,7 +162,9 @@ export default class Play extends Command {
     let songUrl = args[0];
 
     // Search for the song if the url is invalid
+    // This part tends to break often, hence lots of try catch
     if (!ytdl.validateURL(songUrl)) {
+      // Combine args
       let searchString = null;
       try {
         searchString = await ytsr.getFilters(args.join(" "));
@@ -170,6 +172,8 @@ export default class Play extends Command {
         console.log(error);
         throw "Error parsing arguments";
       }
+
+      // Try to find video
       const videoSearch = searchString.get("Type").get("Video");
       try {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -182,7 +186,13 @@ export default class Play extends Command {
         console.log(error);
         throw "Error searching for the song";
       }
+
+      // Check that song URL is valid
+      if (!ytdl.validateURL(songUrl)) {
+        throw "Could not find the song";
+      }
     }
+
     try {
       // Find the song details from URL
       songInfo = await ytdl.getInfo(songUrl);
