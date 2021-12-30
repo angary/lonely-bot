@@ -1,7 +1,12 @@
 import { Command } from "./Command";
 import { Event } from "./Event";
 import { IServerMusicQueue } from "./interfaces/Bot";
-import { Collection, Client as DiscordClient, Intents } from "discord.js";
+import {
+  Collection,
+  Client as DiscordClient,
+  Intents,
+  EmbedAuthorData,
+} from "discord.js";
 import { readdirSync, statSync } from "fs";
 import { join } from "path";
 
@@ -12,6 +17,7 @@ export class Client extends DiscordClient {
   musicQueue: Map<string, IServerMusicQueue>;
   token: string;
   testGuildId: string;
+  authorData: EmbedAuthorData;
 
   /**
    * @param commandsPath the path from root to the commands directory

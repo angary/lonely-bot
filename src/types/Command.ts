@@ -8,7 +8,7 @@ import {
   MessageButton,
   MessageEmbed,
   StageChannel,
-  TextBasedChannels,
+  TextBasedChannel,
   VoiceChannel,
 } from "discord.js";
 
@@ -65,7 +65,7 @@ export abstract class Command {
    * @returns a promise for the sent message
    */
   protected createAndSendEmbed(
-    channel: TextBasedChannels,
+    channel: TextBasedChannel,
     description?: string
   ): Promise<Message> {
     return channel.send({

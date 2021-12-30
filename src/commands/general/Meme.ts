@@ -50,9 +50,9 @@ export default class Meme extends Command {
       .setDescription(`**${post.author}**`)
       .setURL(memeUrl)
       .setImage(post.url)
-      .setFooter(
-        `⬆ ${post.ups} | 💬 ${post.num_comments} | 📅 ${day}/${month}/${year}`
-      );
+      .setFooter({
+        text: `⬆ ${post.ups} | 💬 ${post.num_comments} | 📅 ${day}/${month}/${year}`,
+      });
     return memeEmbed;
   }
 }

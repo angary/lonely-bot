@@ -7,6 +7,7 @@ import {
   AudioPlayerStatus,
   createAudioPlayer,
   createAudioResource,
+  DiscordGatewayAdapterCreator,
   entersState,
   getVoiceConnection,
   joinVoiceChannel,
@@ -236,7 +237,8 @@ export default class Play extends Command {
     const connection = joinVoiceChannel({
       channelId: channel.id,
       guildId: channel.guild.id,
-      adapterCreator: channel.guild.voiceAdapterCreator,
+      adapterCreator: channel.guild
+        .voiceAdapterCreator as unknown as DiscordGatewayAdapterCreator, // TODO: Find fix for wack types
     });
     try {
       await entersState(connection, VoiceConnectionStatus.Ready, 30_000);

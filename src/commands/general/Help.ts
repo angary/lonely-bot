@@ -77,9 +77,9 @@ export default class Help extends Command {
     this.addCategory("dota", helpEmbed, commands);
     this.addCategory("music", helpEmbed, commands);
     this.addHelpAndSupport(helpEmbed);
-    helpEmbed.setFooter(
-      `You can send "/help [command name]" to get info on a specific command!`
-    );
+    helpEmbed.setFooter({
+      text: `You can send "/help [command name]" to get info on a specific command!`,
+    });
   }
 
   /**

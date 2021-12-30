@@ -240,10 +240,11 @@ export default class Profile extends Command {
       )
       .setThumbnail(player.avatar)
       .setTimestamp()
-      .setFooter(
-        "Source: Opendota",
-        "https://pbs.twimg.com/profile_images/962444554967203840/G6KHe1q3.jpg"
-      )
+      .setFooter({
+        text: "Source: Opendota",
+        iconURL:
+          "https://pbs.twimg.com/profile_images/962444554967203840/G6KHe1q3.jpg",
+      })
       .addFields({
         name: "**General Match Data**",
         value: `

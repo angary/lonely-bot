@@ -259,7 +259,7 @@ export default class Meta extends Command {
           inline: true,
         }
       )
-      .setFooter(`Page ${page + 1}`);
+      .setFooter({ text: `Page ${page + 1}` });
   }
 
   /**

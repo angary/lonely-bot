@@ -1,4 +1,3 @@
-import { clientName, profilePicture, githubLink } from "../../../config.json";
 import { heroNames as aliasToHeroName } from "../../assets/heroNames";
 import { Command } from "../../types/Command";
 import { IHero } from "../../types/interfaces/Bot";
@@ -161,12 +160,13 @@ export default class Counter extends Command {
     // Boilerplate formatting
     const heroesEmbed = this.createColouredEmbed()
       .setTitle("Team Picker Help")
-      .setAuthor(clientName, profilePicture, githubLink)
+      // .setAuthor(clientName, profilePicture, githubLink) // TODO: setAuthor deprecated
       .setTimestamp()
-      .setFooter(
-        "Source: Dotabuff",
-        "https://pbs.twimg.com/profile_images/879332626414358528/eHLyVWo-_400x400.jpg"
-      );
+      .setFooter({
+        text: "Source: Dotabuff",
+        iconURL:
+          "https://pbs.twimg.com/profile_images/879332626414358528/eHLyVWo-_400x400.jpg",
+      });
 
     // Description formatting
     heroesEmbed.setDescription(
