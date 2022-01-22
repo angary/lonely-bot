@@ -17,8 +17,8 @@ import {
   IOpenDotaWinLose,
 } from "../../types/interfaces/OpenDota";
 import { SlashCommandBuilder } from "@discordjs/builders";
+import axios, { AxiosResponse } from "axios";
 import { CommandInteraction, Message, MessageEmbed } from "discord.js";
-import fetch, { Response } from "node-fetch";
 
 type OpenDotaResponse = [
   IOpenDotaPlayer,
@@ -97,20 +97,21 @@ export default class Profile extends Command {
     // 3: Hero names
     // 4: Hero rankings
     // 5: Most recent match data
-    await Promise.all([
-      fetch(`${url}players/${id}`),
-      fetch(`${url}players/${id}/wl`),
-      fetch(`${url}players/${id}/heroes`),
-      fetch(`${url}heroes`),
-      fetch(`${url}players/${id}/rankings`),
-      fetch(`${url}players/${id}/recentMatches`),
-    ])
+    await axios
+      .all([
+        axios.get(`${url}players/${id}`),
+        axios.get(`${url}players/${id}/wl`),
+        axios.get(`${url}players/${id}/heroes`),
+        axios.get(`${url}heroes`),
+        axios.get(`${url}players/${id}/rankings`),
+        axios.get(`${url}players/${id}/recentMatches`),
+      ])
       // Check for valid response
-      .then((responses: Response[]) => this.checkAPIResponse(responses))
+      .then((responses: AxiosResponse[]) => this.checkAPIResponse(responses))
 
       // Convert data to .json
-      .then((responses: Response[]) =>
-        Promise.all(responses.map((response) => response.json()))
+      .then((responses: AxiosResponse[]) =>
+        axios.all(responses.map((response) => response.data))
       )
 
       // Extract and format data
@@ -136,7 +137,7 @@ export default class Profile extends Command {
    * @param responses the list of responses to check
    * @returns the same list of responses given
    */
-  private checkAPIResponse(responses: Response[]): Response[] {
+  private checkAPIResponse(responses: AxiosResponse[]): AxiosResponse[] {
     // Takes a long time to loop, can be optimised
     for (const response of responses) {
       if (response.status !== 200) {
@@ -177,13 +178,15 @@ export default class Profile extends Command {
     // Extra recent match data
     const recent = recentMatches[0];
 
-    const won =
-      recent.player_slot < 6 ? recent.radiant_win : !recent.radiant_win;
-
+    const won = recent.player_slot <= 5 === recent.radiant_win;
     const playerRecentData: IPlayerRecentData = {
       outcome: won ? "Won" : "Lost",
       skill: ["unknown", "normal", "high", "very high"][recent.skill || 0],
-      lobbyType: lobbyTypes[recent.lobby_type].replace(/_/g, " ") || "",
+      lobbyType:
+        (recent.lobby_type < lobbyTypes.length
+          ? lobbyTypes[recent.lobby_type]
+          : "unknown"
+        ).replace(/_/g, " ") || "",
       gameMode: gameModes[recent.game_mode].replace(/_/g, " ") || "",
       hero: this.idToHeroName(heroes, recent.hero_id),
       kills: recent.kills,
