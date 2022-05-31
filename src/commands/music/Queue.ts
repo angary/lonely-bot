@@ -60,20 +60,20 @@ export default class Queue extends Command {
     let totalDuration = song.duration - currStreamTime;
 
     // Collect all song details
-    for (let i = 0; i < songs.length; i++) {
+    songs.forEach((song, i) => {
       // Only add duration if it is not the first song as it is already added
       if (i > 0) {
-        totalDuration += songs[i].duration;
+        totalDuration += song.duration;
       }
 
       // Only add details of first 10 songs
       if (i < 10) {
-        const duration = this.formatDuration(songs[i].duration);
+        const duration = this.formatDuration(song.duration);
         songsInQueue += `${i + 1}: ${this.getFormattedLink(
-          songs[i]
+          song
         )} (${duration})\n`;
       }
-    }
+    });
 
     const queueEmbed = this.createColouredEmbed()
       .setTitle("Queue")

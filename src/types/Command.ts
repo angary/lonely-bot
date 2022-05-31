@@ -57,11 +57,11 @@ export abstract class Command {
   }
 
   /**
-   * Creates a new embed with that message and sends it to the channel, and
+   * Creates a new embed with that description and sends it to the channel, and
    * stop typing in the channel
    *
    * @param channel the channel to send the message in
-   * @param message the message to send
+   * @param description the description to send
    * @returns a promise for the sent message
    */
   protected createAndSendEmbed(

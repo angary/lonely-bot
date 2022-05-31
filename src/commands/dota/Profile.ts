@@ -109,7 +109,7 @@ export default class Profile extends Command {
       // Check for valid response
       .then((responses: AxiosResponse[]) => this.checkAPIResponse(responses))
 
-      // Convert data to .json
+      // Convert data to json
       .then((responses: AxiosResponse[]) =>
         axios.all(responses.map((response) => response.data))
       )

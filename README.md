@@ -39,10 +39,10 @@ Ensure that you have node and npm installed, and run
 npm install
 
 # Set up husky git hooks
-npm prepare
+npm run prepare
 
 # Run the bot
-ts-node src/index.ts
+npm run dev
 ```
 
 ## Extra Information <a name="Extra_Information"></a>
