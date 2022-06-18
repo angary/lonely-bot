@@ -1,1 +1,1 @@
-service: node ./dist/src/index.js
+service: npm start
