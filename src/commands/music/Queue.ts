@@ -7,7 +7,7 @@ export default class Queue extends Command {
   name = "queue";
   visible = true;
   description = "Prints out the first 10 songs of the queue";
-  information = "";
+  information = this.description;
   aliases = ["q"];
   args = false;
   usage = "";

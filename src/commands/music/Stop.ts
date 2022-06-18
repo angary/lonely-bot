@@ -12,7 +12,7 @@ export default class Stop extends Command {
   name = "stop";
   visible = true;
   description = "Remove all songs from the current queue";
-  information = "";
+  information = this.description;
   aliases = [];
   args = false;
   usage = "";

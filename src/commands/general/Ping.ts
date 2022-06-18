@@ -6,7 +6,7 @@ export default class Ping extends Command {
   name = "ping";
   visible = false;
   description = "Sends back 'Pong!' and the latency of user from bot server";
-  information = "";
+  information = this.description;
   aliases = [];
   args = false;
   usage = "";

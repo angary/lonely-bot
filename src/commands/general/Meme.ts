@@ -7,7 +7,7 @@ export default class Meme extends Command {
   name = "meme";
   visible = true;
   description = "Get a random meme from r/dankmemes";
-  information = "";
+  information = this.description;
   aliases = [];
   args = false;
   usage = "";

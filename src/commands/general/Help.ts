@@ -12,7 +12,7 @@ export default class Help extends Command {
   name = "help";
   visible = true;
   description = "List all of my commands or info about a specific command";
-  information = "";
+  information = this.description;
   aliases = ["commands"];
   args = false;
   usage = "[command name]";
@@ -94,25 +94,13 @@ export default class Help extends Command {
     helpEmbed: MessageEmbed,
     commands: Collection<string, Command>
   ): void {
-    // Format the relevant data, not sure how to use filter function
-    const data = [];
-    const dataCommands = commands;
-    data.push(
-      dataCommands
-        .map((command) => {
-          if (command.category === category && command.visible) {
-            return `**${command.name}**: ${command.description}\n`;
-          } else {
-            return "";
-          }
-        })
-        .join("")
-    );
-
     // Add it to the embed
     helpEmbed.addField(
       `**${category.charAt(0).toUpperCase() + category.slice(1)}**`,
-      data.join("\n"),
+      commands
+        .filter((command) => command.category && command.visible)
+        .map((command) => `**${command.name}**: ${command.description}\n`)
+        .join(""),
       false
     );
   }
@@ -138,20 +126,14 @@ export default class Help extends Command {
 
     // Else find information on the command
     helpEmbed.setTitle(`Help for: ${command.name}`);
-    const data = [];
+    const data = [`**Information:** ${command.information}`];
     if (command.aliases.length > 0) {
       data.push(`**Aliases:** ${command.aliases.join(", ")}`);
     }
-    if (command.information) {
-      data.push(`**Information:** ${command.information}`);
-    } else if (command.description) {
-      data.push(`**Information:** ${command.description}`);
-    }
-    if (command.usage) {
-      data.push(`**Usage:** \`${prefix}${command.name} ${command.usage}\``);
-    }
-    if (command.example) {
-      data.push(`**Example:** \`${prefix}${command.name} ${command.example}\``);
+    for (const f of ["usage", "example"]) {
+      if (command[f]) {
+        data.push(`**${f}:** \`${prefix}${command.name} ${command[f]}\``);
+      }
     }
     if (command.cooldown) {
       data.push(`**Cooldown:** ${command.cooldown} second(s)`);

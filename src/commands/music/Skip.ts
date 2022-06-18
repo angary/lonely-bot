@@ -12,7 +12,7 @@ export default class Skip extends Command {
   name = "skip";
   visible = true;
   description = "Skip the current song in the queue";
-  information = "";
+  information = this.description;
   aliases = [];
   args = false;
   usage = "";
