@@ -126,7 +126,7 @@ export default class Profile extends Command {
         );
       })
       .catch((error: Error) => {
-        return this.createColouredEmbed(error.message);
+        profileEmbed = this.createColouredEmbed(error.message);
       });
     return profileEmbed;
   }
