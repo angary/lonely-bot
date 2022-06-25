@@ -6,6 +6,7 @@ import {
   Message,
   MessageActionRow,
   MessageButton,
+  MessageComponentInteraction,
   MessageEmbed,
   StageChannel,
   TextBasedChannel,
@@ -56,6 +57,53 @@ export abstract class Command {
     return row;
   }
 
+  protected createActiveScrollBar(
+    interaction: CommandInteraction,
+    maxPages: number,
+    cls: Command,
+    generateEmbed: CallableFunction,
+    args: unknown[],
+    duration = 120_000
+  ): MessageActionRow {
+    const boundGenerateEmbed = generateEmbed.bind(cls);
+    let row = this.createScrollButtonRow(false);
+    const collector = interaction.channel.createMessageComponentCollector({
+      time: duration,
+    });
+    let page = 0;
+    collector.on("collect", async (i: MessageComponentInteraction) => {
+      switch (i.customId) {
+        case "First":
+          page = 0;
+          break;
+        case "Prev":
+          page = Math.max(0, page - 1);
+          break;
+        case "Next":
+          page = Math.min(Math.floor(maxPages), page + 1);
+          break;
+        case "Last":
+          page = maxPages;
+      }
+      try {
+        await i.update({
+          embeds: [boundGenerateEmbed(...args, page)],
+          components: [row],
+        });
+      } catch (error) {
+        console.log(error);
+      }
+    });
+    collector.on("end", () => {
+      (row = this.createScrollButtonRow(true)),
+        interaction.editReply({
+          embeds: [boundGenerateEmbed(...args, page)],
+          components: [row],
+        });
+    });
+    return row;
+  }
+
   /**
    * Creates a new embed with that description and sends it to the channel, and
    * stop typing in the channel
@@ -77,12 +125,8 @@ export abstract class Command {
    * @param description (optional) the description for the embed
    * @returns a new MessageEmbed with the blue colouring
    */
-  protected createColouredEmbed(description?: string): MessageEmbed {
-    const embed = new MessageEmbed().setColor("#0099ff");
-    if (description) {
-      embed.setDescription(description);
-    }
-    return embed;
+  protected createColouredEmbed(description = ""): MessageEmbed {
+    return new MessageEmbed().setColor("#0099ff").setDescription(description);
   }
 
   /**

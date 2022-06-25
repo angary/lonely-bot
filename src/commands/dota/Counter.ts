@@ -4,12 +4,7 @@ import { IHero } from "../../types/interfaces/Bot";
 import { SlashCommandBuilder } from "@discordjs/builders";
 import axios, { AxiosResponse } from "axios";
 import { load } from "cheerio";
-import {
-  CommandInteraction,
-  Message,
-  MessageComponentInteraction,
-  MessageEmbed,
-} from "discord.js";
+import { CommandInteraction, Message, MessageEmbed } from "discord.js";
 
 const information = `
 Given the enemy hero names separated by commas, return the top counters by winrate and advantage.
@@ -62,7 +57,7 @@ export default class Counter extends Command {
     message.channel.sendTyping();
     try {
       const [enemies, counters] = await this.counter(args);
-      const counterEmbed = this.generateEmbed(enemies, counters, 0);
+      const counterEmbed = this.generateEmbed(enemies, counters);
       return message.channel.send({ embeds: [counterEmbed] });
     } catch (error) {
       return this.createAndSendEmbed(error);
@@ -74,50 +69,23 @@ export default class Counter extends Command {
     const counterMethod = (
       counterMethodArg ? counterMethodArg.value : "Win Rate"
     ) as CounterMethod;
-    let page = 0;
-    // TODO: Move scrolling into helper function in parent class
-    let row = this.createScrollButtonRow(false);
+    const page = 0;
     try {
       const [enemies, counters] = await this.counter(argHeroes);
       const maxPages = Math.floor(counters.length / 10);
+      const row = this.createActiveScrollBar(
+        interaction,
+        maxPages,
+        this,
+        this.generateEmbed,
+        [enemies, counters, counterMethod]
+      );
       const counterEmbed = this.generateEmbed(
         enemies,
         counters,
-        page,
-        counterMethod
+        counterMethod,
+        page
       );
-      const collector = interaction.channel.createMessageComponentCollector({
-        time: 60_000,
-      });
-      collector.on("collect", async (i: MessageComponentInteraction) => {
-        switch (i.customId) {
-          case "First":
-            page = 0;
-            break;
-          case "Prev":
-            page = Math.max(0, page - 1);
-            break;
-          case "Next":
-            page = Math.min(Math.floor(maxPages), page + 1);
-            break;
-          case "Last":
-            page = maxPages;
-        }
-        console.log(`page is ${page}`);
-        await i.update({
-          embeds: [this.generateEmbed(enemies, counters, page, counterMethod)],
-          components: [row],
-        });
-      });
-      collector.on("end", () => {
-        (row = this.createScrollButtonRow(true)),
-          interaction.editReply({
-            embeds: [
-              this.generateEmbed(enemies, counters, page, counterMethod),
-            ],
-            components: [row],
-          });
-      });
       return interaction.reply({ embeds: [counterEmbed], components: [row] });
     } catch (error) {
       return interaction.reply({
@@ -217,15 +185,15 @@ export default class Counter extends Command {
    *
    * @param enemies the list of enemies given in the arguments
    * @param counters the list of data containing top counters
-   * @param page the page of counters to show
    * @param counterMethod how the hero gets countered ("Win Rate" | "Disadvantage")
+   * @param page the page of counters to show
    * @returns promise to the message sent
    */
-  private generateEmbed(
+  protected generateEmbed(
     enemies: string[],
     counters: IHero[],
-    page = 0,
-    counterMethod: CounterMethod = "Win Rate"
+    counterMethod: CounterMethod = "Win Rate",
+    page = 0
   ): MessageEmbed {
     // Boilerplate formatting
     const heroesEmbed = this.createColouredEmbed()

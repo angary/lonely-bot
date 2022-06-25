@@ -3,12 +3,7 @@ import { IMetaHeroData } from "../../types/interfaces/Bot";
 import { SlashCommandBuilder } from "@discordjs/builders";
 import axios from "axios";
 import cheerio from "cheerio";
-import {
-  CommandInteraction,
-  Message,
-  MessageComponentInteraction,
-  MessageEmbed,
-} from "discord.js";
+import { CommandInteraction, Message, MessageEmbed } from "discord.js";
 
 export default class Meta extends Command {
   name = "meta";
@@ -64,7 +59,7 @@ export default class Meta extends Command {
           ? Math.max(0, page - 1)
           : Math.min(Math.floor(results.length / 10), page + 1);
       sentMessage.edit({
-        embeds: [this.createEmbedWithData(rank, results, page)],
+        embeds: [this.generateEmbed(rank, results, page)],
       });
 
       // Remove the user reactions
@@ -82,46 +77,15 @@ export default class Meta extends Command {
     // Get the embed
     const [metaEmbed, rank, results] = await this.meta(args);
 
-    // TODO: Move scrolling into helper function in parent class
     // Create the row of buttons
-    let row = this.createScrollButtonRow(false);
-
-    // Create functionality for the buttons
-    let page = 0;
-    const collector = interaction.channel.createMessageComponentCollector({
-      time: 60_000,
-    });
-    collector.on("collect", async (i: MessageComponentInteraction) => {
-      switch (i.customId) {
-        case "First":
-          page = 0;
-          break;
-        case "Prev":
-          page = Math.max(0, page - 1);
-          break;
-        case "Next":
-          page = Math.min(Math.floor(results.length / 10), page + 1);
-          break;
-        case "Last":
-          page = Math.floor(results.length / 10);
-          break;
-      }
-      try {
-        await i.update({
-          embeds: [this.createEmbedWithData(rank, results, page)],
-          components: [row],
-        });
-      } catch (error) {
-        console.log(error);
-      }
-      return;
-    });
-
-    // Remove the buttons after a minute
-    collector.on("end", () => {
-      row = this.createScrollButtonRow(true);
-      interaction.editReply({ embeds: [metaEmbed], components: [row] });
-    });
+    const maxPages = Math.floor(results.length / 10);
+    const row = this.createActiveScrollBar(
+      interaction,
+      maxPages,
+      this,
+      this.generateEmbed,
+      [rank, results]
+    );
 
     return await interaction.reply({ embeds: [metaEmbed], components: [row] });
   };
@@ -179,7 +143,7 @@ export default class Meta extends Command {
         results
           .sort((a, b) => parseFloat(b.winRate) - parseFloat(a.winRate))
           .forEach((result, index) => (result.index = index));
-        metaEmbed = this.createEmbedWithData(rank, results, 0);
+        metaEmbed = this.generateEmbed(rank, results, 0);
       });
     return [metaEmbed, rank, results];
   }
@@ -218,14 +182,12 @@ export default class Meta extends Command {
    * @param page the current page of the list
    * @returns the new embed with the data
    */
-  private createEmbedWithData(
+  protected generateEmbed(
     rank: string,
     results: IMetaHeroData[],
     page: number
   ): MessageEmbed {
-    const [start, end] = [page * 10, (page + 1) * 10];
-
-    results = results.slice(start, end);
+    results = results.slice(page * 10, page * 10 + 10);
 
     return this.createColouredEmbed()
       .setTitle("Meta")
