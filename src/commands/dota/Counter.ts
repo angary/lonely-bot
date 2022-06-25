@@ -4,7 +4,12 @@ import { IHero } from "../../types/interfaces/Bot";
 import { SlashCommandBuilder } from "@discordjs/builders";
 import axios, { AxiosResponse } from "axios";
 import { load } from "cheerio";
-import { CommandInteraction, Message, MessageEmbed } from "discord.js";
+import {
+  CommandInteraction,
+  Message,
+  MessageComponentInteraction,
+  MessageEmbed,
+} from "discord.js";
 
 const information = `
 Given the enemy hero names separated by commas, return the top counters by winrate and advantage.
@@ -15,10 +20,12 @@ Explanation of data:
 - The numbers suggest the hero's average winrate against the enemies
 - Sorting by winrate suggests heroes that are in the meta
 
-**Advantage**
+**Disadvantage**
 - The numbers suggest the hero's average advantage against the enemies
 - Sorting by disadvantage suggests heroes that generally counter the heros based on their abilities, but may not be the best in the current meta
 `;
+
+type CounterMethod = "Win Rate" | "Disadvantage";
 
 export default class Counter extends Command {
   name = "counter";
@@ -40,26 +47,82 @@ export default class Counter extends Command {
         .setName("enemies")
         .setDescription("A list of the enemy's heroes")
         .setRequired(true)
+    )
+    .addStringOption((option) =>
+      option
+        .setName("method")
+        .setDescription("How the hero counters the enemies")
+        .setRequired(false)
+        .addChoices([
+          ["Win Rate", "Win Rate"],
+          ["Disadvantage", "Disadvantage"],
+        ])
     );
   execute = async (message: Message, args: string[]): Promise<Message> => {
     message.channel.sendTyping();
     try {
       const [enemies, counters] = await this.counter(args);
-      const counterEmbed = this.generateEmbed(enemies, counters);
+      const counterEmbed = this.generateEmbed(enemies, counters, 0);
       return message.channel.send({ embeds: [counterEmbed] });
     } catch (error) {
       return this.createAndSendEmbed(error);
     }
   };
   executeSlash = async (interaction: CommandInteraction): Promise<void> => {
-    const args = [interaction.options.get("enemies").value as string];
-    // TODO: Handle scrolling through counters
+    const argHeroes = [interaction.options.get("enemies").value as string];
+    const counterMethodArg = interaction.options.get("method");
+    const counterMethod = (
+      counterMethodArg ? counterMethodArg.value : "Win Rate"
+    ) as CounterMethod;
+    let page = 0;
+    // TODO: Move scrolling into helper function in parent class
+    let row = this.createScrollButtonRow(false);
     try {
-      const [enemies, counters] = await this.counter(args);
-      const counterEmbed = this.generateEmbed(enemies, counters);
-      return interaction.reply({ embeds: [counterEmbed] });
+      const [enemies, counters] = await this.counter(argHeroes);
+      const maxPages = Math.floor(counters.length / 10);
+      const counterEmbed = this.generateEmbed(
+        enemies,
+        counters,
+        page,
+        counterMethod
+      );
+      const collector = interaction.channel.createMessageComponentCollector({
+        time: 60_000,
+      });
+      collector.on("collect", async (i: MessageComponentInteraction) => {
+        switch (i.customId) {
+          case "First":
+            page = 0;
+            break;
+          case "Prev":
+            page = Math.max(0, page - 1);
+            break;
+          case "Next":
+            page = Math.min(Math.floor(maxPages), page + 1);
+            break;
+          case "Last":
+            page = maxPages;
+        }
+        console.log(`page is ${page}`);
+        await i.update({
+          embeds: [this.generateEmbed(enemies, counters, page, counterMethod)],
+          components: [row],
+        });
+      });
+      collector.on("end", () => {
+        (row = this.createScrollButtonRow(true)),
+          interaction.editReply({
+            embeds: [
+              this.generateEmbed(enemies, counters, page, counterMethod),
+            ],
+            components: [row],
+          });
+      });
+      return interaction.reply({ embeds: [counterEmbed], components: [row] });
     } catch (error) {
-      return interaction.reply({ embeds: [this.createColouredEmbed(error)] });
+      return interaction.reply({
+        embeds: [this.createColouredEmbed(error)],
+      });
     }
   };
 
@@ -67,13 +130,12 @@ export default class Counter extends Command {
    * Extract out the enemies hero names, webscrape data about their matches and
    * then return an embed containing the relevant counters
    *
-   * @param args a list of the enemy heroes input by the user
+   * @param argHeroes a list of the enemy heroes input by the user
    * @returns an embed containing data about the top counters
    */
-  private async counter(args: string[]): Promise<[string[], IHero[]]> {
-    const parsedArgs = args.join("").split(",");
+  private async counter(argHeroes: string[]): Promise<[string[], IHero[]]> {
     const enemies: string[] = [];
-    for (const name of parsedArgs) {
+    for (const name of argHeroes.join("").split(",")) {
       const officialName =
         aliasToHeroName[name.replace(/ /g, "").toLowerCase()];
       if (officialName) {
@@ -90,7 +152,7 @@ export default class Counter extends Command {
     });
 
     const counterResponses = await axios.all(promises);
-    const counters = await this.aggregateData(counterResponses);
+    const counters = await this.aggregateData(counterResponses, enemies);
     return [enemies, counters];
   }
 
@@ -98,9 +160,13 @@ export default class Counter extends Command {
    * Collect all relevant data from webscraping
    *
    * @param responses the fetched webpages
+   * @param enemies a list of the names of the enemy heroes to counter
    * @returns a list of data about the top counters to each enemy
    */
-  private async aggregateData(responses: AxiosResponse[]): Promise<IHero[]> {
+  private async aggregateData(
+    responses: AxiosResponse[],
+    enemies: string[]
+  ): Promise<IHero[]> {
     const heroes: Record<string, IHero> = {};
 
     // Extra data from each hero counter request
@@ -143,7 +209,7 @@ export default class Counter extends Command {
       hero.winrate /= hero.count;
       hero.disadvantage /= hero.count;
     });
-    return Object.values(heroes);
+    return Object.values(heroes).filter((hero) => !enemies.includes(hero.name));
   }
 
   /**
@@ -151,13 +217,19 @@ export default class Counter extends Command {
    *
    * @param enemies the list of enemies given in the arguments
    * @param counters the list of data containing top counters
+   * @param page the page of counters to show
+   * @param counterMethod how the hero gets countered ("Win Rate" | "Disadvantage")
    * @returns promise to the message sent
    */
-  private generateEmbed(enemies: string[], counters: IHero[]): MessageEmbed {
+  private generateEmbed(
+    enemies: string[],
+    counters: IHero[],
+    page = 0,
+    counterMethod: CounterMethod = "Win Rate"
+  ): MessageEmbed {
     // Boilerplate formatting
     const heroesEmbed = this.createColouredEmbed()
       .setTitle("Team Picker Help")
-      // .setAuthor(clientName, profilePicture, githubLink) // TODO: setAuthor deprecated
       .setTimestamp()
       .setFooter({
         text: "Source: Dotabuff",
@@ -171,19 +243,13 @@ export default class Counter extends Command {
       High **win rate** heroes are good in the current meta
       High **advantage** heroes are natural counters`
     );
-
-    // Add heroes with good winrates against enemy
-    const winCounters = counters
-      .sort((a, b) => a.winrate - b.winrate)
-      .slice(0, 5);
-    this.addHeroesToEmbed(heroesEmbed, winCounters, "Win Rate");
-
-    // Add heroes with good advantage against enemy
-    const advCounters = counters
-      .sort((a, b) => b.disadvantage - a.disadvantage)
-      .slice(0, 5);
-    this.addHeroesToEmbed(heroesEmbed, advCounters, "Advantage");
-
+    const typeKey = counterMethod.replace(/ /g, "").toLocaleLowerCase();
+    this.addHeroesToEmbed(
+      heroesEmbed,
+      counters.sort((a, b) => a[typeKey] - b[typeKey]),
+      page,
+      counterMethod
+    );
     return heroesEmbed;
   }
 
@@ -192,24 +258,28 @@ export default class Counter extends Command {
    *
    * @param heroesEmbed the message embed to send
    * @param counters a list of data for the top counters
-   * @param sortMethod the name of the field of how the counters were sorted
+   * @param counterMethod the name of the field of how the counters were sorted
+   * @param page the page / section of the heroes list to include
    */
   private addHeroesToEmbed(
     heroesEmbed: MessageEmbed,
     counters: IHero[],
-    sortMethod: string
+    page: number,
+    counterMethod: CounterMethod
   ): void {
     // Add details to embed
     const details = [];
+    const baseIndex = page * 10;
+    const countersPage = counters.slice(baseIndex, baseIndex + 10);
     let heroes = "";
-    counters.forEach((element, index) => {
-      heroes += `${index + 1}: **${element.name}**\n`;
-    });
-    details[`**__Sorted by ${sortMethod}__\nHeroes**`] = heroes;
-    details["**\nAdvantage**"] = `${counters
+    countersPage.forEach(
+      (c, i) => (heroes += `${baseIndex + i + 1}: **${c.name}**\n`)
+    );
+    details[`**__Sorted by ${counterMethod}__\nHeroes**`] = heroes;
+    details["**\nAdvantage**"] = `${countersPage
       .map((c) => c.disadvantage.toFixed(2))
       .join("%\n")}%`;
-    details["**\nWin Rate**"] = `${counters
+    details["**\nWin Rate**"] = `${countersPage
       .map((c) => (100 - c.winrate).toFixed(2))
       .join("%\n")}%`;
     for (const [key, value] of Object.entries(details)) {

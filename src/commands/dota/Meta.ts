@@ -82,6 +82,7 @@ export default class Meta extends Command {
     // Get the embed
     const [metaEmbed, rank, results] = await this.meta(args);
 
+    // TODO: Move scrolling into helper function in parent class
     // Create the row of buttons
     let row = this.createScrollButtonRow(false);
 
