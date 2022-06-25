@@ -142,10 +142,9 @@ export default class Play extends Command {
       voiceChannel,
       textChannel
     );
-    const guildId = guild.id;
     if (!serverQueue.isPlaying) {
       // If a new queue was created then we immediately play the song
-      this.playSong(guildId, this.client.musicQueue);
+      this.playSong(guild.id, this.client.musicQueue);
     }
     return this.createColouredEmbed(
       `Queued ${this.getFormattedLink(song)} (${song.formattedDuration})`

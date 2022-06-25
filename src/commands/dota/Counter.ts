@@ -3,7 +3,7 @@ import { Command } from "../../types/Command";
 import { IHero } from "../../types/interfaces/Bot";
 import { SlashCommandBuilder } from "@discordjs/builders";
 import axios, { AxiosResponse } from "axios";
-import cheerio from "cheerio";
+import { load } from "cheerio";
 import { CommandInteraction, Message, MessageEmbed } from "discord.js";
 
 const information = `
@@ -43,13 +43,24 @@ export default class Counter extends Command {
     );
   execute = async (message: Message, args: string[]): Promise<Message> => {
     message.channel.sendTyping();
-    const counterEmbed = await this.counter(args);
-    return message.channel.send({ embeds: [counterEmbed] });
+    try {
+      const [enemies, counters] = await this.counter(args);
+      const counterEmbed = this.generateEmbed(enemies, counters);
+      return message.channel.send({ embeds: [counterEmbed] });
+    } catch (error) {
+      return this.createAndSendEmbed(error);
+    }
   };
   executeSlash = async (interaction: CommandInteraction): Promise<void> => {
     const args = [interaction.options.get("enemies").value as string];
-    const counterEmbed = await this.counter(args);
-    return interaction.reply({ embeds: [counterEmbed] });
+    // TODO: Handle scrolling through counters
+    try {
+      const [enemies, counters] = await this.counter(args);
+      const counterEmbed = this.generateEmbed(enemies, counters);
+      return interaction.reply({ embeds: [counterEmbed] });
+    } catch (error) {
+      return interaction.reply({ embeds: [this.createColouredEmbed(error)] });
+    }
   };
 
   /**
@@ -59,15 +70,16 @@ export default class Counter extends Command {
    * @param args a list of the enemy heroes input by the user
    * @returns an embed containing data about the top counters
    */
-  private async counter(args: string[]) {
-    const enemies: string[] = [];
+  private async counter(args: string[]): Promise<[string[], IHero[]]> {
     const parsedArgs = args.join("").split(",");
+    const enemies: string[] = [];
     for (const name of parsedArgs) {
-      const officialName = aliasToHeroName[name.trim().toLowerCase()];
+      const officialName =
+        aliasToHeroName[name.replace(/ /g, "").toLowerCase()];
       if (officialName) {
         enemies.push(officialName);
       } else {
-        return this.createColouredEmbed(`Invalid hero name **${name}**.`);
+        throw `Invalid hero name **${name}**.`;
       }
     }
 
@@ -77,34 +89,24 @@ export default class Counter extends Command {
       return axios.get(`https://www.dotabuff.com/heroes/${urlName}/counters`);
     });
 
-    let counterEmbed: MessageEmbed;
-    await axios
-      .all(promises)
-
-      // Collect via webscraping
-      .then(async (responses) => this.aggregateData(responses, enemies))
-
-      // Format data onto the counter embed
-      .then((counters) => (counterEmbed = this.getEmbed(enemies, counters)));
-    return counterEmbed;
+    const counterResponses = await axios.all(promises);
+    const counters = await this.aggregateData(counterResponses);
+    return [enemies, counters];
   }
+
   /**
    * Collect all relevant data from webscraping
    *
    * @param responses the fetched webpages
-   * @param enemies a list of the enemy names
    * @returns a list of data about the top counters to each enemy
    */
-  private async aggregateData(
-    responses: AxiosResponse[],
-    enemies: string[]
-  ): Promise<IHero[]> {
+  private async aggregateData(responses: AxiosResponse[]): Promise<IHero[]> {
     const heroes: Record<string, IHero> = {};
 
     // Extra data from each hero counter request
     for (const response of responses) {
       // Grab the data from the counters table
-      const $ = cheerio.load(response.data);
+      const $ = load(response.data);
       const counterTable = $(
         "body > div.container-outer.seemsgood > div.skin-container > \
         div.container-inner.container-inner-content > div.content-inner > \
@@ -112,7 +114,7 @@ export default class Counter extends Command {
       );
 
       // Extract data from each hero
-      counterTable.each((index, element) => {
+      counterTable.each((_, element) => {
         // Data is in given in the form of a string
         const name = $(element).find("td.cell-xlarge").text();
         const disadvantage = $(element).find("td:nth-child(3)").text();
@@ -137,16 +139,11 @@ export default class Counter extends Command {
     }
 
     // Find the average winrate and disadvantage
-    for (const key in heroes) {
-      const count = heroes[key].count;
-      heroes[key].winrate /= count;
-      heroes[key].disadvantage /= count;
-    }
-
-    // Convert object into array and remove heroes if they are in enemy team
-    return Object.values(heroes).filter(
-      (hero: IHero) => !enemies.includes(hero.name)
-    );
+    Object.values(heroes).forEach((hero) => {
+      hero.winrate /= hero.count;
+      hero.disadvantage /= hero.count;
+    });
+    return Object.values(heroes);
   }
 
   /**
@@ -156,7 +153,7 @@ export default class Counter extends Command {
    * @param counters the list of data containing top counters
    * @returns promise to the message sent
    */
-  private getEmbed(enemies: string[], counters: IHero[]): MessageEmbed {
+  private generateEmbed(enemies: string[], counters: IHero[]): MessageEmbed {
     // Boilerplate formatting
     const heroesEmbed = this.createColouredEmbed()
       .setTitle("Team Picker Help")
@@ -179,13 +176,13 @@ export default class Counter extends Command {
     const winCounters = counters
       .sort((a, b) => a.winrate - b.winrate)
       .slice(0, 5);
-    this.addHeroes(heroesEmbed, winCounters, "Win Rate");
+    this.addHeroesToEmbed(heroesEmbed, winCounters, "Win Rate");
 
     // Add heroes with good advantage against enemy
     const advCounters = counters
       .sort((a, b) => b.disadvantage - a.disadvantage)
       .slice(0, 5);
-    this.addHeroes(heroesEmbed, advCounters, "Advantage");
+    this.addHeroesToEmbed(heroesEmbed, advCounters, "Advantage");
 
     return heroesEmbed;
   }
@@ -197,7 +194,7 @@ export default class Counter extends Command {
    * @param counters a list of data for the top counters
    * @param sortMethod the name of the field of how the counters were sorted
    */
-  private addHeroes(
+  private addHeroesToEmbed(
     heroesEmbed: MessageEmbed,
     counters: IHero[],
     sortMethod: string
