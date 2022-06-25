@@ -1,4 +1,4 @@
-import { Command } from "../../types/Command";
+import { Command } from "../../Command";
 import { Message } from "discord.js";
 
 export default class Pentagon extends Command {

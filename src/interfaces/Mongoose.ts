@@ -1,9 +1,9 @@
-export interface IUser {
+export interface User {
   discordID: string;
   steamID: string;
 }
 
-export interface IGuild {
+export interface Guild {
   guildId: string;
   prefix: string;
 }

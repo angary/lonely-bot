@@ -1,6 +1,6 @@
 import { vcStandbyDuration } from "../../config.json";
-import { Event } from "../types/Event";
-import { IServerMusicQueue } from "../types/interfaces/Bot";
+import { Event } from "../Event";
+import { ServerMusicQueue } from "../interfaces/Bot";
 import { getVoiceConnection } from "@discordjs/voice";
 import { Message, VoiceState } from "discord.js";
 
@@ -45,7 +45,7 @@ export default class VoiceStateUpdate extends Event {
    * @param guildId the id of the relevant server
    */
   private leaveVoiceChannel(
-    musicQueue: Map<string, IServerMusicQueue>,
+    musicQueue: Map<string, ServerMusicQueue>,
     guildId: string
   ): void {
     const serverQueue = musicQueue.get(guildId);
@@ -63,7 +63,7 @@ export default class VoiceStateUpdate extends Event {
    * @param serverQueue a server's music queue object
    * @returns if the the bot should leave or not
    */
-  private shouldLeave(serverQueue: IServerMusicQueue): boolean {
+  private shouldLeave(serverQueue: ServerMusicQueue): boolean {
     return serverQueue.voiceChannel.members.size === 1;
   }
 }

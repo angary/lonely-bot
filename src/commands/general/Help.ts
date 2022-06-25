@@ -1,5 +1,5 @@
 import { prefix, githubLink, inviteLink } from "../../../config.json";
-import { Command } from "../../types/Command";
+import { Command } from "../../Command";
 import { SlashCommandBuilder } from "@discordjs/builders";
 import {
   Collection,

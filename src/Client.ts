@@ -1,6 +1,6 @@
 import { Command } from "./Command";
 import { Event } from "./Event";
-import { IServerMusicQueue } from "./interfaces/Bot";
+import { ServerMusicQueue } from "./interfaces/Bot";
 import {
   Collection,
   Client as DiscordClient,
@@ -14,7 +14,7 @@ export class Client extends DiscordClient {
   commands: Collection<string, Command>;
   slashCommands: Collection<string, Command>;
   prefixes: { [key: number]: string };
-  musicQueue: Map<string, IServerMusicQueue>;
+  musicQueue: Map<string, ServerMusicQueue>;
   token: string;
   testGuildId: string;
   authorData: EmbedAuthorData;
@@ -53,7 +53,7 @@ export class Client extends DiscordClient {
 
         for (const file of commandFiles) {
           // eslint-disable-next-line @typescript-eslint/no-var-requires
-          const FoundCommand = require(`../commands/${dir}/${file}`).default;
+          const FoundCommand = require(`./commands/${dir}/${file}`).default;
           const command: Command = new FoundCommand(this);
 
           console.log(`Loaded command ${dir}/${file}`);
@@ -73,7 +73,7 @@ export class Client extends DiscordClient {
     );
     for (const file of eventFiles) {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const FoundEvent = require(join(`../events/${file}`)).default;
+      const FoundEvent = require(`./events/${file}`).default;
       const event: Event = new FoundEvent(this);
       const eventFileName = file.split(".")[0];
       const eventName =

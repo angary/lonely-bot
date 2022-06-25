@@ -1,4 +1,4 @@
-import { Command } from "../../types/Command";
+import { Command } from "../../Command";
 import { SlashCommandBuilder } from "@discordjs/builders";
 import { AudioPlayerPlayingState, AudioPlayerStatus } from "@discordjs/voice";
 import { CommandInteraction, Guild, Message, MessageEmbed } from "discord.js";

@@ -1,5 +1,5 @@
 import { Client } from "./Client";
-import { ISong } from "./interfaces/Bot";
+import { Song } from "./interfaces/Bot";
 import { SlashCommandBuilder } from "@discordjs/builders";
 import {
   CommandInteraction,
@@ -170,7 +170,7 @@ export abstract class Command {
    * @param song the current song
    * @returns a markdown formatted link
    */
-  protected getFormattedLink(song: ISong): string {
+  protected getFormattedLink(song: Song): string {
     return `[${song.title}](${song.url})`;
   }
 }

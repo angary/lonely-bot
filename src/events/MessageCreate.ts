@@ -1,7 +1,7 @@
 import * as config from "../../config.json";
-import { Client } from "../types/Client";
-import { Event } from "../types/Event";
-import { Cooldown } from "../types/interfaces/Bot";
+import { Client } from "../Client";
+import { Event } from "../Event";
+import { Cooldown } from "../interfaces/Bot";
 import { Collection, Guild, Message as DiscordMessage } from "discord.js";
 
 export default class MessageCreate extends Event {

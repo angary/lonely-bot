@@ -1,4 +1,4 @@
-import { Client } from "../../src/types/Client";
+import { Client } from "../../src/Client";
 import { Message } from "discord.js";
 
 describe("ping command", () => {

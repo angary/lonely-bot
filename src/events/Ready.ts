@@ -1,5 +1,5 @@
 import { activity } from "../../config.json";
-import { Event } from "../types/Event";
+import { Event } from "../Event";
 import { REST } from "@discordjs/rest";
 import { Routes } from "discord-api-types/rest/v9";
 

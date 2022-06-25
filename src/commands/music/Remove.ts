@@ -1,5 +1,5 @@
-import { Command } from "../../types/Command";
-import { ISong } from "../../types/interfaces/Bot";
+import { Command } from "../../Command";
+import { Song } from "../../interfaces/Bot";
 import { SlashCommandBuilder } from "@discordjs/builders";
 import { CommandInteraction, Guild, Message, MessageEmbed } from "discord.js";
 
@@ -50,7 +50,7 @@ export default class Remove extends Command {
     }
 
     const removeSongName = args.join(" ").toLowerCase();
-    let removedSong: ISong = null;
+    let removedSong: Song = null;
     const songs = serverQueue.songs;
 
     for (let i = 1; i < songs.length; i++) {

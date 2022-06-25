@@ -1,23 +1,23 @@
 /**
  * GET /players/{account_id}
  */
-export interface IOpenDotaPlayer {
+export interface OpenDotaPlayer {
   tracked_until: string;
   solo_competitive_rank: string;
   competitive_rank: string;
   rank_tier: number;
   leaderboard_rank: number;
-  mmr_estimate: IMMREstimate;
-  profile: IProfile;
+  mmr_estimate: MMREstimate;
+  profile: Profile;
 }
 
-interface IMMREstimate {
+interface MMREstimate {
   estimate: number;
   stdDev: number;
   n: number;
 }
 
-interface IProfile {
+interface Profile {
   account_id: number;
   personaname: string;
   name: string;
@@ -36,7 +36,7 @@ interface IProfile {
 /**
  * GET /players/{account_id}/wl
  */
-export interface IOpenDotaWinLose {
+export interface OpenDotaWinLose {
   win: number;
   lose: number;
 }
@@ -44,7 +44,7 @@ export interface IOpenDotaWinLose {
 /**
  * GET /players/{account_id}/heroes
  */
-export interface IOpenDotaPlayerHeroes {
+export interface OpenDotaPlayerHeroes {
   hero_id: string;
   last_played: number;
   games: number;
@@ -58,7 +58,7 @@ export interface IOpenDotaPlayerHeroes {
 /**
  * GET /heroes
  */
-export interface IOpenDotaHeroes {
+export interface OpenDotaHeroes {
   id: number;
   name: string;
   localized_name: string;
@@ -70,7 +70,7 @@ export interface IOpenDotaHeroes {
 /**
  * GET /players/{account_id}/rankings
  */
-export interface IOpenDotaPlayerRankings {
+export interface OpenDotaPlayerRankings {
   hero_id: string;
   score: number;
   percent_rank: number;
@@ -80,7 +80,7 @@ export interface IOpenDotaPlayerRankings {
 /**
  * GET /players/{account_id}/recentMatches
  */
-export interface IOpenDotaPlayerRecentMatches {
+export interface OpenDotaPlayerRecentMatches {
   match_id: number;
   player_slot: number;
   radiant_win: boolean;
@@ -103,9 +103,9 @@ export interface IOpenDotaPlayerRecentMatches {
 }
 
 export type OpenDotaData =
-  | IOpenDotaPlayer
-  | IOpenDotaWinLose
-  | IOpenDotaPlayerHeroes
-  | IOpenDotaHeroes
-  | IOpenDotaPlayerRankings
-  | IOpenDotaPlayerRecentMatches;
+  | OpenDotaPlayer
+  | OpenDotaWinLose
+  | OpenDotaPlayerHeroes
+  | OpenDotaHeroes
+  | OpenDotaPlayerRankings
+  | OpenDotaPlayerRecentMatches;

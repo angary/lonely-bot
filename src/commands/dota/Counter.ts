@@ -1,6 +1,6 @@
+import { Command } from "../../Command";
 import { heroNames as aliasToHeroName } from "../../assets/heroNames";
-import { Command } from "../../types/Command";
-import { IHero } from "../../types/interfaces/Bot";
+import { Hero } from "../../interfaces/Bot";
 import { SlashCommandBuilder } from "@discordjs/builders";
 import axios, { AxiosResponse } from "axios";
 import { load } from "cheerio";
@@ -101,7 +101,7 @@ export default class Counter extends Command {
    * @param argHeroes a list of the enemy heroes input by the user
    * @returns an embed containing data about the top counters
    */
-  private async counter(argHeroes: string[]): Promise<[string[], IHero[]]> {
+  private async counter(argHeroes: string[]): Promise<[string[], Hero[]]> {
     const enemies: string[] = [];
     for (const name of argHeroes.join("").split(",")) {
       const officialName =
@@ -134,8 +134,8 @@ export default class Counter extends Command {
   private async aggregateData(
     responses: AxiosResponse[],
     enemies: string[]
-  ): Promise<IHero[]> {
-    const heroes: Record<string, IHero> = {};
+  ): Promise<Hero[]> {
+    const heroes: Record<string, Hero> = {};
 
     // Extra data from each hero counter request
     for (const response of responses) {
@@ -191,7 +191,7 @@ export default class Counter extends Command {
    */
   protected generateEmbed(
     enemies: string[],
-    counters: IHero[],
+    counters: Hero[],
     counterMethod: CounterMethod = "Win Rate",
     page = 0
   ): MessageEmbed {
@@ -231,7 +231,7 @@ export default class Counter extends Command {
    */
   private addHeroesToEmbed(
     heroesEmbed: MessageEmbed,
-    counters: IHero[],
+    counters: Hero[],
     page: number,
     counterMethod: CounterMethod
   ): void {

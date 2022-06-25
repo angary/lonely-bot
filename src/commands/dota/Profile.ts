@@ -1,32 +1,32 @@
+import { Command } from "../../Command";
 import { gameModes } from "../../assets/gameModes";
 import { lobbyTypes } from "../../assets/lobbyTypes";
 import { UserModel } from "../../database/User";
-import { Command } from "../../types/Command";
 import {
-  IPlayerData,
-  IPlayerHeroData,
-  IPlayerRecentData,
-} from "../../types/interfaces/Bot";
-import { IUser } from "../../types/interfaces/Mongoose";
+  PlayerData,
+  PlayerHeroData,
+  PlayerRecentData,
+} from "../../interfaces/Bot";
+import { User } from "../../interfaces/Mongoose";
 import {
-  IOpenDotaHeroes,
-  IOpenDotaPlayer,
-  IOpenDotaPlayerHeroes,
-  IOpenDotaPlayerRankings,
-  IOpenDotaPlayerRecentMatches,
-  IOpenDotaWinLose,
-} from "../../types/interfaces/OpenDota";
+  OpenDotaHeroes,
+  OpenDotaPlayer,
+  OpenDotaPlayerHeroes,
+  OpenDotaPlayerRankings,
+  OpenDotaPlayerRecentMatches,
+  OpenDotaWinLose,
+} from "../../interfaces/OpenDota";
 import { SlashCommandBuilder } from "@discordjs/builders";
 import axios, { AxiosResponse } from "axios";
 import { CommandInteraction, Message, MessageEmbed } from "discord.js";
 
 type OpenDotaResponse = [
-  IOpenDotaPlayer,
-  IOpenDotaWinLose,
-  IOpenDotaPlayerHeroes,
-  IOpenDotaHeroes[],
-  IOpenDotaPlayerRankings[],
-  IOpenDotaPlayerRecentMatches
+  OpenDotaPlayer,
+  OpenDotaWinLose,
+  OpenDotaPlayerHeroes,
+  OpenDotaHeroes[],
+  OpenDotaPlayerRankings[],
+  OpenDotaPlayerRecentMatches
 ];
 
 export default class Profile extends Command {
@@ -153,7 +153,7 @@ export default class Profile extends Command {
    * @param data a list of the JSON returned from the open dota api
    * @returns an object containing the formatted data
    */
-  private formatData(data: OpenDotaResponse): IPlayerData {
+  private formatData(data: OpenDotaResponse): PlayerData {
     // Destructure data
     const [player, wl, playerHeroes, heroes, rankings, recentMatches] = data;
 
@@ -165,7 +165,7 @@ export default class Profile extends Command {
     }
 
     // Extract hero data
-    const playerHeroData: IPlayerHeroData[] = [];
+    const playerHeroData: PlayerHeroData[] = [];
     for (let i = 0; i < 3; i++) {
       playerHeroData.push({
         name: this.idToHeroName(heroes, playerHeroes[i].hero_id),
@@ -179,7 +179,7 @@ export default class Profile extends Command {
     const recent = recentMatches[0];
 
     const won = recent.player_slot <= 5 === recent.radiant_win;
-    const playerRecentData: IPlayerRecentData = {
+    const playerRecentData: PlayerRecentData = {
       outcome: won ? "Won" : "Lost",
       skill: ["unknown", "normal", "high", "very high"][recent.skill || 0],
       lobbyType:
@@ -201,7 +201,7 @@ export default class Profile extends Command {
     // Profile details
     const profile = player.profile;
 
-    const p: IPlayerData = {
+    const p: PlayerData = {
       name: profile.personaname,
       accountId: profile.account_id,
       mmrEstimate: player.mmr_estimate.estimate,
@@ -229,9 +229,9 @@ export default class Profile extends Command {
    * @returns a promise to the message send
    */
   private getEmbed(
-    player: IPlayerData,
-    heroes: IPlayerHeroData[],
-    match: IPlayerRecentData
+    player: PlayerData,
+    heroes: PlayerHeroData[],
+    match: PlayerRecentData
   ): MessageEmbed {
     const profileEmbed = this.createColouredEmbed()
       .setTitle(`${player.name}`)
@@ -303,7 +303,7 @@ export default class Profile extends Command {
    * @returns a string of the player's hero ranking if found, else unknown
    */
   private idToHeroRanking(
-    rankings: IOpenDotaPlayerRankings[],
+    rankings: OpenDotaPlayerRankings[],
     heroId: string
   ): string {
     for (const ranking of rankings) {
@@ -321,7 +321,7 @@ export default class Profile extends Command {
    * @param heroId the id of the relevant hero
    * @returns the hero
    */
-  private idToHeroName(heroes: IOpenDotaHeroes[], heroId: string): string {
+  private idToHeroName(heroes: OpenDotaHeroes[], heroId: string): string {
     for (const hero of heroes) {
       if (hero.id === parseInt(heroId)) {
         return hero.localized_name;
@@ -336,7 +336,7 @@ export default class Profile extends Command {
    * @param player the player to get data for
    * @returns the name of the medal of their rank
    */
-  private medal(player: IPlayerData): string {
+  private medal(player: PlayerData): string {
     if (player.rankTier === null) return "unranked";
     if (player.leaderboardRank)
       return `Immortal ** | rank **${player.leaderboardRank}`;
@@ -361,7 +361,7 @@ export default class Profile extends Command {
    * @param discordID the discord ID of the user
    * @returns a promise to the user's details in the database
    */
-  private async discordToSteamID(discordID: string): Promise<IUser> {
+  private async discordToSteamID(discordID: string): Promise<User> {
     const query = { discordID: discordID };
     return UserModel.findOne(query);
   }

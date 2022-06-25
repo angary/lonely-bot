@@ -1,4 +1,4 @@
-import { Event } from "../types/Event";
+import { Event } from "../Event";
 import { CommandInteraction, Interaction } from "discord.js";
 
 export default class InteractionCreate extends Event {

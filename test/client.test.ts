@@ -1,5 +1,5 @@
 import * as config from "../config.json";
-import { Client } from "../src/types/Client";
+import { Client } from "../src/Client";
 import { Message } from "discord.js";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires

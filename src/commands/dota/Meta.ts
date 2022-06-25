@@ -1,5 +1,5 @@
-import { Command } from "../../types/Command";
-import { IMetaHeroData } from "../../types/interfaces/Bot";
+import { Command } from "../../Command";
+import { MetaHeroData } from "../../interfaces/Bot";
 import { SlashCommandBuilder } from "@discordjs/builders";
 import axios from "axios";
 import cheerio from "cheerio";
@@ -100,14 +100,14 @@ export default class Meta extends Command {
    */
   private async meta(
     args: string[]
-  ): Promise<[MessageEmbed, string, IMetaHeroData[]]> {
+  ): Promise<[MessageEmbed, string, MetaHeroData[]]> {
     const rank = args.length === 0 ? "archon" : args[0];
     const rankCol = this.getRankCol(rank);
     if (rankCol === -1) {
       return [this.createColouredEmbed("Invalid rank"), rank, []];
     }
 
-    const results: IMetaHeroData[] = [];
+    const results: MetaHeroData[] = [];
     let metaEmbed: MessageEmbed;
     await axios
       .get(
@@ -184,7 +184,7 @@ export default class Meta extends Command {
    */
   protected generateEmbed(
     rank: string,
-    results: IMetaHeroData[],
+    results: MetaHeroData[],
     page: number
   ): MessageEmbed {
     results = results.slice(page * 10, page * 10 + 10);

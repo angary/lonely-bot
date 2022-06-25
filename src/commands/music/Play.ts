@@ -1,6 +1,6 @@
 import { vcStandbyDuration } from "../../../config.json";
-import { Command } from "../../types/Command";
-import { IServerMusicQueue, ISong } from "../../types/interfaces/Bot";
+import { Command } from "../../Command";
+import { ServerMusicQueue, Song } from "../../interfaces/Bot";
 import { SlashCommandBuilder } from "@discordjs/builders";
 import {
   AudioPlayer,
@@ -126,7 +126,7 @@ export default class Play extends Command {
 
     // Create the song object
     const duration = parseInt(songInfo.videoDetails.lengthSeconds);
-    const song: ISong = {
+    const song: Song = {
       info: songInfo,
       title: songInfo.videoDetails.title,
       url: songInfo.videoDetails.video_url,
@@ -210,7 +210,7 @@ export default class Play extends Command {
    * @param song the song to play
    * @returns a promise to the created audio player
    */
-  private async getSongPlayer(song: ISong): Promise<AudioPlayer> {
+  private async getSongPlayer(song: Song): Promise<AudioPlayer> {
     const player = createAudioPlayer();
     const stream = ytdl(song.url, {
       filter: "audioonly",
@@ -295,12 +295,12 @@ export default class Play extends Command {
    * @returns the server's music queue
    */
   private addSongToQueue(
-    song: ISong,
+    song: Song,
     guild: Guild,
     voiceChannel: VoiceChannel,
     textChannel: TextChannel
-  ): IServerMusicQueue {
-    let musicQueue: IServerMusicQueue = this.client.musicQueue.get(guild.id);
+  ): ServerMusicQueue {
+    let musicQueue: ServerMusicQueue = this.client.musicQueue.get(guild.id);
     if (musicQueue === undefined) {
       musicQueue = {
         voiceChannel: voiceChannel,
@@ -328,7 +328,7 @@ export default class Play extends Command {
    */
   private async playSong(
     guildId: string,
-    musicQueue: Map<string, IServerMusicQueue>
+    musicQueue: Map<string, ServerMusicQueue>
   ): Promise<void> {
     const serverQueue = musicQueue.get(guildId);
     if (!serverQueue) {
@@ -369,8 +369,8 @@ export default class Play extends Command {
    */
   handleSongFinish(
     guildId: string,
-    musicQueue: Map<string, IServerMusicQueue>,
-    serverQueue: IServerMusicQueue
+    musicQueue: Map<string, ServerMusicQueue>,
+    serverQueue: ServerMusicQueue
   ): void {
     if (serverQueue !== null) {
       const song = serverQueue.songs[0];
@@ -393,8 +393,8 @@ export default class Play extends Command {
    */
   handleEmptyQueue(
     guildId: string,
-    musicQueue: Map<string, IServerMusicQueue>,
-    serverQueue: IServerMusicQueue,
+    musicQueue: Map<string, ServerMusicQueue>,
+    serverQueue: ServerMusicQueue,
     timeoutDuration: number
   ): void {
     const connection = getVoiceConnection(guildId);
@@ -424,7 +424,7 @@ export default class Play extends Command {
    *
    * @param serverQueue the queue for the relevant server
    */
-  sendPlayingEmbed(serverQueue: IServerMusicQueue): void {
+  sendPlayingEmbed(serverQueue: ServerMusicQueue): void {
     const song = serverQueue.songs[0];
     const songLink = this.getFormattedLink(song);
     this.createAndSendEmbed(
