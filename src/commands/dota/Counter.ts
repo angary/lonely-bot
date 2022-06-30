@@ -214,7 +214,11 @@ export default class Counter extends Command {
     const typeKey = counterMethod.replace(/ /g, "").toLocaleLowerCase();
     this.addHeroesToEmbed(
       heroesEmbed,
-      counters.sort((a, b) => a[typeKey] - b[typeKey]),
+      counters.sort((a, b) => {
+        return typeKey === "disadvantage"
+          ? b[typeKey] - a[typeKey]
+          : a[typeKey] - b[typeKey];
+      }),
       page,
       counterMethod
     );

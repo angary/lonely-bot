@@ -45,8 +45,9 @@ export class Client extends DiscordClient {
     this.testGuildId = testGuildId;
 
     // Load all the commands
-    readdirSync(commandsPath).forEach((dir) => {
-      if (statSync(join(commandsPath, dir)).isDirectory()) {
+    readdirSync(commandsPath)
+      .filter((dir) => statSync(join(commandsPath, dir)).isDirectory())
+      .forEach((dir) => {
         const commandFiles = readdirSync(`${commandsPath}/${dir}`).filter(
           (f) => f.endsWith(".js") || f.endsWith(".ts")
         );
@@ -64,8 +65,7 @@ export class Client extends DiscordClient {
             this.slashCommands.set(command.name, command);
           }
         }
-      }
-    });
+      });
 
     // Load all the events
     const eventFiles = readdirSync(eventsPath).filter(
