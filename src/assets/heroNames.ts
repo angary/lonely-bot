@@ -70,6 +70,7 @@ export const heroNames = {
   faceless: "Faceless Void",
   facelessvoid: "Faceless Void",
   wk: "Wraith King",
+  wraith: "Wraith King",
   wraithking: "Wraith King",
   dp: "Death Prophet",
   deathprophet: "Death Prophet",
@@ -218,4 +219,7 @@ export const heroNames = {
   dawnbreaker: "Dawnbreaker",
   dawn: "Dawnbreaker",
   db: "Dawnbreaker",
+  marci: "Marci",
+  primal: "Primal Beast",
+  primalbeast: "Primal Beast",
 };
