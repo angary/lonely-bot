@@ -170,26 +170,24 @@ export default class Play extends Command {
         searchString = await ytsr.getFilters(args.join(" "));
       } catch (error) {
         console.log(error);
-        throw "Error parsing arguments";
+        throw Error("Error parsing arguments");
       }
 
       // Try to find video
       const videoSearch = searchString.get("Type").get("Video");
       try {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const results: any = await ytsr(videoSearch.url, {
-          limit: 1,
-        });
+        const results: any = await ytsr(videoSearch.url, { limit: 1 });
         console.log(results);
         songUrl = results.items[0].url;
       } catch (error) {
         console.log(error);
-        throw "Error searching for the song";
+        throw Error("Error searching for the song");
       }
 
       // Check that song URL is valid
       if (!ytdl.validateURL(songUrl)) {
-        throw "Could not find the song";
+        throw Error("Could not find the song");
       }
     }
 
@@ -198,7 +196,7 @@ export default class Play extends Command {
       songInfo = await ytdl.getInfo(songUrl);
     } catch (error) {
       console.log(error);
-      throw "Error getting the video from the URL";
+      throw Error("Error getting the video from the URL");
     }
     return songInfo;
   }
@@ -242,41 +240,41 @@ export default class Play extends Command {
     try {
       await entersState(connection, VoiceConnectionStatus.Ready, 30_000);
       connection.on("stateChange", async (_, newState) => {
-        if (newState.status === VoiceConnectionStatus.Disconnected) {
-          if (
-            newState.reason ===
-              VoiceConnectionDisconnectReason.WebSocketClose &&
-            newState.closeCode === 4014
-          ) {
-            /**
-             * If the websocket closed with a 4014 code, this means that we
-             * should not manually attempt to reconnect but there is a chance
-             * the connection will recover itself if the reason of disconnect
-             * was due to switching voice channels. This is also the same code
-             * for being kicked from the voice channel so we allow 5 s to figure
-             * out which scenario it is. If the bot has been kicked, we should
-             * destroy the voice connection
-             */
-            try {
-              await entersState(
-                connection,
-                VoiceConnectionStatus.Connecting,
-                5_000
-              );
-              // Probably moved voice channel
-            } catch {
-              connection.destroy();
-              // Probably removed from voice channel
-            }
-          } else if (connection.rejoinAttempts < 5) {
-            // The disconnect is recoverable, and we have < 5 attempts so we
-            // will reconnect
-            await wait((connection.rejoinAttempts + 1) * 5_000);
-            connection.rejoin();
-          } else {
-            // The disconnect is recoverable, but we have no more attempts
+        if (newState.status !== VoiceConnectionStatus.Disconnected) {
+          return;
+        }
+        if (
+          newState.reason === VoiceConnectionDisconnectReason.WebSocketClose &&
+          newState.closeCode === 4014
+        ) {
+          /**
+           * If the websocket closed with a 4014 code, this means that we
+           * should not manually attempt to reconnect but there is a chance
+           * the connection will recover itself if the reason of disconnect
+           * was due to switching voice channels. This is also the same code
+           * for being kicked from the voice channel so we allow 5 s to figure
+           * out which scenario it is. If the bot has been kicked, we should
+           * destroy the voice connection
+           */
+          try {
+            await entersState(
+              connection,
+              VoiceConnectionStatus.Connecting,
+              5_000
+            );
+            // Probably moved voice channel
+          } catch {
             connection.destroy();
+            // Probably removed from voice channel
           }
+        } else if (connection.rejoinAttempts < 5) {
+          // The disconnect is recoverable, and we have < 5 attempts so we
+          // will reconnect
+          await wait((connection.rejoinAttempts + 1) * 5_000);
+          connection.rejoin();
+        } else {
+          // The disconnect is recoverable, but we have no more attempts
+          connection.destroy();
         }
       });
       return connection;
@@ -313,7 +311,6 @@ export default class Play extends Command {
       };
       this.client.musicQueue.set(guild.id, musicQueue);
     }
-
     musicQueue.songs.push(song);
     return musicQueue;
   }

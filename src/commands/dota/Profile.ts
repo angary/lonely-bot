@@ -200,8 +200,7 @@ export default class Profile extends Command {
 
     // Profile details
     const profile = player.profile;
-
-    const p: PlayerData = {
+    return {
       name: profile.personaname,
       accountId: profile.account_id,
       mmrEstimate: player.mmr_estimate.estimate,
@@ -215,8 +214,6 @@ export default class Profile extends Command {
       heroes: playerHeroData,
       recent: playerRecentData,
     };
-
-    return p;
   }
 
   /**
@@ -306,28 +303,22 @@ export default class Profile extends Command {
     rankings: OpenDotaPlayerRankings[],
     heroId: string
   ): string {
-    for (const ranking of rankings) {
-      if (parseInt(ranking.hero_id) === parseInt(heroId)) {
-        return `${+(100 * ranking.percent_rank).toFixed(2)}%`;
-      }
-    }
-    return "Unknown";
+    const rank = rankings.find((r) => parseInt(r.hero_id) === parseInt(heroId));
+    return rank !== undefined
+      ? `${+(100 * rank.percent_rank).toFixed(2)}%`
+      : "Unknown";
   }
 
   /**
-   * Get the hero with the corresponding hero id
+   * Get the hero with the corresponding hero ids
    *
    * @param heroes the list of hero data
    * @param heroId the id of the relevant hero
    * @returns the hero
    */
   private idToHeroName(heroes: OpenDotaHeroes[], heroId: string): string {
-    for (const hero of heroes) {
-      if (hero.id === parseInt(heroId)) {
-        return hero.localized_name;
-      }
-    }
-    return "Unknown";
+    const hero = heroes.find((h) => h.id === parseInt(heroId));
+    return hero !== undefined ? hero.localized_name : "Unknown";
   }
 
   /**

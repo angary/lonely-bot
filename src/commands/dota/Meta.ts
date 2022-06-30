@@ -120,11 +120,11 @@ export default class Meta extends Command {
           div.container-inner.container-inner-content > div.content-inner > \
           section > footer > article > table > tbody > tr"
         );
-        table.each((index, element) => {
+        table.each((_, row) => {
           results.push({
-            name: $(element).find("td:nth-child(2)").text(),
-            pickRate: $(element).find(`td:nth-child(${rankCol})`).text(),
-            winRate: $(element)
+            name: $(row).find("td:nth-child(2)").text(),
+            pickRate: $(row).find(`td:nth-child(${rankCol})`).text(),
+            winRate: $(row)
               .find(`td:nth-child(${rankCol + 1})`)
               .text(),
             index: 0,
@@ -199,25 +199,18 @@ export default class Meta extends Command {
       .addFields(
         {
           name: "Hero",
-          value: results
-            .map((result) => `${result.index + 1}. **${result.name}**`)
-            .join("\n") as string,
+          value: results.map((r) => `${r.index + 1}. **${r.name}**`).join("\n"),
           inline: true,
         },
         {
           name: "Win Rate",
-          value: results
-            .map((result) => `${result.winRate}`)
-            .join("\n") as string,
+          value: results.map((r) => `${r.winRate}`).join("\n"),
           inline: true,
         },
         {
           name: "Popularity",
           value: results
-            .map(
-              (result) =>
-                `${result.popularity}${this.ordinalSuffix(result.popularity)}`
-            )
+            .map((r) => `${r.popularity}${this.ordinalSuffix(r.popularity)}`)
             .join("\n") as string,
           inline: true,
         }

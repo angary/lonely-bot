@@ -104,18 +104,17 @@ export default class Counter extends Command {
   private async counter(argHeroes: string[]): Promise<[string[], Hero[]]> {
     const enemies: string[] = [];
     for (const name of argHeroes.join("").split(",")) {
-      const officialName =
-        aliasToHeroName[name.replace(/ /g, "").toLowerCase()];
-      if (officialName) {
-        enemies.push(officialName);
+      const parsedName = name.replace(/ /g, "").toLowerCase();
+      if (parsedName in aliasToHeroName) {
+        enemies.push(aliasToHeroName[parsedName]);
       } else {
-        throw `Invalid hero name **${name}**.`;
+        throw Error(`Invalid hero name **${name}**.`);
       }
     }
 
     // Webscrape the data
     const promises = enemies.map((hero) => {
-      const urlName = hero.replace("'", "").toLowerCase().replace(" ", "-");
+      const urlName = hero.replace("'", "").replace(" ", "-").toLowerCase();
       return axios.get(`https://www.dotabuff.com/heroes/${urlName}/counters`);
     });
 
@@ -148,26 +147,19 @@ export default class Counter extends Command {
       );
 
       // Extract data from each hero
-      counterTable.each((_, element) => {
+      counterTable.each((_, row) => {
         // Data is in given in the form of a string
-        const name = $(element).find("td.cell-xlarge").text();
-        const disadvantage = $(element).find("td:nth-child(3)").text();
-        const winrate = $(element).find("td:nth-child(4)").text();
+        const name = $(row).find("td.cell-xlarge").text();
+        const disadvantage = parseFloat($(row).find("td:nth-child(3)").text());
+        const winrate = parseFloat($(row).find("td:nth-child(4)").text());
 
         // Convert data into numbers and store them
         if (name in heroes) {
-          // If hero exists in object, then increase stats
-          heroes[name].disadvantage += parseFloat(disadvantage.slice(0, -1));
-          heroes[name].winrate += parseFloat(winrate.slice(0, -1));
-          heroes[name].count += 1;
+          heroes[name].disadvantage += disadvantage;
+          heroes[name].winrate += winrate;
+          heroes[name].count++;
         } else {
-          // Else if hero doesn't exist in object, initialise data
-          heroes[name] = {
-            name: name,
-            disadvantage: parseFloat(disadvantage.slice(0, -1)),
-            winrate: parseFloat(winrate.slice(0, -1)),
-            count: 1,
-          };
+          heroes[name] = { name, disadvantage, winrate, count: 1 };
         }
       });
     }
@@ -239,27 +231,22 @@ export default class Counter extends Command {
     page: number,
     counterMethod: CounterMethod
   ): void {
-    // Add details to embed
-    const details = [];
+    const details: Record<string, string> = {};
     const baseIndex = page * 10;
-    const countersPage = counters.slice(baseIndex, baseIndex + 10);
+    const pageCounters = counters.slice(baseIndex, baseIndex + 10);
     let heroes = "";
-    countersPage.forEach(
+    pageCounters.forEach(
       (c, i) => (heroes += `${baseIndex + i + 1}: **${c.name}**\n`)
     );
     details[`**__Sorted by ${counterMethod}__\nHeroes**`] = heroes;
-    details["**\nAdvantage**"] = `${countersPage
+    details["**\nAdvantage**"] = `${pageCounters
       .map((c) => c.disadvantage.toFixed(2))
       .join("%\n")}%`;
-    details["**\nWin Rate**"] = `${countersPage
+    details["**\nWin Rate**"] = `${pageCounters
       .map((c) => (100 - c.winrate).toFixed(2))
       .join("%\n")}%`;
-    for (const [key, value] of Object.entries(details)) {
-      heroesEmbed.addFields({
-        name: key,
-        value: value,
-        inline: true,
-      });
+    for (const [name, value] of Object.entries(details)) {
+      heroesEmbed.addField(name, value, true);
     }
   }
 }
