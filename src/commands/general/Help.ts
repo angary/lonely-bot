@@ -29,12 +29,7 @@ export default class Help extends Command {
         .setDescription("The command to get specific information on")
     );
   execute = (message: Message, args: string[]): Promise<Message> => {
-    let helpEmbed: MessageEmbed;
-    if (args.length > 0) {
-      helpEmbed = this.help(args[0]);
-    } else {
-      helpEmbed = this.help();
-    }
+    const helpEmbed = this.help(args[0]);
     return message.channel.send({ embeds: [helpEmbed] });
   };
 
@@ -51,8 +46,7 @@ export default class Help extends Command {
   private help(command?: string): MessageEmbed {
     const commands = this.client.commands;
     const helpEmbed = this.createColouredEmbed();
-
-    if (command === undefined || command === null) {
+    if (!command) {
       this.generalInformation(helpEmbed, commands);
     } else {
       this.specificInformation(helpEmbed, commands, command);
@@ -72,10 +66,9 @@ export default class Help extends Command {
   ): void {
     // Add all the details of the commands
     helpEmbed.setTitle("Available commands");
-
-    this.addCategory("general", helpEmbed, commands);
-    this.addCategory("dota", helpEmbed, commands);
-    this.addCategory("music", helpEmbed, commands);
+    ["general", "dota", "music"].forEach((category) =>
+      this.addCategory(category, helpEmbed, commands)
+    );
     this.addHelpAndSupport(helpEmbed);
     helpEmbed.setFooter({
       text: `You can send "/help [command name]" to get info on a specific command!`,
@@ -98,10 +91,9 @@ export default class Help extends Command {
     helpEmbed.addField(
       `**${category.charAt(0).toUpperCase() + category.slice(1)}**`,
       commands
-        .filter((command) => command.category && command.visible)
+        .filter((command) => command.category === category && command.visible)
         .map((command) => `**${command.name}**: ${command.description}\n`)
-        .join(""),
-      false
+        .join("")
     );
   }
 
@@ -126,19 +118,19 @@ export default class Help extends Command {
 
     // Else find information on the command
     helpEmbed.setTitle(`Help for: ${command.name}`);
-    const data = [`**Information:** ${command.information}`];
-    if (command.aliases.length > 0) {
-      data.push(`**Aliases:** ${command.aliases.join(", ")}`);
+    let d = `**Information:** ${command.information}`;
+    if (command.aliases.length) {
+      d += `\n**Aliases:** ${command.aliases.join(", ")}`;
     }
-    for (const f of ["usage", "example"]) {
-      if (command[f]) {
-        data.push(`**${f}:** \`${prefix}${command.name} ${command[f]}\``);
-      }
-    }
+    ["usage", "example"]
+      .filter((f) => command[f])
+      .forEach(
+        (f) => (d += `\n**${f}:** \`${prefix}${command.name} ${command[f]}\``)
+      );
     if (command.cooldown) {
-      data.push(`**Cooldown:** ${command.cooldown} second(s)`);
+      d += `\n**Cooldown:** ${command.cooldown} second(s)`;
     }
-    helpEmbed.setDescription(data.join("\n"));
+    helpEmbed.setDescription(d);
   }
 
   /**

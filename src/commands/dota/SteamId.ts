@@ -1,5 +1,5 @@
 import { Command } from "../../Command";
-import { UserModel } from "../../database/User";
+import { UserModel } from "../../models/User";
 import { SlashCommandBuilder } from "@discordjs/builders";
 import { CommandInteraction, Message, MessageEmbed, User } from "discord.js";
 

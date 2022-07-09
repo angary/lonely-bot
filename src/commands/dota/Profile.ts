@@ -1,7 +1,6 @@
 import { Command } from "../../Command";
 import { gameModes } from "../../assets/gameModes";
 import { lobbyTypes } from "../../assets/lobbyTypes";
-import { UserModel } from "../../database/User";
 import {
   PlayerData,
   PlayerHeroData,
@@ -16,6 +15,7 @@ import {
   OpenDotaPlayerRecentMatches,
   OpenDotaWinLose,
 } from "../../interfaces/OpenDota";
+import { UserModel } from "../../models/User";
 import { SlashCommandBuilder } from "@discordjs/builders";
 import axios, { AxiosResponse } from "axios";
 import { CommandInteraction, Message, MessageEmbed } from "discord.js";

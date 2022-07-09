@@ -1,5 +1,5 @@
 import { Client } from "./Client";
-import { GuildModel } from "./database/Guild";
+import { GuildModel } from "./models/Guild";
 import { connect as mongooseConnect } from "mongoose";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires

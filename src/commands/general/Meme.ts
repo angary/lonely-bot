@@ -19,10 +19,9 @@ export default class Meme extends Command {
     .setName(this.name)
     .setDescription(this.description);
   execute = async (message: Message): Promise<Message> => {
-    const channel = message.channel;
-    channel.sendTyping();
+    message.channel.sendTyping();
     const memeEmbed = await this.meme();
-    return channel.send({ embeds: [memeEmbed] });
+    return message.channel.send({ embeds: [memeEmbed] });
   };
   executeSlash = async (interaction: CommandInteraction): Promise<void> => {
     const memeEmbed = await this.meme();
