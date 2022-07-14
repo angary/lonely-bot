@@ -1,6 +1,7 @@
 import { Command } from "../../Command";
 import { gameModes } from "../../assets/gameModes";
 import { lobbyTypes } from "../../assets/lobbyTypes";
+import { ranks } from "../../assets/ranks";
 import {
   PlayerData,
   PlayerHeroData,
@@ -26,7 +27,7 @@ type OpenDotaResponse = [
   OpenDotaPlayerHeroes,
   OpenDotaHeroes[],
   OpenDotaPlayerRankings[],
-  OpenDotaPlayerRecentMatches
+  OpenDotaPlayerRecentMatches[]
 ];
 
 export default class Profile extends Command {
@@ -138,11 +139,8 @@ export default class Profile extends Command {
    * @returns the same list of responses given
    */
   private checkAPIResponse(responses: AxiosResponse[]): AxiosResponse[] {
-    // Takes a long time to loop, can be optimised
-    for (const response of responses) {
-      if (response.status !== 200) {
-        throw Error("Invalid API response, check that the id was correct!");
-      }
+    if (responses.some((r) => r.status !== 200)) {
+      throw Error("Invalid API response, check that the id was correct!");
     }
     return responses;
   }
@@ -177,24 +175,29 @@ export default class Profile extends Command {
 
     // Extra recent match data
     const recent = recentMatches[0];
-
     const won = recent.player_slot <= 5 === recent.radiant_win;
+    let skill = "Unknown skill";
+    if (recent.average_rank) {
+      const rankNum = Math.floor(recent.average_rank / 10);
+      skill = `${ranks[rankNum]}[${recent.average_rank % 10}]`;
+    }
+
     const playerRecentData: PlayerRecentData = {
+      id: recent.match_id,
       outcome: won ? "Won" : "Lost",
-      skill: ["unknown", "normal", "high", "very high"][recent.skill || 0],
-      lobbyType:
-        (recent.lobby_type < lobbyTypes.length
-          ? lobbyTypes[recent.lobby_type]
-          : "unknown"
-        ).replace(/_/g, " ") || "",
+      skill: skill,
+      lobbyType: lobbyTypes[recent.lobby_type].replace(/_/g, " ") || "",
       gameMode: gameModes[recent.game_mode].replace(/_/g, " ") || "",
       hero: this.idToHeroName(heroes, recent.hero_id),
       kills: recent.kills,
       deaths: recent.deaths,
       assists: recent.assists,
-      goldPerMin: recent.gold_per_min,
-      expPerMin: recent.xp_per_min,
-      date: new Date(recent.start_time * 1000).toString().substr(0, 15),
+      gpm: recent.gold_per_min,
+      xpm: recent.xp_per_min,
+      heroDmg: recent.hero_damage,
+      buildingDmg: recent.tower_damage,
+      heroHealing: recent.hero_healing,
+      date: new Date(recent.start_time * 1000).toString().substring(0, 15),
       duration: this.formatDuration(recent.duration),
     };
 
@@ -219,7 +222,6 @@ export default class Profile extends Command {
   /**
    * Sent the embed with the dota player's profile and most recent match stats
    *
-   * @param message the original message that triggered the command
    * @param player data containing details for the player
    * @param heroes data containing details of the player's top 3 heroes
    * @param match data for the most recent match
@@ -267,13 +269,17 @@ export default class Profile extends Command {
       });
     }
 
+    const dbLink = `https://www.dotabuff.com/matches/${match.id}`;
+    const odLink = `https://www.opendota.com/matches/${match.id}`;
     // Add most recent match data
     profileEmbed.addFields({
       name: "**Most Recent Match**",
       value: `
-      **${match.outcome}** playing a **${match.skill}** skill **${match.lobbyType} ${match.gameMode}** as **${match.hero}**
-      KDA: **${match.kills}/${match.deaths}/${match.assists}** | GPM: **${match.goldPerMin}** | XPM: **${match.expPerMin}**
-      Date: **${match.date}** | Duration: **${match.duration}**`,
+      **${match.outcome}** **${match.lobbyType} ${match.gameMode}** as **${match.hero}** | **${match.skill}**
+      KDA: **${match.kills}/${match.deaths}/${match.assists}** | GPM: **${match.gpm}** | XPM: **${match.xpm}**
+      Hero dmg: **${match.heroDmg}** | Building dmg: **${match.buildingDmg}** | Hero heal: **${match.heroHealing}**
+      Date: **${match.date}** | Duration: **${match.duration}**
+      More Info: [Dotabuff](${dbLink}) | [Opendota](${odLink})`,
     });
 
     return profileEmbed;
@@ -282,7 +288,6 @@ export default class Profile extends Command {
   /**
    * Send a message notifying of an invalid database response
    *
-   * @param message the original message that triggered this command
    * @returns a promise to the new message sent
    */
   private invalidDatabaseResponse(): MessageEmbed {
@@ -316,8 +321,11 @@ export default class Profile extends Command {
    * @param heroId the id of the relevant hero
    * @returns the hero
    */
-  private idToHeroName(heroes: OpenDotaHeroes[], heroId: string): string {
-    const hero = heroes.find((h) => h.id === parseInt(heroId));
+  private idToHeroName(
+    heroes: OpenDotaHeroes[],
+    heroId: string | number
+  ): string {
+    const hero = heroes.find((h) => h.id === parseInt(heroId as string));
     return hero !== undefined ? hero.localized_name : "Unknown";
   }
 
@@ -328,22 +336,17 @@ export default class Profile extends Command {
    * @returns the name of the medal of their rank
    */
   private medal(player: PlayerData): string {
-    if (player.rankTier === null) return "unranked";
-    if (player.leaderboardRank)
+    if (player.rankTier === null) {
+      return "unranked";
+    }
+    if (player.leaderboardRank) {
       return `Immortal ** | rank **${player.leaderboardRank}`;
-    if (player.rankTier[0] === 8) return "Immortal";
+    }
+    if (player.rankTier[0] === 8) {
+      return "Immortal";
+    }
     const medalTier = player.rankTier.toString();
-    const medals = [
-      "Lower than Herald?",
-      "Herald",
-      "Guardian",
-      "Crusader",
-      "Archon",
-      "Legend",
-      "Ancient",
-      "Divine",
-    ];
-    return `${medals[medalTier[0]]} ${medalTier[1]}`;
+    return `${ranks[medalTier[0]]} ${medalTier[1]}`;
   }
 
   /**

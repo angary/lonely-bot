@@ -94,6 +94,13 @@ export interface OpenDotaPlayerRecentMatches {
   deaths: number;
   assists: number;
   skill: number;
+  average_rank: number;
+  xp_per_min: number;
+  gold_per_min: number;
+  hero_damage: number;
+  tower_damage: number;
+  hero_healing: number;
+  last_hits: number;
   lane: number;
   lane_role: number;
   is_roaming: boolean;

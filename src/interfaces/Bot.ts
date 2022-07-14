@@ -77,6 +77,7 @@ export interface PlayerHeroData {
  * Contains data about the player's recent match in the profile command
  */
 export interface PlayerRecentData {
+  id: number;
   outcome: string;
   skill: string;
   lobbyType: string;
@@ -85,8 +86,11 @@ export interface PlayerRecentData {
   kills: number;
   deaths: number;
   assists: number;
-  goldPerMin: number;
-  expPerMin: number;
+  gpm: number;
+  xpm: number;
+  heroDmg: number;
+  buildingDmg: number;
+  heroHealing: number;
   date: string;
   duration: string;
 }
