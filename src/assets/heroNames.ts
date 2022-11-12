@@ -222,4 +222,5 @@ export const heroNames = {
   marci: "Marci",
   primal: "Primal Beast",
   primalbeast: "Primal Beast",
+  ursa: "Ursa",
 };
