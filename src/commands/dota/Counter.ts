@@ -60,7 +60,7 @@ export default class Counter extends Command {
       const counterEmbed = this.generateEmbed(enemies, counters);
       return message.channel.send({ embeds: [counterEmbed] });
     } catch (error) {
-      return this.createAndSendEmbed(error);
+      return this.createAndSendEmbed(error.message);
     }
   };
   executeSlash = async (interaction: CommandInteraction): Promise<void> => {
@@ -89,7 +89,7 @@ export default class Counter extends Command {
       return interaction.reply({ embeds: [counterEmbed], components: [row] });
     } catch (error) {
       return interaction.reply({
-        embeds: [this.createColouredEmbed(error)],
+        embeds: [this.createColouredEmbed(error.message)],
       });
     }
   };

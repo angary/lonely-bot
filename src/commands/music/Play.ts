@@ -118,7 +118,7 @@ export default class Play extends Command {
     try {
       songInfo = await this.getSongInfo(args);
     } catch (error) {
-      return this.createColouredEmbed(error);
+      return this.createColouredEmbed(error.message);
     }
     if (songInfo === null) {
       return this.createColouredEmbed("Could not find the song");

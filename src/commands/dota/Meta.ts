@@ -36,7 +36,7 @@ export default class Meta extends Command {
     const sentMessage = await message.channel.send({ embeds: [metaEmbed] });
     if (
       !message.guild.me.permissions.has("MANAGE_MESSAGES") ||
-      results === []
+      results.length === 0
     ) {
       return;
     }
