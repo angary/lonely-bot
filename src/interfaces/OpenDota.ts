@@ -112,8 +112,8 @@ export interface OpenDotaPlayerRecentMatches {
 /**
  * GET /players/{account_id}/counts
  */
-export interface OpenDotaPlayerCount {
-  [code: string]: { games: number; win: number };
+interface OpenDotaPlayerCount {
+  [key: string]: { games: number; win: number };
 }
 
 export interface OpenDotaPlayerCounts {

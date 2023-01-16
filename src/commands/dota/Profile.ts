@@ -208,12 +208,32 @@ export default class Profile extends Command {
       duration: this.formatDuration(recent.duration),
     };
 
-    // Extract laning details
+    // Extract laning details, remove unknown and convert laning matches to a percent
+    delete counts.lane_role["0"];
+    const parsedLaneCount = Object.values(counts.lane_role).reduce(
+      (acc, x) => acc + x.games,
+      0
+    );
     const lanes = Object.entries(counts.lane_role)
       .map(([lane, { games, win }]) => {
-        return { lane: laneRoles[+lane], games, winRate: (100 * win) / games };
+        return {
+          lane: laneRoles[+lane],
+          games: Math.round((100 * games) / parsedLaneCount),
+          winRate: Math.round((100 * win) / games),
+        };
       })
       .sort((a, b) => b.games - a.games);
+    // Extract lobby details
+    const lobbies = Object.entries(counts.lobby_type)
+      .map(([lobby, { games, win }]) => {
+        return {
+          lobby: lobbyTypes[+lobby],
+          games,
+          winRate: Math.round((100 * win) / games),
+        };
+      })
+      .sort((a, b) => b.games - a.games)
+      .slice(0, 4);
 
     // Profile details
     const profile = player.profile;
@@ -230,7 +250,8 @@ export default class Profile extends Command {
       winRate: (100 * wl.win) / (wl.win + wl.lose),
       heroes: playerHeroData,
       recent: playerRecentData,
-      lanes: lanes,
+      lanes,
+      lobbies,
     };
   }
 
@@ -262,25 +283,31 @@ export default class Profile extends Command {
         iconURL:
           "https://pbs.twimg.com/profile_images/962444554967203840/G6KHe1q3.jpg",
       })
-      .addFields({
-        name: "**Matches**",
-        value: `
-          Total: **${player.win + player.lose}**
-          Winrate: **${player.winRate.toPrecision(4)}%**,
-          Won: **${player.win}**
-          Lost: **${player.lose}**`,
-        inline: true,
-      })
-      .addFields({
-        name: "**Lanes**",
-        value: player.lanes
-          .map(
-            (l) =>
-              `${l.lane}: **${l.games}** | **${l.winRate.toPrecision(2)}**% WR`
-          )
-          .join("\n"),
-        inline: true,
-      });
+      .addFields(
+        {
+          name: "**Matches**",
+          value: `
+            Total: **${player.win + player.lose}**
+            Winrate: **${player.winRate.toPrecision(4)}%**,
+            Won: **${player.win}**
+            Lost: **${player.lose}**`,
+          inline: true,
+        },
+        {
+          name: "**Lobbies**",
+          value: player.lobbies
+            .map((l) => `${l.lobby}: **${l.games}**`)
+            .join("\n"),
+          inline: true,
+        },
+        {
+          name: "**Lanes**",
+          value: player.lanes
+            .map((l) => `${l.lane}: **${l.games}**%`)
+            .join("\n"),
+          inline: true,
+        }
+      );
 
     // Add player's top three heroes
     for (const hero of heroes) {
@@ -288,7 +315,7 @@ export default class Profile extends Command {
         name: `**${hero.name}**`,
         value: `
           Games: **${hero.games}**
-          Win as: **${hero.winRate.toPrecision(2)}%**
+          Winrate: **${hero.winRate.toPrecision(2)}%**
           Percentile: **${hero.percentile}**`,
         inline: true,
       });

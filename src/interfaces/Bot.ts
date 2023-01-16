@@ -62,6 +62,7 @@ export interface PlayerData {
   heroes: PlayerHeroData[];
   recent: PlayerRecentData;
   lanes: PlayerLanes[];
+  lobbies: PlayerLobbies[];
 }
 
 /**
@@ -112,6 +113,15 @@ export interface MetaHeroData {
  */
 export interface PlayerLanes {
   lane: string;
+  games: number;
+  winRate: number;
+}
+
+/**
+ * Contains data about a player's lobby types
+ */
+export interface PlayerLobbies {
+  lobby: string;
   games: number;
   winRate: number;
 }
