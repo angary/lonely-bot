@@ -109,10 +109,28 @@ export interface OpenDotaPlayerRecentMatches {
   party_size: number;
 }
 
+/**
+ * GET /players/{account_id}/counts
+ */
+export interface OpenDotaPlayerCount {
+  [code: string]: { games: number; win: number };
+}
+
+export interface OpenDotaPlayerCounts {
+  leaver_status: OpenDotaPlayerCount;
+  game_mode: OpenDotaPlayerCount;
+  lobby_type: OpenDotaPlayerCount;
+  lane_role: OpenDotaPlayerCount;
+  region: OpenDotaPlayerCount;
+  patch: OpenDotaPlayerCount;
+  is_radiant: OpenDotaPlayerCount;
+}
+
 export type OpenDotaData =
   | OpenDotaPlayer
   | OpenDotaWinLose
   | OpenDotaPlayerHeroes
   | OpenDotaHeroes
   | OpenDotaPlayerRankings
-  | OpenDotaPlayerRecentMatches;
+  | OpenDotaPlayerRecentMatches
+  | OpenDotaPlayerCounts;

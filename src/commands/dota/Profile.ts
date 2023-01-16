@@ -1,5 +1,6 @@
 import { Command } from "../../Command";
 import { gameModes } from "../../assets/gameModes";
+import { laneRoles } from "../../assets/laneRoles";
 import { lobbyTypes } from "../../assets/lobbyTypes";
 import { ranks } from "../../assets/ranks";
 import {
@@ -11,6 +12,7 @@ import { User } from "../../interfaces/Mongoose";
 import {
   OpenDotaHeroes,
   OpenDotaPlayer,
+  OpenDotaPlayerCounts,
   OpenDotaPlayerHeroes,
   OpenDotaPlayerRankings,
   OpenDotaPlayerRecentMatches,
@@ -24,10 +26,11 @@ import { CommandInteraction, Message, MessageEmbed } from "discord.js";
 type OpenDotaResponse = [
   OpenDotaPlayer,
   OpenDotaWinLose,
-  OpenDotaPlayerHeroes,
+  OpenDotaPlayerHeroes[],
   OpenDotaHeroes[],
   OpenDotaPlayerRankings[],
-  OpenDotaPlayerRecentMatches[]
+  OpenDotaPlayerRecentMatches[],
+  OpenDotaPlayerCounts
 ];
 
 export default class Profile extends Command {
@@ -98,6 +101,7 @@ export default class Profile extends Command {
     // 3: Hero names
     // 4: Hero rankings
     // 5: Most recent match data
+    // 6: Counts
     await axios
       .all([
         axios.get(`${url}players/${id}`),
@@ -106,6 +110,7 @@ export default class Profile extends Command {
         axios.get(`${url}heroes`),
         axios.get(`${url}players/${id}/rankings`),
         axios.get(`${url}players/${id}/recentMatches`),
+        axios.get(`${url}players/${id}/counts`),
       ])
       // Check for valid response
       .then((responses: AxiosResponse[]) => this.checkAPIResponse(responses))
@@ -153,7 +158,8 @@ export default class Profile extends Command {
    */
   private formatData(data: OpenDotaResponse): PlayerData {
     // Destructure data
-    const [player, wl, playerHeroes, heroes, rankings, recentMatches] = data;
+    const [player, wl, playerHeroes, heroes, rankings, recentMatches, counts] =
+      data;
 
     // Check for missing profile data
     if (!player || !player.profile) {
@@ -163,15 +169,16 @@ export default class Profile extends Command {
     }
 
     // Extract hero data
-    const playerHeroData: PlayerHeroData[] = [];
-    for (let i = 0; i < 3; i++) {
-      playerHeroData.push({
-        name: this.idToHeroName(heroes, playerHeroes[i].hero_id),
-        games: playerHeroes[i].games,
-        winRate: (100 * playerHeroes[i].win) / playerHeroes[i].games,
-        percentile: this.idToHeroRanking(rankings, playerHeroes[i].hero_id),
+    const playerHeroData: PlayerHeroData[] = playerHeroes
+      .slice(0, 3)
+      .map((hero) => {
+        return {
+          name: this.idToHeroName(heroes, hero.hero_id),
+          games: hero.games,
+          winRate: (100 * hero.win) / hero.games,
+          percentile: this.idToHeroRanking(rankings, hero.hero_id),
+        };
       });
-    }
 
     // Extra recent match data
     const recent = recentMatches[0];
@@ -179,7 +186,7 @@ export default class Profile extends Command {
     let skill = "Unknown skill";
     if (recent.average_rank) {
       const rankNum = Math.floor(recent.average_rank / 10);
-      skill = `${ranks[rankNum]}[${recent.average_rank % 10}]`;
+      skill = `${ranks[rankNum]} [${recent.average_rank % 10}]`;
     }
 
     const playerRecentData: PlayerRecentData = {
@@ -201,6 +208,13 @@ export default class Profile extends Command {
       duration: this.formatDuration(recent.duration),
     };
 
+    // Extract laning details
+    const lanes = Object.entries(counts.lane_role)
+      .map(([lane, { games, win }]) => {
+        return { lane: laneRoles[+lane], games, winRate: (100 * win) / games };
+      })
+      .sort((a, b) => b.games - a.games);
+
     // Profile details
     const profile = player.profile;
     return {
@@ -216,6 +230,7 @@ export default class Profile extends Command {
       winRate: (100 * wl.win) / (wl.win + wl.lose),
       heroes: playerHeroData,
       recent: playerRecentData,
+      lanes: lanes,
     };
   }
 
@@ -236,9 +251,9 @@ export default class Profile extends Command {
       .setTitle(`${player.name}`)
       .setURL(`https://www.opendota.com/players/${player.accountId}`)
       .setDescription(
-        `Medal: **${this.medal(player)}**
-        MMR Estimate: **${player.mmrEstimate}**
-        Country: **${player.country}**`
+        `Medal: **${this.medal(player)}** | MMR Estimate: **${
+          player.mmrEstimate
+        }** | Country: **${player.country}**`
       )
       .setThumbnail(player.avatar)
       .setTimestamp()
@@ -248,13 +263,23 @@ export default class Profile extends Command {
           "https://pbs.twimg.com/profile_images/962444554967203840/G6KHe1q3.jpg",
       })
       .addFields({
-        name: "**General Match Data**",
+        name: "**Matches**",
         value: `
-          Total: **${player.win + player.lose}** | Won: **${
-          player.win
-        }** | Lost: **${
-          player.lose
-        }** | Winrate: **${player.winRate.toPrecision(2)}%**\n`,
+          Total: **${player.win + player.lose}**
+          Winrate: **${player.winRate.toPrecision(4)}%**,
+          Won: **${player.win}**
+          Lost: **${player.lose}**`,
+        inline: true,
+      })
+      .addFields({
+        name: "**Lanes**",
+        value: player.lanes
+          .map(
+            (l) =>
+              `${l.lane}: **${l.games}** | **${l.winRate.toPrecision(2)}**% WR`
+          )
+          .join("\n"),
+        inline: true,
       });
 
     // Add player's top three heroes

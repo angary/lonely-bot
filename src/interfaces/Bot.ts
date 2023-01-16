@@ -61,6 +61,7 @@ export interface PlayerData {
   leaderboardRank: number;
   heroes: PlayerHeroData[];
   recent: PlayerRecentData;
+  lanes: PlayerLanes[];
 }
 
 /**
@@ -104,6 +105,15 @@ export interface MetaHeroData {
   winRate: string;
   index: number;
   popularity: number;
+}
+
+/**
+ * Contains data about a player's laning types
+ */
+export interface PlayerLanes {
+  lane: string;
+  games: number;
+  winRate: number;
 }
 
 export type Cooldown = Collection<string, number>;
