@@ -288,9 +288,9 @@ export default class Profile extends Command {
           name: "**Matches**",
           value: `
             Total: **${player.win + player.lose}**
-            Winrate: **${player.winRate.toPrecision(4)}%**,
             Won: **${player.win}**
-            Lost: **${player.lose}**`,
+            Lost: **${player.lose}**
+            Winrate: **${player.winRate.toPrecision(4)}%**`,
           inline: true,
         },
         {
