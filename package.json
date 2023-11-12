@@ -46,7 +46,7 @@
     "ytsr": "^3.5.3"
   },
   "devDependencies": {
-    "@trivago/prettier-plugin-sort-imports": "^2.0.4",
+    "@trivago/prettier-plugin-sort-imports": "^4.3.0",
     "@types/jest": "^27.0.1",
     "@types/node": "^16.11.7",
     "@types/node-fetch": "^2.5.12",
