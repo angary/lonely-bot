@@ -41,7 +41,7 @@
     "ffmpeg-static": "^4.4.0",
     "fluent-ffmpeg": "^2.1.2",
     "libsodium-wrappers": "^0.7.9",
-    "mongoose": "^8.8.3",
+    "mongoose": "^8.9.5",
     "ytdl-core": "^4.9.1",
     "ytsr": "^3.5.3"
   },
